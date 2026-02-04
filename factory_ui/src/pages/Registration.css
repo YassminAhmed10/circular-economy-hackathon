@@ -1,0 +1,119 @@
+/* Registration Page Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .registration-step {
+        @apply flex items-center gap-3;
+    }
+
+    .step-number {
+        @apply w-12 h-12 rounded-lg flex items-center justify-center font-semibold transition-all duration-300;
+    }
+
+    .step-active {
+        @apply bg-gradient-to-br from-orange-400 to-orange-500 text-white shadow-lg;
+    }
+
+    .step-inactive {
+        @apply bg-slate-200 text-slate-500;
+    }
+
+    .step-label-active {
+        @apply font-medium text-slate-800;
+    }
+
+    .step-label-inactive {
+        @apply font-medium text-slate-400;
+    }
+
+    .form-input {
+        @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors duration-200;
+    }
+
+    .form-label {
+        @apply block text-sm font-semibold text-slate-700 mb-2;
+    }
+
+    .required-star {
+        @apply text-red-500;
+    }
+
+    .primary-button {
+        @apply w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold py-4 rounded-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
+    }
+
+    .section-header {
+        @apply bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-6 rounded-t-2xl;
+    }
+
+    .section-title {
+        @apply text-3xl font-bold;
+    }
+
+    .preview-section {
+        @apply bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border-2 border-slate-200 relative overflow-hidden;
+    }
+
+    .preview-background {
+        @apply absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl;
+    }
+
+    .disabled-input {
+        @apply w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg cursor-not-allowed text-slate-400;
+    }
+}
+
+/* Custom animations */
+.pulse-glow {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Form container styling */
+.form-container {
+    @apply bg-white rounded-b-2xl shadow-xl overflow-hidden;
+}
+
+/* Radio option styling */
+.radio-option {
+    @apply flex items-center gap-3 p-3 bg-white border-2 rounded-lg cursor-pointer transition-colors duration-200;
+}
+
+.radio-option-selected {
+    @apply border-emerald-500;
+}
+
+.radio-option-unselected {
+    @apply border-slate-200;
+}
+
+.radio-dot {
+    @apply w-5 h-5 rounded-full border-2 flex items-center justify-center;
+}
+
+.radio-dot-selected {
+    @apply border-emerald-500;
+}
+
+.radio-dot-unselected {
+    @apply border-slate-300;
+}
+
+.radio-dot-inner {
+    @apply w-3 h-3 rounded-full;
+}
+
+.radio-dot-inner-selected {
+    @apply bg-emerald-500;
+}
