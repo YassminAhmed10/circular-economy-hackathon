@@ -1,290 +1,74 @@
-/* Global Styles */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* Loading Screen */
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+.loading-screen p {
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
+/* Error Page */
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  text-align: center;
+  padding: 20px;
 }
 
-/* Custom Utility Classes */
-@layer utilities {
-    .text-gradient {
-        @apply bg-gradient-to-r from-emerald-500 to-teal-600 bg-clip-text text-transparent;
-    }
-
-    .shadow-soft {
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
-
-    .shadow-medium {
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .shadow-hard {
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    }
+.error-page h1 {
+  font-size: 8rem;
+  color: #667eea;
+  margin-bottom: 20px;
+  font-weight: 800;
+  text-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Form Components */
-@layer components {
-    /* Common Form Styles */
-    .input-field {
-        @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors duration-200;
-    }
+.error-page p {
+  font-size: 1.5rem;
+  color: #4a5568;
+  margin-bottom: 30px;
+}
 
-    .select-field {
-        @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors duration-200 bg-white;
-    }
+.error-page a {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 40px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
 
-    .form-label {
-        @apply block text-sm font-semibold text-slate-700 mb-2;
-    }
-
-    .required-star {
-        @apply text-red-500;
-    }
-
-    /* Button Styles */
-    .btn {
-        @apply font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-    }
-
-    .btn-primary {
-        @apply bg-emerald-500 hover:bg-emerald-600 text-white focus:ring-emerald-500;
-    }
-
-    .btn-secondary {
-        @apply bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-500;
-    }
-
-    .btn-accent {
-        @apply bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-500;
-    }
-
-    .btn-lg {
-        @apply px-8 py-4 text-lg;
-    }
-
-    .btn-md {
-        @apply px-6 py-3 text-base;
-    }
-
-    .btn-sm {
-        @apply px-4 py-2 text-sm;
-    }
-
-    /* Card Styles */
-    .card {
-        @apply bg-white rounded-2xl border border-slate-100;
-    }
-
-    .card-shadow {
-        @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
-    }
-
-    .card-padding {
-        @apply p-6;
-    }
-
-    .card-padding-lg {
-        @apply p-8;
-    }
-
-    /* Navigation */
-    .nav-container {
-        @apply bg-white border-b border-slate-200 sticky top-0 z-50;
-    }
-
-    .nav-logo {
-        @apply flex items-center gap-3;
-    }
-
-    .logo-icon {
-        @apply w-10 h-10 rounded-lg flex items-center justify-center;
-    }
-
-    .logo-icon-lg {
-        @apply w-12 h-12;
-    }
-
-    .logo-emerald {
-        @apply bg-gradient-to-br from-emerald-500 to-teal-600;
-    }
-
-    .logo-blue {
-        @apply bg-blue-500;
-    }
-
-    /* Status Badges */
-    .badge {
-        @apply px-3 py-1 rounded-full text-xs font-semibold;
-    }
-
-    .badge-active {
-        @apply bg-emerald-100 text-emerald-700;
-    }
-
-    .badge-pending {
-        @apply bg-amber-100 text-amber-700;
-    }
-
-    .badge-inactive {
-        @apply bg-slate-100 text-slate-700;
-    }
-
-    .badge-success {
-        @apply bg-green-100 text-green-700;
-    }
-
-    /* Page Headers */
-    .page-header {
-        @apply bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-6 rounded-t-2xl;
-    }
-
-    .page-title {
-        @apply text-3xl font-bold;
-    }
-
-    .page-title-xl {
-        @apply text-4xl font-bold;
-    }
-
-    /* Hero Section */
-    .hero-section {
-        @apply relative h-96 flex items-center justify-center bg-gradient-to-r from-slate-900 to-emerald-800;
-    }
-
-    .hero-content {
-        @apply text-center px-6 max-w-4xl mx-auto;
-    }
-
-    .hero-title {
-        @apply text-5xl font-bold text-white mb-4;
-    }
-
-    /* Statistics Cards */
-    .stat-grid {
-        @apply grid grid-cols-1 md:grid-cols-3 gap-8;
-    }
-
-    .stat-card {
-        @apply bg-white p-8 rounded-2xl shadow-lg border border-slate-100;
-    }
-
-    .stat-icon-container {
-        @apply w-16 h-16 rounded-xl flex items-center justify-center mb-4;
-    }
-
-    .stat-value {
-        @apply text-3xl font-bold text-slate-800 mb-2;
-    }
-
-    .stat-label {
-        @apply text-slate-600;
-    }
-
-    /* Dashboard Specific */
-    .dashboard-grid {
-        @apply grid grid-cols-1 md:grid-cols-3 gap-6 mb-8;
-    }
-
-    .metric-card-dashboard {
-        @apply bg-white rounded-2xl shadow-lg p-6;
-    }
-
-    .metric-inner {
-        @apply flex items-center gap-4;
-    }
-
-    /* Success Story */
-    .success-section {
-        @apply bg-slate-50 py-16;
-    }
-
-    .story-card {
-        @apply bg-white rounded-2xl shadow-xl p-8;
-    }
-
-    .story-grid {
-        @apply grid grid-cols-1 md:grid-cols-2 gap-8;
-    }
-
-    /* Registration Steps */
-    .steps-container {
-        @apply flex items-center justify-center gap-8 max-w-4xl mx-auto;
-    }
-
-    .step-item {
-        @apply flex items-center gap-3;
-    }
-
-    .step-number {
-        @apply w-12 h-12 rounded-lg flex items-center justify-center font-semibold transition-all;
-    }
-
-    .step-active {
-        @apply bg-orange-500 text-white shadow-lg;
-    }
-
-    .step-inactive {
-        @apply bg-slate-200 text-slate-500;
-    }
-
-    .step-label {
-        @apply font-medium;
-    }
-
-    .step-label-active {
-        @apply text-slate-800;
-    }
-
-    .step-label-inactive {
-        @apply text-slate-400;
-    }
-
-    .step-divider {
-        @apply flex-1 h-1 bg-slate-200 rounded;
-    }
+.error-page a:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }

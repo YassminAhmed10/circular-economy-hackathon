@@ -4,154 +4,224 @@
 @tailwind utilities;
 
 @layer components {
-    .header-logo-enhanced {
-        @apply w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300;
+    /* تنسيقات الخلفية */
+    .registration-bg {
+        @apply min-h-screen bg-cover bg-center bg-fixed;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), var(--registration-bg);
     }
 
-    .section-header-enhanced {
-        @apply text-center mb-10;
+    /* تنسيقات الحاويات */
+    .registration-container {
+        @apply min-h-screen bg-gradient-to-br from-slate-900/70 via-blue-900/50 to-emerald-900/60;
     }
 
-    .section-title-enhanced {
-        @apply text-4xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 bg-clip-text text-transparent mb-3;
+    /* تنسيقات خطوات التسجيل */
+    .step-progress {
+        @apply flex items-center justify-between mb-8;
     }
 
-    .steps-container {
-        @apply flex items-center justify-center gap-4;
+    .step-circle {
+        @apply flex items-center justify-center w-16 h-16 rounded-full text-white font-bold text-xl transition-all duration-300 shadow-lg;
     }
 
-    .step-item {
-        @apply flex flex-col items-center gap-2;
+    .step-circle-active {
+        @apply bg-gradient-to-br from-emerald-500 to-emerald-600;
     }
 
-    .step-number-enhanced {
-        @apply w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-300;
+    .step-circle-inactive {
+        @apply bg-slate-300;
     }
 
-    .step-active-enhanced {
-        @apply bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl scale-110;
+    .step-line {
+        @apply flex-1 h-2 bg-slate-300 rounded-full overflow-hidden mx-4;
     }
 
-    .step-inactive-enhanced {
-        @apply bg-slate-200 text-slate-500 hover:bg-slate-300;
+    .step-line-progress {
+        @apply h-full bg-emerald-600 rounded-full transition-all duration-500;
     }
 
-    .step-label-enhanced {
-        @apply font-medium text-sm transition-colors duration-300;
+    /* تنسيقات العناوين */
+    .form-title {
+        @apply text-4xl font-bold text-slate-900 mb-2;
     }
 
-    .step-label-active-enhanced {
-        @apply text-emerald-600 font-semibold;
+    .form-subtitle {
+        @apply text-slate-600 text-lg mb-8;
     }
 
-    .step-label-inactive-enhanced {
-        @apply text-slate-400;
+    /* تنسيقات الحقول */
+    .form-section {
+        @apply space-y-8;
     }
 
-    .step-divider-enhanced {
-        @apply flex-1 h-1 bg-gradient-to-r from-slate-200 to-slate-300 rounded-full max-w-[60px];
-    }
-
-    .form-container-enhanced {
-        @apply bg-white rounded-b-3xl shadow-2xl px-8 py-10 border border-slate-100;
-    }
-
-    .form-group-enhanced {
-        @apply space-y-2;
-    }
-
-    .form-label-enhanced {
-        @apply block text-sm font-bold text-slate-700 mb-2;
-    }
-
-    .form-input-enhanced {
-        @apply w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all duration-300 hover:border-slate-400;
-    }
-
-    .primary-button-enhanced {
-        @apply w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-2;
-    }
-
-    .registration-step {
-        @apply flex items-center gap-3;
-    }
-
-    .step-number {
-        @apply w-12 h-12 rounded-lg flex items-center justify-center font-semibold transition-all duration-300;
-    }
-
-    .step-active {
-        @apply bg-gradient-to-br from-orange-400 to-orange-500 text-white shadow-lg;
-    }
-
-    .step-inactive {
-        @apply bg-slate-200 text-slate-500;
-    }
-
-    .step-label-active {
-        @apply font-medium text-slate-800;
-    }
-
-    .step-label-inactive {
-        @apply font-medium text-slate-400;
-    }
-
-    .form-input {
-        @apply w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors duration-200;
+    .form-grid {
+        @apply grid grid-cols-1 md:grid-cols-2 gap-8;
     }
 
     .form-label {
-        @apply block text-sm font-semibold text-slate-700 mb-2;
+        @apply block text-slate-700 font-bold text-lg mb-3 flex items-center gap-2;
     }
 
-    .required-star {
-        @apply text-red-500 font-bold;
+    .form-input {
+        @apply w-full px-5 py-4 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:outline-none transition-all text-lg placeholder-slate-400;
     }
 
-    .primary-button {
-        @apply w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold py-4 rounded-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
+    .form-input:focus {
+        @apply ring-2 ring-emerald-200;
     }
 
-    .section-header {
-        @apply bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-6 rounded-t-2xl;
+    .form-textarea {
+        @apply w-full px-5 py-4 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:outline-none transition-all text-lg resize-none;
+        min-height: 150px;
     }
 
-    .section-title {
-        @apply text-3xl font-bold;
+    .form-select {
+        @apply w-full px-5 py-4 border-2 border-slate-300 rounded-xl focus:border-emerald-600 focus:outline-none transition-all text-lg;
     }
 
-    .preview-section {
-        @apply bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border-2 border-slate-200 relative overflow-hidden;
+    /* تنسيقات زر الرفع */
+    .upload-area {
+        @apply border-3 border-dashed border-emerald-300 rounded-2xl p-12 text-center cursor-pointer hover:bg-emerald-100 transition-all;
     }
 
-    .preview-background {
-        @apply absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 rounded-full blur-3xl;
+    .upload-area-active {
+        @apply bg-emerald-50;
     }
 
-    .disabled-input {
-        @apply w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg cursor-not-allowed text-slate-400;
+    /* تنسيقات قسم المراجعة */
+    .review-section {
+        @apply bg-gradient-to-br from-white to-slate-50 rounded-2xl p-6 border-2 border-slate-200;
+    }
+
+    .review-title {
+        @apply text-xl font-bold text-slate-900 mb-4 flex items-center gap-2;
+    }
+
+    .review-item {
+        @apply flex justify-between items-center py-3 border-b border-slate-200 last:border-b-0;
+    }
+
+    .review-label {
+        @apply font-semibold text-slate-700;
+    }
+
+    .review-value {
+        @apply text-slate-600;
+    }
+
+    /* تنسيقات الأزرار */
+    .nav-button {
+        @apply px-8 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center gap-3;
+    }
+
+    .nav-button-prev {
+        @apply bg-slate-200 hover:bg-slate-300 text-slate-700;
+    }
+
+    .nav-button-next {
+        @apply bg-emerald-600 hover:bg-emerald-700 text-white;
+    }
+
+    .nav-button-submit {
+        @apply bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white;
+    }
+
+    /* تنسيقات الشروط */
+    .terms-section {
+        @apply bg-amber-50 border-2 border-amber-200 rounded-2xl p-6;
+    }
+
+    .terms-title {
+        @apply text-lg font-bold text-amber-900 mb-2;
+    }
+
+    .terms-text {
+        @apply text-amber-800;
+    }
+
+    /* تنسيقات شعار المصنع */
+    .logo-preview-container {
+        @apply flex flex-col items-center;
+    }
+
+    .logo-preview {
+        @apply w-64 h-64 object-contain rounded-xl border-4 border-white shadow-lg;
+    }
+
+    .logo-remove-button {
+        @apply absolute -top-2 -left-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors;
+    }
+
+    /* تنسيقات أنواع النفايات */
+    .waste-type-checkbox {
+        @apply flex items-center gap-3 p-4 border-2 border-slate-300 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all cursor-pointer;
+    }
+
+    .waste-type-checkbox-selected {
+        @apply border-emerald-500 bg-emerald-50;
+    }
+
+    /* تنسيقات الـ Navbar */
+    .navbar-container {
+        @apply bg-black/80 backdrop-blur-md shadow-xl sticky top-0 z-50;
+    }
+
+    /* Welcome Modal Styles */
+    .welcome-modal-overlay {
+        @apply fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75 p-4;
+    }
+
+    .welcome-modal-container {
+        @apply relative bg-gradient-to-br from-white to-slate-50 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl;
+    }
+
+    .welcome-modal-content {
+        @apply relative p-10 text-center;
+    }
+
+    .welcome-icon {
+        @apply w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl;
+    }
+
+    .welcome-title {
+        @apply text-3xl font-bold text-slate-900 mb-4;
+    }
+
+    .welcome-factory-name {
+        @apply bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 mb-6 border border-emerald-200;
+    }
+
+    .welcome-message {
+        @apply space-y-4 mb-8 text-slate-700;
+    }
+
+    .welcome-next-steps {
+        @apply bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-8 border border-blue-200;
+    }
+
+    .welcome-button-primary {
+        @apply flex-1 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl flex items-center justify-center gap-3;
+    }
+
+    .welcome-button-secondary {
+        @apply px-8 py-4 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3;
     }
 }
 
-/* Custom animations */
-.pulse-glow {
-    animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-    0%, 100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
-}
-
+/* تأثيرات خاصة */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
     }
     to {
         opacity: 1;
@@ -159,40 +229,76 @@
     }
 }
 
-/* Form container styling */
-.form-container {
-    @apply bg-white rounded-b-2xl shadow-xl overflow-hidden;
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-/* Radio option styling */
-.radio-option {
-    @apply flex items-center gap-3 p-3 bg-white border-2 rounded-lg cursor-pointer transition-colors duration-200;
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
 }
 
-.radio-option-selected {
-    @apply border-emerald-500;
+.animate-slideUp {
+    animation: slideUp 0.5s ease-out;
 }
 
-.radio-option-unselected {
-    @apply border-slate-200;
+.animate-scaleIn {
+    animation: scaleIn 0.5s ease-out;
 }
 
-.radio-dot {
-    @apply w-5 h-5 rounded-full border-2 flex items-center justify-center;
+/* تأثيرات الرفع */
+.upload-area:hover {
+    animation: pulse 2s infinite;
 }
 
-.radio-dot-selected {
-    @apply border-emerald-500;
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 
-.radio-dot-unselected {
-    @apply border-slate-300;
+/* تنسيقات للموبايل */
+@media (max-width: 768px) {
+    .form-grid {
+        @apply grid-cols-1 gap-4;
+    }
+    
+    .form-input, .form-select, .form-textarea {
+        @apply px-4 py-3 text-base;
+    }
+    
+    .nav-button {
+        @apply px-6 py-3 text-base;
+    }
+    
+    .logo-preview {
+        @apply w-48 h-48;
+    }
+    
+    .welcome-modal-content {
+        @apply p-6;
+    }
+    
+    .welcome-title {
+        @apply text-2xl;
+    }
 }
 
-.radio-dot-inner {
-    @apply w-3 h-3 rounded-full;
-}
-
-.radio-dot-inner-selected {
-    @apply bg-emerald-500;
+/* تنسيقات للشاشات الكبيرة */
+@media (min-width: 1536px) {
+    .form-input, .form-select, .form-textarea {
+        @apply px-6 py-5 text-xl;
+    }
 }
