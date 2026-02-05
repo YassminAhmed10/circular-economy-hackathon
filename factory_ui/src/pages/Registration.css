@@ -4,6 +4,74 @@
 @tailwind utilities;
 
 @layer components {
+    .header-logo-enhanced {
+        @apply w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300;
+    }
+
+    .section-header-enhanced {
+        @apply text-center mb-10;
+    }
+
+    .section-title-enhanced {
+        @apply text-4xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 bg-clip-text text-transparent mb-3;
+    }
+
+    .steps-container {
+        @apply flex items-center justify-center gap-4;
+    }
+
+    .step-item {
+        @apply flex flex-col items-center gap-2;
+    }
+
+    .step-number-enhanced {
+        @apply w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg transition-all duration-300;
+    }
+
+    .step-active-enhanced {
+        @apply bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-xl scale-110;
+    }
+
+    .step-inactive-enhanced {
+        @apply bg-slate-200 text-slate-500 hover:bg-slate-300;
+    }
+
+    .step-label-enhanced {
+        @apply font-medium text-sm transition-colors duration-300;
+    }
+
+    .step-label-active-enhanced {
+        @apply text-emerald-600 font-semibold;
+    }
+
+    .step-label-inactive-enhanced {
+        @apply text-slate-400;
+    }
+
+    .step-divider-enhanced {
+        @apply flex-1 h-1 bg-gradient-to-r from-slate-200 to-slate-300 rounded-full max-w-[60px];
+    }
+
+    .form-container-enhanced {
+        @apply bg-white rounded-b-3xl shadow-2xl px-8 py-10 border border-slate-100;
+    }
+
+    .form-group-enhanced {
+        @apply space-y-2;
+    }
+
+    .form-label-enhanced {
+        @apply block text-sm font-bold text-slate-700 mb-2;
+    }
+
+    .form-input-enhanced {
+        @apply w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:outline-none transition-all duration-300 hover:border-slate-400;
+    }
+
+    .primary-button-enhanced {
+        @apply w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-600 text-white font-bold py-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-2;
+    }
+
     .registration-step {
         @apply flex items-center gap-3;
     }
@@ -37,7 +105,7 @@
     }
 
     .required-star {
-        @apply text-red-500;
+        @apply text-red-500 font-bold;
     }
 
     .primary-button {
@@ -77,6 +145,17 @@
 
     50% {
         opacity: 0.5;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
