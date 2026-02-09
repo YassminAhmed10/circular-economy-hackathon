@@ -1,184 +1,226 @@
-/* Dashboard Page Styles */
+/* Dashboard Page Styles - Enhanced Emerald Theme */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer components {
+    /* تنسيقات الخلفية المحسنة */
     .dashboard-container {
-        @apply min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50;
+        @apply min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950;
+        background-image: radial-gradient(circle at 50% 50%, rgba(5, 150, 105, 0.15) 0%, transparent 50%);
     }
 
-    .dashboard-nav {
-        @apply bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm;
+    /* Navbar أسود محسّن */
+    .navbar-container {
+        @apply bg-gradient-to-r from-black via-gray-900 to-black backdrop-blur-lg shadow-2xl sticky top-0 z-50 border-b border-emerald-800/30;
     }
 
-    .nav-logo {
-        @apply w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center;
+    /* بطاقات محسنة */
+    .stats-card {
+        @apply bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 rounded-2xl p-6 border border-emerald-700/30 hover:border-emerald-600/50 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-900/20;
     }
 
-    .nav-search {
-        @apply pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 w-64;
+    /* أزرار محسنة */
+    .btn-primary {
+        @apply px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2;
     }
 
-    .nav-search-icon {
-        @apply absolute left-3 top-3 text-slate-400;
+    .btn-secondary {
+        @apply px-6 py-3 bg-emerald-900/50 hover:bg-emerald-800/50 text-emerald-200 hover:text-white font-semibold rounded-xl transition-all duration-300 border border-emerald-700 hover:border-emerald-600 flex items-center justify-center gap-2;
     }
 
-    .nav-icon-button {
-        @apply p-2 hover:bg-slate-100 rounded-lg transition-colors;
+    /* أقسام محسنة */
+    .section-container {
+        @apply bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 rounded-2xl p-6 border border-emerald-700/30;
     }
 
-    .user-profile {
-        @apply flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors;
+    /* عناوين محسنة */
+    .section-title {
+        @apply text-2xl font-bold bg-gradient-to-r from-white to-emerald-300 bg-clip-text text-transparent mb-2;
     }
 
-    .dashboard-title {
-        @apply text-3xl font-bold text-slate-800;
+    .section-subtitle {
+        @apply text-emerald-300 text-sm mb-6;
     }
 
-    .metrics-card {
-        @apply bg-white rounded-2xl shadow-lg p-6 border border-slate-100;
+    /* تنسيقات النصوص */
+    .text-primary {
+        @apply text-white;
     }
 
-    .metrics-title {
-        @apply text-lg font-bold text-slate-800 mb-6;
+    .text-secondary {
+        @apply text-emerald-300;
     }
 
-    .metric-item {
-        @apply bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200 hover:shadow-md transition-shadow duration-200;
+    .text-accent {
+        @apply text-emerald-400;
     }
 
-    .metric-icon {
-        @apply w-12 h-12 rounded-lg flex items-center justify-center mb-3;
+    /* بطاقة النشاط */
+    .activity-card {
+        @apply flex items-center gap-4 p-4 rounded-xl bg-emerald-900/20 hover:bg-emerald-800/30 transition-all duration-300 border border-emerald-700/30 hover:border-emerald-600/50 group;
     }
 
-    .metric-label {
-        @apply text-sm text-slate-600 mb-1;
-    }
-
-    .metric-value {
-        @apply text-2xl font-bold text-slate-800;
-    }
-
-    .table-card {
-        @apply bg-white rounded-2xl shadow-lg p-6 border border-slate-100;
-    }
-
-    .table-header {
-        @apply border-b border-slate-200;
-    }
-
-    .table-header-cell {
-        @apply text-left py-3 px-2 text-sm font-semibold text-slate-600;
-    }
-
-    .table-row {
-        @apply border-b border-slate-100 hover:bg-slate-50 transition-colors duration-200;
-    }
-
-    .table-cell {
-        @apply py-4 px-2 text-sm;
-    }
-
+    /* علامة الحالة */
     .status-badge {
         @apply px-3 py-1 rounded-full text-xs font-semibold;
     }
 
-    .status-active {
-        @apply bg-emerald-100 text-emerald-700;
+    .status-completed {
+        @apply bg-emerald-500/20 text-emerald-300;
     }
 
     .status-pending {
-        @apply bg-amber-100 text-amber-700;
+        @apply bg-amber-500/20 text-amber-300;
     }
 
-    .action-link {
-        @apply text-emerald-600 hover:text-emerald-700 text-sm font-medium;
+    /* بطاقة الإجراء السريع */
+    .quick-action-card {
+        @apply p-4 rounded-xl bg-gradient-to-br transition-all duration-300 hover:transform hover:scale-105 flex flex-col items-center justify-center group;
     }
 
-    .activity-item {
-        @apply flex items-start gap-3 p-3 hover:bg-slate-50 rounded-lg transition-colors duration-200;
+    /* شريط التقدم */
+    .progress-bar {
+        @apply h-2 bg-emerald-900/50 rounded-full overflow-hidden;
     }
 
-    .activity-icon {
-        @apply w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0;
+    .progress-fill {
+        @apply h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400;
     }
 
-    .activity-content {
-        @apply flex-1;
+    /* بطاقة الإشعار */
+    .notification-card {
+        @apply bg-gradient-to-br from-amber-900/20 to-amber-800/10 rounded-2xl p-5 border border-amber-700/30 hover:border-amber-600/50 transition-all duration-300;
     }
 
-    .activity-text {
-        @apply text-sm font-medium text-slate-700;
+    /* مؤشر الإشعار */
+    .notification-indicator {
+        @apply absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse;
     }
 
-    .activity-time {
-        @apply text-xs text-slate-500 mt-1;
+    /* إحصائيات صغيرة */
+    .mini-stat {
+        @apply text-center p-3 rounded-lg bg-emerald-900/30 hover:bg-emerald-800/40 transition-all duration-300;
     }
 
-    .activity-timestamp {
-        @apply text-xs text-slate-400;
+    /* تأثيرات خاصة */
+    .hover-glow {
+        @apply hover:shadow-lg hover:shadow-emerald-500/10;
     }
 
-    .reports-grid {
-        @apply grid grid-cols-2 gap-6;
+    /* محاكاة الرسم البياني */
+    .chart-bar {
+        @apply w-8 bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-lg transition-all duration-500 hover:opacity-80;
     }
 
-    .report-chart {
-        @apply h-48 bg-gradient-to-br rounded-lg flex items-center justify-center;
-    }
-
-    .report-chart-blue {
-        @apply from-blue-50 to-blue-100;
-    }
-
-    .report-chart-green {
-        @apply from-green-50 to-emerald-100;
-    }
-
-    .report-icon {
-        @apply w-12 h-12 mx-auto mb-2;
-    }
-
-    .report-label {
-        @apply text-sm text-slate-600;
+    /* تأثيرات دخول الصفحة */
+    .page-enter {
+        animation: fadeInUp 0.6s ease-out;
     }
 }
 
-/* Gradient backgrounds */
-.gradient-blue {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+/* تأثيرات الحركة */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.gradient-purple {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
-.gradient-emerald {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+    }
 }
 
-.gradient-green {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+.animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out;
 }
 
-.gradient-teal {
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+.animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
 }
 
-.gradient-cyan {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+.animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
 }
 
-/* Table styling */
-.table-container {
-    overflow-x: auto;
+/* تخصيص شريط التمرير */
+::-webkit-scrollbar {
+    width: 10px;
 }
 
-/* Chart placeholder styling */
-.chart-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+::-webkit-scrollbar-track {
+    @apply bg-emerald-900/30;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-br from-emerald-600 to-teal-500 rounded-full hover:from-emerald-500 hover:to-teal-400;
+}
+
+/* تنسيقات للموبايل */
+@media (max-width: 768px) {
+    .navbar-container .hidden {
+        display: none !important;
+    }
+    
+    .stats-card {
+        @apply p-4;
+    }
+    
+    .section-container {
+        @apply p-4;
+    }
+    
+    .btn-primary, .btn-secondary {
+        @apply px-4 py-2 text-sm;
+    }
+    
+    .section-title {
+        @apply text-xl;
+    }
+}
+
+/* تأثيرات خاصة للبطاقات */
+.card-hover-effect {
+    @apply transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-2xl;
+}
+
+/* تأثيرات التدرج */
+.gradient-text {
+    @apply bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent;
+}
+
+.gradient-border {
+    @apply border border-transparent bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 bg-origin-border;
+}
+
+/* تأثيرات الإضاءة */
+.glow-effect {
+    @apply relative overflow-hidden;
+}
+
+.glow-effect::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent;
+    transform: translateX(-100%);
+    animation: shimmer 3s infinite;
 }

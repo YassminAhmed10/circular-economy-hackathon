@@ -1,151 +1,196 @@
-import { ShoppingCart, TrendingUp, Package, Eye, BarChart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import {
+    TrendingUp,
+    Package,
+    DollarSign,
+    AlertCircle,
+    Plus,
+    ArrowUpRight,
+    Clock,
+    CheckCircle2
+} from 'lucide-react'
 import './Dashboard.css'
 
 function Dashboard({ user }) {
     const navigate = useNavigate()
 
-    // Stats data (will come from API later)
-    const dashboardStats = {
-        totalWaste: '145 طن',
-        totalViews: '2,300',
-        activeOrders: '18',
-        totalRevenue: '24,500 ج'
-    }
-
-    // Quick actions data
-    const quickActions = [
+    // الإحصائيات الرئيسية
+    const stats = [
         {
-            title: 'نظرة على السوق',
-            description: 'تصفح أحدث عروض النفايات المتاحة',
-            icon: <ShoppingCart className="w-5 h-5 text-emerald-600" />,
-            buttonText: 'زيارة السوق',
-            onClick: () => navigate('/marketplace'),
-            primary: false
-        },
-        {
-            title: 'إضافة نفايات',
-            description: 'بيع نفايات مصنعك في السوق',
-            icon: <Package className="w-5 h-5 text-emerald-600" />,
-            buttonText: 'إضافة نفايات جديدة',
-            onClick: () => navigate('/list-waste'),
-            primary: true
-        },
-        {
-            title: 'التحليلات',
-            description: 'تحليل أداء مصنعك وإحصاءات المبيعات',
-            icon: <BarChart className="w-5 h-5 text-emerald-600" />,
-            buttonText: 'عرض التحليلات',
-            onClick: () => navigate('/analytics'),
-            primary: false
-        }
-    ]
-
-    // Stats cards data
-    const statsCards = [
-        {
-            title: 'إجمالي النفايات',
-            value: dashboardStats.totalWaste,
-            icon: <Package className="w-6 h-6 text-emerald-600" />,
+            label: 'إجمالي المبيعات',
+            value: '87,240 ج',
+            change: '+12.5%',
+            trend: 'up',
+            icon: DollarSign,
             color: 'emerald'
         },
         {
-            title: 'المشاهدات',
-            value: dashboardStats.totalViews,
-            icon: <Eye className="w-6 h-6 text-blue-600" />,
+            label: 'المخلفات المتاحة',
+            value: '2.4 طن',
+            change: '-8%',
+            trend: 'down',
+            icon: Package,
             color: 'blue'
         },
         {
-            title: 'الطلبات النشطة',
-            value: dashboardStats.activeOrders,
-            icon: <ShoppingCart className="w-6 h-6 text-purple-600" />,
-            color: 'purple'
-        },
-        {
-            title: 'إجمالي الإيرادات',
-            value: dashboardStats.totalRevenue,
-            icon: <TrendingUp className="w-6 h-6 text-amber-600" />,
+            label: 'الطلبات النشطة',
+            value: '12',
+            change: '+3',
+            trend: 'up',
+            icon: Clock,
             color: 'amber'
         }
     ]
 
+    // العمليات الأخيرة
+    const recentActivity = [
+        {
+            id: 1,
+            title: 'بيع بلاستيك PET',
+            buyer: 'مصنع إعادة التدوير الأخضر',
+            amount: '500 كجم',
+            price: '3,500 ج',
+            time: 'منذ ساعتين',
+            status: 'completed'
+        },
+        {
+            id: 2,
+            title: 'طلب شراء زيوت مستعملة',
+            buyer: 'شركة الطاقة المتجددة',
+            amount: '200 لتر',
+            price: '4,000 ج',
+            time: 'منذ 5 ساعات',
+            status: 'pending'
+        },
+        {
+            id: 3,
+            title: 'بيع كرتون',
+            buyer: 'مصنع الورق المتحد',
+            amount: '1 طن',
+            price: '2,000 ج',
+            time: 'أمس',
+            status: 'completed'
+        }
+    ]
+
     return (
-        <div className="min-h-screen bg-slate-50" dir="rtl">
-            <div className="pt-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Welcome Section */}
-                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-lg mb-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        <div className="mb-6 md:mb-0">
-                            <h2 className="text-3xl font-bold mb-2">مرحباً بك في ECOv</h2>
-                            <p className="text-emerald-100 text-lg">منصة الاقتصاد الدائري للمصانع</p>
+        <div className="dashboard-container" dir="rtl">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                        مرحباً، {user?.name || 'مصنع الأمل'} 👋
+                    </h1>
+                    <p className="text-slate-600">إليك نظرة سريعة على نشاط مصنعك اليوم</p>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {stats.map((stat, index) => {
+                        const Icon = stat.icon
+                        return (
+                            <div
+                                key={index}
+                                className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-all"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
+                                        <Icon className={`w-6 h-6 text-${stat.color}-600`} />
+                                    </div>
+                                    <span
+                                        className={`flex items-center gap-1 text-sm font-medium ${stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'
+                                            }`}
+                                    >
+                                        {stat.change}
+                                        <ArrowUpRight
+                                            className={`w-4 h-4 ${stat.trend === 'down' ? 'rotate-90' : ''}`}
+                                        />
+                                    </span>
+                                </div>
+                                <p className="text-slate-600 text-sm mb-1">{stat.label}</p>
+                                <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    {/* Recent Activity */}
+                    <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-900">النشاط الأخير</h2>
+                            <button
+                                onClick={() => navigate('/transactions')}
+                                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center gap-1"
+                            >
+                                عرض الكل
+                                <ArrowUpRight className="w-4 h-4" />
+                            </button>
                         </div>
-                        <div className="text-center md:text-right">
-                            <div className="text-2xl font-bold">{user?.name || 'مصنع الأمل للصناعات الغذائية'}</div>
-                            <div className="text-emerald-100">آخر تحديث: اليوم الساعة 10:30 ص</div>
+
+                        <div className="space-y-4">
+                            {recentActivity.map(activity => (
+                                <div
+                                    key={activity.id}
+                                    className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-all border border-slate-100"
+                                >
+                                    <div
+                                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${activity.status === 'completed' ? 'bg-emerald-100' : 'bg-amber-100'
+                                            }`}
+                                    >
+                                        {activity.status === 'completed' ? (
+                                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                        ) : (
+                                            <Clock className="w-5 h-5 text-amber-600" />
+                                        )}
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <div className="flex justify-between mb-1">
+                                            <h3 className="font-semibold text-slate-900">{activity.title}</h3>
+                                            <span className="font-bold text-slate-900">{activity.price}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-600">{activity.buyer}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {activity.amount} • {activity.time}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statsCards.map((stat, index) => (
-                        <StatCard key={index} {...stat} />
-                    ))}
-                </div>
+                    {/* Actions */}
+                    <div className="space-y-6">
 
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {quickActions.map((action, index) => (
-                        <ActionCard key={index} {...action} />
-                    ))}
-                </div>
-            </div>
-        </div>
-    )
-}
+                        <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-6 text-white">
+                            <Package className="w-12 h-12 mb-4" />
+                            <h3 className="text-xl font-bold mb-2">أضف مخلفات جديدة</h3>
+                            <p className="text-emerald-100 mb-6">ابدأ في بيع المخلفات الصناعية</p>
+                            <button
+                                onClick={() => navigate('/list-waste')}
+                                className="w-full bg-white text-emerald-700 py-3 rounded-xl font-semibold flex justify-center gap-2"
+                            >
+                                <Plus className="w-5 h-5" />
+                                إضافة الآن
+                            </button>
+                        </div>
 
-// Stat Card Component
-function StatCard({ title, value, icon, color }) {
-    const colorClasses = {
-        emerald: 'bg-emerald-100',
-        blue: 'bg-blue-100',
-        purple: 'bg-purple-100',
-        amber: 'bg-amber-100'
-    }
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+                            <div className="flex gap-3">
+                                <AlertCircle className="w-5 h-5 text-blue-600" />
+                                <p className="text-blue-700 text-sm">
+                                    لديك 3 طلبات تنتظر الموافقة.
+                                </p>
+                            </div>
+                        </div>
 
-    return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-slate-600 text-sm mb-1">{title}</p>
-                    <p className="text-2xl font-bold text-slate-900">{value}</p>
-                </div>
-                <div className={`w-12 h-12 ${colorClasses[color]} rounded-full flex items-center justify-center`}>
-                    {icon}
+                    </div>
                 </div>
             </div>
-        </div>
-    )
-}
-
-// Action Card Component
-function ActionCard({ title, description, icon, buttonText, onClick, primary = false }) {
-    return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-                {icon}
-            </div>
-            <p className="text-slate-600 mb-4">{description}</p>
-            <button
-                onClick={onClick}
-                className={`w-full py-2 rounded-lg font-medium transition-all ${primary
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                    }`}
-            >
-                {buttonText}
-            </button>
         </div>
     )
 }
