@@ -174,3 +174,92 @@
 .video-modal-container {
     animation: modalFadeIn 0.3s ease-out;
 }
+/* Home.css إضافي لـ Dark Mode */
+
+/* تنسيقات عامة للوضع الداكن */
+.dark {
+  color-scheme: dark;
+}
+
+/* تحسينات للخطوط في الوضع الداكن */
+.dark body {
+  @apply bg-slate-900 text-slate-100;
+}
+
+/* تحسينات للأزرار في الوضع الداكن */
+.dark .btn-primary {
+  @apply bg-emerald-600 hover:bg-emerald-700 text-white;
+}
+
+.dark .btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-600 text-white;
+}
+
+/* تحسينات للكروت في الوضع الداكن */
+.dark .card {
+  @apply bg-slate-800 border-slate-700;
+}
+
+.dark .card-title {
+  @apply text-white;
+}
+
+.dark .card-description {
+  @apply text-slate-300;
+}
+
+/* تحسينات للعناوين في الوضع الداكن */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  @apply text-white;
+}
+
+/* تحسينات للنصوص في الوضع الداكن */
+.dark p, .dark span, .dark li {
+  @apply text-slate-300;
+}
+
+/* تحسينات للروابط في الوضع الداكن */
+.dark a {
+  @apply text-emerald-400 hover:text-emerald-300;
+}
+
+/* تحسينات للأشكال في الوضع الداكن */
+.dark input, .dark textarea, .dark select {
+  @apply bg-slate-800 border-slate-600 text-white placeholder-slate-400;
+}
+
+/* تحسينات للجداول في الوضع الداكن */
+.dark table {
+  @apply border-slate-700;
+}
+
+.dark th {
+  @apply bg-slate-800 text-slate-200;
+}
+
+.dark td {
+  @apply border-slate-700 text-slate-300;
+}
+
+/* تحسينات للأيقونات في الوضع الداكن */
+.dark .icon-primary {
+  @apply text-emerald-400;
+}
+
+.dark .icon-secondary {
+  @apply text-slate-400;
+}
+
+/* تحسينات للـ shadows في الوضع الداكن */
+.dark .shadow-lg {
+  @apply shadow-slate-900/50;
+}
+
+/* تحسينات للـ gradients في الوضع الداكن */
+.dark .gradient-primary {
+  @apply from-emerald-900 to-teal-900;
+}
+
+.dark .gradient-secondary {
+  @apply from-slate-800 to-slate-900;
+}
