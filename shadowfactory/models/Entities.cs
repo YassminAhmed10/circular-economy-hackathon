@@ -13,6 +13,10 @@ namespace shadowfactory.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+        public DateTime? RegistrationDate { get; set; }
+        public bool EmailNotifications { get; set; } = true;
+        public bool AppNotifications { get; set; } = true;
+        public bool PublicProfile { get; set; } = true;
 
         [Required]
         [StringLength(255)]
@@ -90,5 +94,7 @@ namespace shadowfactory.Models
         // Navigation properties
         [JsonIgnore]
         public virtual ICollection<FactoryWasteType> FactoryWasteTypes { get; set; } = new List<FactoryWasteType>();
+        [JsonIgnore]
+        public virtual ICollection<User> Users { get; set; } = new List<User>();
     }
 }

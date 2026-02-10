@@ -20,6 +20,11 @@ namespace shadowfactory.Models
         public string FullName { get; set; } = string.Empty;
 
         [Required]
+        [StringLength(100)]
+        public string Salt { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(500)]
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
@@ -32,7 +37,23 @@ namespace shadowfactory.Models
 
         public bool IsActive { get; set; } = true;
 
+        [NotMapped]  // ⭐⭐⭐ ADD THIS - TELL EF TO IGNORE THIS COLUMN ⭐⭐⭐
+        public string Phone { get; set; } = string.Empty;
+
+        [NotMapped]  // ⭐⭐⭐ ADD THIS ⭐⭐⭐
+        public bool? EmailNotifications { get; set; }
+
+        [NotMapped]  // ⭐⭐⭐ ADD THIS ⭐⭐⭐
+        public bool? AppNotifications { get; set; }
+
+        [NotMapped]  // ⭐⭐⭐ ADD THIS ⭐⭐⭐
+        public bool? PublicProfile { get; set; }
+
+        [NotMapped]  // ⭐⭐⭐ ADD THIS ⭐⭐⭐
+        public DateTime RegistrationDate { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation property

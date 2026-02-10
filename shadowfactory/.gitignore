@@ -1,0 +1,50 @@
+﻿# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.slnx
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+packages/
+*.nupkg
+nuget.exe
+NuGet.Config
+.nuget/
+
+# Azure
+*.pfx
+*.publishsettings
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+*.DS_Store
+
+# Project files
+*.esproj
+factory_ui/
+
+# Test files
+test-*.ps1
+test-*.bat
