@@ -9,7 +9,9 @@ C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\shadowfa
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\shadowfactory.pdb
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Azure.Identity.dll
+C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\BCrypt.Net-Next.dll
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Humanizer.dll
+C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
 C:\Users\DELL\source\repos\shadowfactory\shadowfactory\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll
