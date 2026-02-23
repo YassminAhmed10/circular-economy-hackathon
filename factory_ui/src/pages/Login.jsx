@@ -31,13 +31,12 @@ function Login({ onLoginSuccess }) {
 
     const checkBackendStatus = async () => {
         try {
-            // Try multiple endpoints that might respond
             const endpoints = [
-                '/',                          // Root
-                '/api/health',               // API health endpoint
-                '/health',                   // Health check
-                '/swagger/v1/swagger.json',  // Swagger JSON
-                '/favicon.ico'               // Favicon
+                '/',
+                '/api/health',
+                '/health',
+                '/swagger/v1/swagger.json',
+                '/favicon.ico'
             ];
 
             let isOnline = false;
@@ -47,11 +46,8 @@ function Login({ onLoginSuccess }) {
                     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
                         method: 'GET',
                         headers: { 'Accept': 'application/json' },
-                        mode: 'no-cors' // Use no-cors to avoid CORS issues for status check
+                        mode: 'no-cors'
                     });
-
-                    // With no-cors mode, we can't read response status
-                    // But if we get here without error, backend is reachable
                     isOnline = true;
                     console.log(`Backend reachable at: ${endpoint}`);
                     break;
@@ -63,7 +59,6 @@ function Login({ onLoginSuccess }) {
 
             setIsBackendOnline(isOnline);
 
-            // If no endpoint responded, try a CORS preflight request
             if (!isOnline) {
                 try {
                     await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LOGIN}`, {
@@ -88,13 +83,6 @@ function Login({ onLoginSuccess }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
-        // Temporarily comment out backend check to allow login attempts
-        // if (isBackendOnline === false) {
-        //     setError('Cannot connect to server. Make sure the backend is running.');
-        //     return;
-        // }
-
         setIsLoading(true);
 
         try {
@@ -111,88 +99,31 @@ function Login({ onLoginSuccess }) {
                 })
             });
 
-            // Log the response for debugging
             console.log('Login response status:', response.status);
-            console.log('Login response headers:', response.headers);
 
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Login error response:', errorText);
-
-                // Try to parse as JSON if possible
-                try {
-                    const errorJson = JSON.parse(errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorJson.message || errorText}`);
-                } catch {
-                    throw new Error(`HTTP ${response.status}: ${errorText || 'Login failed'}`);
-                }
+                throw new Error(`Login failed: ${response.status}`);
             }
 
             const result = await response.json();
             console.log('API Response:', result);
 
-            // Process the response based on your DTO structure
-            if (result.success !== undefined) {
-                // Case 1: ApiResponse<LoginResponse> format
-                if (result.success && result.data) {
-                    handleLoginSuccess(result.data);
-                }
-                // Case 2: LoginResponse format directly
-                else if (result.success && result.token) {
-                    handleLoginSuccess(result);
-                } else {
-                    setError(result.message || 'Login failed');
-                }
-            }
-            // Case 3: Direct token response
-            else if (result.token) {
-                handleLoginSuccess(result);
-            }
-            // Case 4: Direct user response
-            else if (result.user) {
+            // Handle the response based on your DTO structure
+            if (result.success && result.data) {
+                // ApiResponse<LoginResponse> format
+                handleLoginSuccess(result.data);
+            } else if (result.token) {
+                // Direct token response
                 handleLoginSuccess(result);
             } else {
-                console.warn('Unexpected response format:', result);
-                setError('Unexpected response format from server');
+                setError(result.message || 'Login failed');
             }
 
         } catch (error) {
             console.error('Login error:', error);
-
-            if (error.message.includes('Failed to fetch')) {
-                setError('Cannot connect to server. Please check:\n1. Backend is running\n2. CORS is configured properly\n3. Try using different credentials');
-
-                // Demo mode fallback for testing
-                if (formData.email && formData.password) {
-                    const demoResponse = {
-                        success: true,
-                        message: "Login successful (Demo Mode)",
-                        token: "demo_jwt_token_" + Date.now(),
-                        user: {
-                            id: 999,
-                            fullName: "Demo User",
-                            email: formData.email,
-                            role: "admin",
-                            factoryId: 1
-                        },
-                        factory: {
-                            id: 1,
-                            factoryName: "Demo Factory",
-                            industryType: "Manufacturing",
-                            location: "Cairo",
-                            verified: true
-                        }
-                    };
-
-                    console.log('Using demo mode login:', demoResponse);
-                    handleLoginSuccess(demoResponse);
-                    return;
-                }
-            } else if (error.message.includes('HTTP error')) {
-                setError(`Server error: ${error.message}`);
-            } else {
-                setError(error.message || 'Login error. Check your credentials.');
-            }
+            setError('Login failed. Please check your credentials.');
         } finally {
             setIsLoading(false);
         }
@@ -201,33 +132,53 @@ function Login({ onLoginSuccess }) {
     const handleLoginSuccess = (loginData) => {
         console.log('Login success data:', loginData);
 
-        const authData = {
-            token: loginData.token || loginData.accessToken,
-            user: loginData.user || loginData,
-            factory: loginData.factory,
-            timestamp: new Date().toISOString()
-        };
+        // Extract token - it could be in different places
+        const token = loginData.token || loginData.accessToken;
 
-        if (formData.rememberMe) {
-            localStorage.setItem('ecov_auth', JSON.stringify(authData));
-        } else {
-            sessionStorage.setItem('ecov_auth', JSON.stringify(authData));
+        if (!token) {
+            console.error('No token in response:', loginData);
+            setError('Invalid server response: No token received');
+            return;
         }
 
+        // Store token in localStorage (always store token, rememberMe controls user data storage)
+        localStorage.setItem('token', token);
+
+        // Also store user data if rememberMe is checked
+        if (formData.rememberMe) {
+            localStorage.setItem('user', JSON.stringify({
+                id: loginData.user?.id || loginData.userId,
+                email: loginData.user?.email || formData.email,
+                fullName: loginData.user?.fullName || loginData.fullName,
+                role: loginData.user?.role || loginData.role,
+                factoryId: loginData.user?.factoryId || loginData.factoryId || loginData.factory?.id
+            }));
+        } else {
+            // Store in sessionStorage for session-only
+            sessionStorage.setItem('user', JSON.stringify({
+                id: loginData.user?.id || loginData.userId,
+                email: loginData.user?.email || formData.email,
+                fullName: loginData.user?.fullName || loginData.fullName,
+                role: loginData.user?.role || loginData.role,
+                factoryId: loginData.user?.factoryId || loginData.factoryId || loginData.factory?.id
+            }));
+        }
+
+        // Call the onLoginSuccess callback if provided
         if (onLoginSuccess) {
             onLoginSuccess({
-                id: authData.user?.id || authData.user?.userId,
-                factoryName: authData.factory?.factoryName || authData.user?.fullName || 'Factory',
-                email: authData.user?.email || formData.email,
-                role: authData.user?.role || 'user',
-                factoryId: authData.user?.factoryId || authData.factory?.id,
-                isLoggedIn: true,
-                token: authData.token,
-                factory: authData.factory,
-                user: authData.user
+                id: loginData.user?.id || loginData.userId,
+                fullName: loginData.user?.fullName || loginData.fullName,
+                email: loginData.user?.email || formData.email,
+                role: loginData.user?.role || loginData.role,
+                factoryId: loginData.user?.factoryId || loginData.factoryId || loginData.factory?.id,
+                factory: loginData.factory,
+                token: token,
+                isLoggedIn: true
             });
         }
 
+        // Navigate to dashboard
         navigate('/dashboard');
     };
 
@@ -427,7 +378,7 @@ function Login({ onLoginSuccess }) {
 
                                         <button
                                             type="submit"
-                                            disabled={isLoading} // Removed: || isBackendOnline === false
+                                            disabled={isLoading}
                                             className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
                                         >
                                             {isLoading ? (
@@ -441,14 +392,6 @@ function Login({ onLoginSuccess }) {
                                                     <ArrowLeft className="w-5 h-5" />
                                                 </>
                                             )}
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={checkBackendStatus}
-                                            className="w-full py-2 text-sm text-slate-600 hover:text-emerald-600 border border-slate-300 rounded-lg hover:border-emerald-300 transition-colors"
-                                        >
-                                            Test Server Connection
                                         </button>
                                     </div>
                                 </form>

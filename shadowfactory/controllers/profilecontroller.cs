@@ -81,7 +81,7 @@ namespace shadowfactory.Controllers
                         Email = user.Factory.Email,
                         OwnerName = user.Factory.OwnerName,
                         TaxNumber = user.Factory.TaxNumber,
-                        RegistrationDate = user.Factory.RegistrationDate,
+                        RegistrationDate = user.Factory.CreatedAt,
                         Verified = user.Factory.Verified,
                         Status = user.Factory.Status,
                         EmailNotifications = true,
@@ -173,6 +173,33 @@ namespace shadowfactory.Controllers
                 });
             }
         }
+        [HttpPut("verify-factory/{factoryId}")]
+        [Authorize]
+        public async Task<IActionResult> VerifyFactory(long factoryId)
+        {
+            var factory = await _context.Factories
+                .FirstOrDefaultAsync(f => f.Id == factoryId);
+
+            if (factory == null)
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = "المصنع غير موجود"
+                });
+
+            factory.Verified = true;
+            factory.Status = "approved"; // optional
+            factory.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new ApiResponse
+            {
+                Success = true,
+                Message = "تم توثيق المصنع بنجاح"
+            });
+        }
+
 
         /// <summary>
         /// Get profile statistics

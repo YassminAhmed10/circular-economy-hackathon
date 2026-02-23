@@ -1,1 +1,0 @@
-# circular-economy-hackathon

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { useState } from 'react'
 import { TrendingUp, Package, DollarSign, AlertCircle, Plus, ArrowUpRight, Clock, CheckCircle2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'

@@ -4,12 +4,14 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<!-- ⚠️ Comment this out temporarily ⚠️ -->
+		<!-- <GenerateAssemblyInfo>false</GenerateAssemblyInfo> -->
 		<UserSecretsId>f9a0348f-588d-49cc-90f6-e8f74bdbd42b</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="Dapper" Version="2.1.66" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />

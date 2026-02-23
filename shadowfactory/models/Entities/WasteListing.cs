@@ -1,68 +1,81 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using shadowfactory.Models; // Add this for Factory
 
 namespace shadowfactory.Models.Entities
 {
-    [Table("WasteListings")]
+    [Table("WasteListings", Schema = "dbo")]
     public class WasteListing
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("Id")]
         public long Id { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [Column("Type")]
         public string Type { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(50)]
+        [Column("TypeEn")]
         public string TypeEn { get; set; } = string.Empty;
 
         [Required]
+        [Column("Amount")]
         public decimal Amount { get; set; }
 
         [Required]
-        [StringLength(20)]
+        [Column("Unit")]
         public string Unit { get; set; } = string.Empty;
 
         [Required]
+        [Column("Price")]
         public decimal Price { get; set; }
 
         [Required]
+        [Column("FactoryId")]
         public long FactoryId { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [Column("FactoryName")]
         public string FactoryName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [Column("Location")]
         public string Location { get; set; } = string.Empty;
 
-        [StringLength(500)]
+        [Column("Description")]
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(50)]
+        [Column("Category")]
         public string Category { get; set; } = string.Empty;
 
-        [StringLength(500)]
+        [Column("ImageUrl")]
         public string? ImageUrl { get; set; }
 
         [Required]
-        [StringLength(20)]
+        [Column("Status")]
         public string Status { get; set; } = "Active";
 
-        public int Views { get; set; } = 0;
-        public int Offers { get; set; } = 0;
+        [Column("Views")]
+        public int Views { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        [Column("Offers")]
+        public int Offers { get; set; }
+
+        [Column("CreatedAt")]
+        public DateTime CreatedAt { get; set; }
+
+        [Column("UpdatedAt")]
+        public DateTime UpdatedAt { get; set; }
+
+        [Column("ExpiresAt")]
         public DateTime? ExpiresAt { get; set; }
 
-        // Navigation property - Use the correct Factory type from shadowfactory.Models
+        // ⭐⭐⭐ ADD THIS NAVIGATION PROPERTY ⭐⭐⭐
         [ForeignKey("FactoryId")]
-        public virtual shadowfactory.Models.Factory? Factory { get; set; }
+        public virtual Factory? Factory { get; set; }
     }
 }

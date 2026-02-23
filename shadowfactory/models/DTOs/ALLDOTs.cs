@@ -253,6 +253,7 @@ namespace shadowfactory.Models.DTOs
         [Required]
         public string Type { get; set; } = string.Empty;
 
+        [Required] // Make this required
         public string TypeEn { get; set; } = string.Empty;
 
         [Required]
@@ -266,14 +267,12 @@ namespace shadowfactory.Models.DTOs
         [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
 
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         [Required]
         public string Category { get; set; } = string.Empty;
 
         public string? ImageUrl { get; set; }
-
-        public string? ImageBase64 { get; set; }
     }
 
     // ⭐⭐ KEEPING ORIGINAL WasteListingDto (removing duplicate) ⭐⭐

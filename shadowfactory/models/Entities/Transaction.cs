@@ -45,14 +45,14 @@ namespace shadowfactory.Models.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
 
-        // Navigation properties with full namespace
+        // Navigation properties with explicit foreign keys
         [ForeignKey("WasteListingId")]
         public virtual WasteListing? WasteListing { get; set; }
 
         [ForeignKey("BuyerFactoryId")]
-        public virtual shadowfactory.Models.Factory? BuyerFactory { get; set; }
+        public virtual Factory? BuyerFactory { get; set; }
 
         [ForeignKey("SellerFactoryId")]
-        public virtual shadowfactory.Models.Factory? SellerFactory { get; set; }
+        public virtual Factory? SellerFactory { get; set; }
     }
 }

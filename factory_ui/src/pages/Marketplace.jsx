@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Marketplace.css';
 import { FiSearch, FiMapPin, FiPackage, FiCheckCircle, FiEye } from 'react-icons/fi';
 import { MdRecycling } from 'react-icons/md';
@@ -16,642 +16,821 @@ import metalWasteImage from '../assets/مخلفات المعادن.png';
 import glassWasteImage from '../assets/مخلفات الزجاج.png';
 import textileWasteImage from '../assets/مخلفات النسيج.png';
 
+const API_BASE_URL = 'https://localhost:54464';
+
 const Marketplace = ({ user }) => {
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('الكل');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('الأحدث');
-  const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [wasteItems, setWasteItems] = useState([]);
+    const [categories, setCategories] = useState([]);
 
-  // دالة للحصول على الصورة المناسبة لكل فئة
-  const getImageForCategory = (category) => {
-    switch(category) {
-      case 'ورق': return paperWasteImage;
-      case 'بلاستيك': return plasticWasteImage;
-      case 'خشب': return woodWasteImage;
-      case 'معادن': return metalWasteImage;
-      case 'زجاج': return glassWasteImage;
-      case 'نسيج': return textileWasteImage;
-      default: return plasticWasteImage;
-    }
-  };
+    // Filter states
+    const [selectedCategory, setSelectedCategory] = useState('الكل');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('الأحدث');
+    const [priceRange, setPriceRange] = useState([0, 10000]);
+    const [selectedLocations, setSelectedLocations] = useState([]);
+    const [selectedTypes, setSelectedTypes] = useState([]);
 
-  // أنواع البلاستيك
-  const plasticTypes = ['PET', 'HDPE', 'PVC', 'LDPE', 'PP', 'PS', 'Other'];
-  const metalTypes = ['حديد', 'ألومنيوم', 'نحاس', 'ستيل', 'مختلط'];
-  const paperTypes = ['كرتون', 'ورق أبيض', 'ورق جرائد', 'ورق مختلط'];
+    useEffect(() => {
+        fetchWasteListings();
+        fetchCategories();
+    }, []);
 
-  // بيانات تجريبية للمخلفات مع الصور المحلية
-  const wasteItems = [
-    {
-      id: 1,
-      title: 'بلاستيك PET',
-      category: 'بلاستيك',
-      subType: 'PET',
-      quantity: '5 طن',
-      price: '3,000',
-      location: 'القاهرة',
-      company: 'مصنع النور للبلاستيك',
-      description: 'بلاستيك PET نظيف جاهز لإعادة التدوير، مناسبة لمصانع إعادة التدوير وإنتاج حبيبات بلاستيك جديدة',
-      date: 'منذ يومين',
-      verified: true,
-      sellerRating: 4.8,
-      views: 245,
-      distance: '5 كم',
-      details: {
-        type: 'PET',
-        purity: '95%',
-        packaging: 'بالات مكبوسة',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'تحويل بنكي أو نقدي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 2,
-      title: 'خشب معاد التدوير',
-      category: 'خشب',
-      subType: 'طبيعي',
-      quantity: '10 طن',
-      price: '2,000',
-      location: 'الإسكندرية',
-      company: 'مصنع الأخشاب المصرية',
-      description: 'خشب من مخلفات التصنيع، قطع متنوعة الأحجام، صالح لصناعة الأثاث والألواح الخشبية',
-      date: 'منذ 3 أيام',
-      verified: true,
-      sellerRating: 4.5,
-      views: 187,
-      distance: '15 كم',
-      details: {
-        type: 'خشب طبيعي',
-        thickness: 'متنوعة',
-        quality: 'جيدة',
-        availability: 'متوفر فوراً',
-        minOrder: '2 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 3,
-      title: 'معادن مختلطة',
-      category: 'معادن',
-      subType: 'مختلط',
-      quantity: '3 طن',
-      price: '8,000',
-      location: 'الجيزة',
-      company: 'شركة الحديد والصلب',
-      description: 'معادن متنوعة من عمليات التصنيع: حديد، ألومنيوم، نحاس. جاهزة للصهر وإعادة التدوير',
-      date: 'منذ 5 أيام',
-      verified: false,
-      sellerRating: 4.2,
-      views: 89,
-      distance: '8 كم',
-      details: {
-        type: 'مختلطة',
-        metals: 'حديد، ألومنيوم، نحاس',
-        purity: '90%',
-        availability: 'خلال أسبوع',
-        minOrder: '500 كجم',
-        payment: 'تحويل بنكي',
-        delivery: 'يتطلب ترتيب'
-      }
-    },
-    {
-      id: 4,
-      title: 'كرتون وورق',
-      category: 'ورق',
-      subType: 'كرتون',
-      quantity: '8 طن',
-      price: '1,500',
-      location: 'القاهرة',
-      company: 'مصنع التعبئة والتغليف',
-      description: 'كرتون نظيف من مخلفات التعبئة والتغليف، مناسب لإعادة التدوير وإنتاج ورق جديد',
-      date: 'منذ يوم',
-      verified: true,
-      sellerRating: 4.9,
-      views: 312,
-      distance: '3 كم',
-      details: {
-        type: 'كرتون مموج',
-        weight: 'متوسط',
-        condition: 'جاف ونظيف',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي أو تحويل',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 5,
-      title: 'زجاج شفاف',
-      category: 'زجاج',
-      subType: 'شفاف',
-      quantity: '4 طن',
-      price: '1,000',
-      location: 'الإسكندرية',
-      company: 'مصنع الزجاج الحديث',
-      description: 'زجاج شفاف نظيف، مكسور وقطع صغيرة، قابل لإعادة الصهر وتصنيع منتجات زجاجية جديدة',
-      date: 'منذ 4 أيام',
-      verified: true,
-      sellerRating: 4.7,
-      views: 156,
-      distance: '12 كم',
-      details: {
-        type: 'زجاج صودا-جير',
-        color: 'شفاف',
-        purity: '98%',
-        availability: 'متوفر فوراً',
-        minOrder: '500 كجم',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 6,
-      title: 'نسيج قطني',
-      category: 'نسيج',
-      subType: 'قطن',
-      quantity: '2 طن',
-      price: '4,000',
-      location: 'المحلة الكبرى',
-      company: 'مصانع الغزل والنسيج',
-      description: 'بقايا قماش قطني من عمليات القص والتفصيل، مناسبة لإعادة التدوير وصناعة الخيوط',
-      date: 'منذ أسبوع',
-      verified: false,
-      sellerRating: 4.0,
-      views: 78,
-      distance: '25 كم',
-      details: {
-        type: 'قطن 100%',
-        color: 'أبيض ومتنوع',
-        quality: 'جيد',
-        availability: 'خلال 3 أيام',
-        minOrder: '200 كجم',
-        payment: 'تحويل بنكي',
-        delivery: 'يتم التوصيل'
-      }
-    },
-    {
-      id: 7,
-      title: 'بلاستيك HDPE',
-      category: 'بلاستيك',
-      subType: 'HDPE',
-      quantity: '4 طن',
-      price: '3,500',
-      location: 'السويس',
-      company: 'شركة البلاستيك المتقدمة',
-      description: 'بلاستيك HDPE عالي الجودة، مناسب لصناعة العبوات البلاستيكية والأنابيب',
-      date: 'منذ 6 أيام',
-      verified: true,
-      sellerRating: 4.6,
-      views: 198,
-      distance: '30 كم',
-      details: {
-        type: 'HDPE',
-        purity: '96%',
-        packaging: 'بالات',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'تحويل بنكي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 8,
-      title: 'خشب MDF',
-      category: 'خشب',
-      subType: 'MDF',
-      quantity: '6 طن',
-      price: '1,800',
-      location: 'المنصورة',
-      company: 'مصنع ألواح الخشب',
-      description: 'ألواح MDF مستعملة، صالحة لإعادة التدوير وتصنيع الأثاث والألواح الجديدة',
-      date: 'منذ يومين',
-      verified: true,
-      sellerRating: 4.4,
-      views: 123,
-      distance: '18 كم',
-      details: {
-        type: 'MDF',
-        thickness: '18 مم',
-        condition: 'جيد',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 9,
-      title: 'حديد خردة',
-      category: 'معادن',
-      subType: 'حديد',
-      quantity: '7 طن',
-      price: '6,500',
-      location: 'حلوان',
-      company: 'مصنع الصلب المتكامل',
-      description: 'حديد خردة من مخلفات البناء والتصنيع، جاهز لإعادة الصهر والتدوير',
-      date: 'منذ 3 أيام',
-      verified: true,
-      sellerRating: 4.3,
-      views: 167,
-      distance: '10 كم',
-      details: {
-        type: 'حديد',
-        purity: '92%',
-        packaging: 'قطع كبيرة',
-        availability: 'متوفر فوراً',
-        minOrder: '2 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
-    },
-    {
-      id: 10,
-      title: 'ورق جرائد',
-      category: 'ورق',
-      subType: 'ورق جرائد',
-      quantity: '5 طن',
-      price: '1,200',
-      location: 'الإسكندرية',
-      company: 'دار الطباعة الحديثة',
-      description: 'ورق جرائد نظيف، مناسب لإعادة التدوير وصناعة ورق التواليت والمناديل',
-      date: 'منذ يوم',
-      verified: true,
-      sellerRating: 4.7,
-      views: 189,
-      distance: '7 كم',
-      details: {
-        type: 'ورق جرائد',
-        condition: 'جاف ونظيف',
-        quality: 'جيد',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
-    }
-  ];
+    useEffect(() => {
+        fetchWasteListings();
+    }, [selectedCategory, searchTerm, sortBy]);
 
-  const categories = [
-    { name: 'الكل', icon: BsBoxSeam, count: wasteItems.length },
-    { name: 'بلاستيك', icon: MdRecycling, count: wasteItems.filter(item => item.category === 'بلاستيك').length },
-    { name: 'معادن', icon: FaIndustry, count: wasteItems.filter(item => item.category === 'معادن').length },
-    { name: 'ورق', icon: BsFileText, count: wasteItems.filter(item => item.category === 'ورق').length },
-    { name: 'زجاج', icon: GiGlassShot, count: wasteItems.filter(item => item.category === 'زجاج').length },
-    { name: 'خشب', icon: GiWoodPile, count: wasteItems.filter(item => item.category === 'خشب').length },
-    { name: 'نسيج', icon: RiTShirtLine, count: wasteItems.filter(item => item.category === 'نسيج').length }
-  ];
+    const fetchWasteListings = async () => {
+        try {
+            setLoading(true);
 
-  const locations = ['القاهرة', 'الإسكندرية', 'الجيزة', 'المحلة الكبرى', 'السويس', 'المنصورة', 'حلوان'];
+            const params = new URLSearchParams();
 
-  const getSubTypesForCategory = (category) => {
-    switch(category) {
-      case 'بلاستيك': return plasticTypes;
-      case 'معادن': return metalTypes;
-      case 'ورق': return paperTypes;
-      default: return [];
-    }
-  };
+            if (selectedCategory !== 'الكل') {
+                const categoryMap = {
+                    'بلاستيك': 'plastic',
+                    'معادن': 'metal',
+                    'ورق': 'paper',
+                    'زجاج': 'glass',
+                    'خشب': 'wood',
+                    'نسيج': 'textile',
+                    'كيماويات': 'chemical',
+                    'مطاط': 'rubber'
+                };
+                const englishCategory = categoryMap[selectedCategory];
+                if (englishCategory) params.append('category', englishCategory);
+            }
 
-  const filteredItems = wasteItems.filter(item => {
-    const matchesCategory = selectedCategory === 'الكل' || item.category === selectedCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const itemPrice = parseInt(item.price.replace(/,/g, ''));
-    const matchesPrice = itemPrice >= priceRange[0] && itemPrice <= priceRange[1];
-    const matchesLocation = selectedLocations.length === 0 || selectedLocations.includes(item.location);
-    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(item.subType);
-    
-    return matchesCategory && matchesSearch && matchesPrice && matchesLocation && matchesType;
-  });
+            if (searchTerm) params.append('search', searchTerm);
 
-  const toggleLocation = (location) => {
-    setSelectedLocations(prev => 
-      prev.includes(location) 
-        ? prev.filter(l => l !== location)
-        : [...prev, location]
-    );
-  };
+            if (sortBy === 'الأقل سعراً') {
+                params.append('sortBy', 'price');
+                params.append('sortDescending', 'false');
+            } else if (sortBy === 'الأعلى سعراً') {
+                params.append('sortBy', 'price');
+                params.append('sortDescending', 'true');
+            } else if (sortBy === 'الأحدث') {
+                params.append('sortBy', 'date');
+                params.append('sortDescending', 'true');
+            }
 
-  const toggleType = (type) => {
-    setSelectedTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
-  };
+            const url = `${API_BASE_URL}/api/Marketplace/waste-listings${params.toString() ? '?' + params.toString() : ''}`;
 
-  const viewDetails = (id) => {
-    navigate(`/waste-details/${id}`);
-  };
+            const response = await fetch(url);
+            const data = await response.json();
 
-  return (
-    <div className="marketplace-page" dir="rtl">
-      
-      {/* Hero Section */}
-      <div className="marketplace-hero">
-        <div className="hero-content">
-          <h1>سوق المخلفات الصناعية</h1>
-          <p>حوّل المخلفات إلى فرص تجارية واستفد من الاقتصاد الدائري</p>
-          
-          {/* Search Bar */}
-          <div className="hero-search">
-            <div className="search-input-wrapper">
-              <FiSearch className="search-icon" size={20} />
-              <input
-                type="text"
-                placeholder="ابحث عن نوع المخلفات أو اسم الشركة..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button className="search-button">
-              بحث
-            </button>
-          </div>
-        </div>
-      </div>
+            if (data.success) {
+                const transformedItems = data.data.map(item => ({
+                    id: item.id,
+                    title: item.type,
+                    category: getArabicCategory(item.category),
+                    subType: item.typeEn,
+                    quantity: `${item.amount} ${item.unit}`,
+                    price: item.price.toLocaleString(),
+                    location: item.location,
+                    company: item.factoryName,
+                    description: item.description,
+                    date: getRelativeTime(item.createdAt),
+                    verified: item.status === 'Active',
+                    sellerRating: 4.5,
+                    views: item.views || 0,
+                    distance: 'غير محدد'
+                }));
 
-      <div className="marketplace-main">
-        
-        {/* Sidebar Filters */}
-        <aside className="filters-sidebar">
-          <div className="filter-section">
-            <h3 className="filter-title">
-              الفئات
-              <span className="filter-count">{filteredItems.length} منتج</span>
-            </h3>
-            <div className="filter-options">
-              {categories.map((cat) => {
-                const Icon = cat.icon;
-                return (
-                  <button
-                    key={cat.name}
-                    className={`filter-option ${selectedCategory === cat.name ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedCategory(cat.name);
-                      setSelectedTypes([]);
-                    }}
-                  >
-                    <div className="filter-option-content">
-                      <Icon size={18} />
-                      <span>{cat.name}</span>
-                    </div>
-                    <span className="category-count">{cat.count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                setWasteItems(transformedItems);
+                setError(null);
+            } else {
+                setError(data.message || 'فشل في تحميل البيانات');
+            }
+        } catch (err) {
+            console.error('Error fetching waste listings:', err);
+            setError('فشل في الاتصال بالخادم');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          {selectedCategory !== 'الكل' && getSubTypesForCategory(selectedCategory).length > 0 && (
-            <div className="filter-section">
-              <h3 className="filter-title">النوع</h3>
-              <div className="filter-options">
-                {getSubTypesForCategory(selectedCategory).map((type) => (
-                  <label key={type} className="checkbox-option">
-                    <input
-                      type="checkbox"
-                      checked={selectedTypes.includes(type)}
-                      onChange={() => toggleType(type)}
-                    />
-                    <span>{type}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/Marketplace/categories`);
+            const data = await response.json();
 
-          <div className="filter-section">
-            <h3 className="filter-title">الموقع</h3>
-            <div className="filter-options">
-              {locations.map((location) => (
-                <label key={location} className="checkbox-option">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocations.includes(location)}
-                    onChange={() => toggleLocation(location)}
-                  />
-                  <span>{location}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+            if (data.success) {
+                const categoryMap = {
+                    'plastic': { name: 'بلاستيك', icon: MdRecycling },
+                    'metal': { name: 'معادن', icon: FaIndustry },
+                    'paper': { name: 'ورق', icon: BsFileText },
+                    'glass': { name: 'زجاج', icon: GiGlassShot },
+                    'wood': { name: 'خشب', icon: GiWoodPile },
+                    'textile': { name: 'نسيج', icon: RiTShirtLine }
+                };
 
-          <div className="filter-section">
-            <h3 className="filter-title">نطاق السعر (ج/طن)</h3>
-            <div className="price-range">
-              <div className="price-values">
-                <span>{priceRange[0].toLocaleString()} ج</span>
-                <span> - </span>
-                <span>{priceRange[1].toLocaleString()} ج</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                step="500"
-                value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                className="price-slider"
-              />
-              <div className="price-inputs">
-                <div className="price-input-group">
-                  <label>من</label>
-                  <input
-                    type="number"
-                    value={priceRange[0]}
-                    onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
-                  />
+                const transformedCategories = [
+                    { name: 'الكل', icon: BsBoxSeam, count: wasteItems.length },
+                    ...data.data.map(cat => ({
+                        name: cat.name,
+                        icon: categoryMap[cat.id]?.icon || BsBoxSeam,
+                        count: cat.count
+                    }))
+                ];
+
+                setCategories(transformedCategories);
+            }
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+            // Set default categories on error
+            setCategories([
+                { name: 'الكل', icon: BsBoxSeam, count: 0 },
+                { name: 'بلاستيك', icon: MdRecycling, count: 0 },
+                { name: 'معادن', icon: FaIndustry, count: 0 },
+                { name: 'ورق', icon: BsFileText, count: 0 },
+                { name: 'زجاج', icon: GiGlassShot, count: 0 },
+                { name: 'خشب', icon: GiWoodPile, count: 0 },
+                { name: 'نسيج', icon: RiTShirtLine, count: 0 }
+            ]);
+        }
+    };
+
+    const getRelativeTime = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+
+        if (diffInSeconds < 60) return 'منذ لحظات';
+        if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+        if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+        if (diffInSeconds < 604800) return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
+        return `منذ ${Math.floor(diffInSeconds / 604800)} أسبوع`;
+    };
+
+    const getArabicCategory = (englishCategory) => {
+        const categoryMap = {
+            'plastic': 'بلاستيك',
+            'metal': 'معادن',
+            'paper': 'ورق',
+            'glass': 'زجاج',
+            'wood': 'خشب',
+            'textile': 'نسيج',
+            'chemical': 'كيماويات',
+            'rubber': 'مطاط'
+        };
+        return categoryMap[englishCategory] || englishCategory;
+    };
+
+    const getImageForCategory = (category) => {
+        switch (category) {
+            case 'ورق': return paperWasteImage;
+            case 'بلاستيك': return plasticWasteImage;
+            case 'خشب': return woodWasteImage;
+            case 'معادن': return metalWasteImage;
+            case 'زجاج': return glassWasteImage;
+            case 'نسيج': return textileWasteImage;
+            default: return plasticWasteImage;
+        }
+    };
+
+    const plasticTypes = ['PET', 'HDPE', 'PVC', 'LDPE', 'PP', 'PS', 'Other'];
+    const metalTypes = ['حديد', 'ألومنيوم', 'نحاس', 'ستيل', 'مختلط'];
+    const paperTypes = ['كرتون', 'ورق أبيض', 'ورق جرائد', 'ورق مختلط'];
+
+    const locations = [...new Set(wasteItems.map(item => item.location))];
+
+    const getSubTypesForCategory = (category) => {
+        switch (category) {
+            case 'بلاستيك': return plasticTypes;
+            case 'معادن': return metalTypes;
+            case 'ورق': return paperTypes;
+            default: return [];
+        }
+    };
+
+    const filteredItems = wasteItems.filter(item => {
+        const matchesCategory = selectedCategory === 'الكل' || item.category === selectedCategory;
+        const matchesSearch = searchTerm === '' ||
+            item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const itemPrice = parseInt(item.price.replace(/,/g, ''));
+        const matchesPrice = itemPrice >= priceRange[0] && itemPrice <= priceRange[1];
+        const matchesLocation = selectedLocations.length === 0 || selectedLocations.includes(item.location);
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(item.subType);
+
+        return matchesCategory && matchesSearch && matchesPrice && matchesLocation && matchesType;
+    });
+
+    const toggleLocation = (location) => {
+        setSelectedLocations(prev =>
+            prev.includes(location)
+                ? prev.filter(l => l !== location)
+                : [...prev, location]
+        );
+    };
+
+    const toggleType = (type) => {
+        setSelectedTypes(prev =>
+            prev.includes(type)
+                ? prev.filter(t => t !== type)
+                : [...prev, type]
+        );
+    };
+
+    const viewDetails = (id) => {
+        navigate(`/waste-details/${id}`);
+    };
+
+    if (loading) {
+        return (
+            <div className="marketplace-page">
+                <div className="loading-container" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '60vh',
+                    flexDirection: 'column'
+                }}>
+                    <div className="loading-spinner" style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '3px solid #f3f3f3',
+                        borderTop: '3px solid #10b981',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        marginBottom: '1rem'
+                    }}></div>
+                    <p>جاري تحميل السوق...</p>
                 </div>
-                <div className="price-input-group">
-                  <label>إلى</label>
-                  <input
-                    type="number"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 10000])}
-                  />
-                </div>
-              </div>
             </div>
-          </div>
+        );
+    }
 
-          <button 
-            className="reset-filters"
-            onClick={() => {
-              setSelectedCategory('الكل');
-              setSelectedLocations([]);
-              setSelectedTypes([]);
-              setPriceRange([0, 10000]);
-              setSearchTerm('');
-            }}
-          >
-            <FiSearch size={16} />
-            إعادة تعيين الفلاتر
-          </button>
-        </aside>
+    return (
+        <div className="marketplace-page" dir="rtl">
 
-        {/* Main Content */}
-        <div className="marketplace-content">
-          
-          {/* Results Header */}
-          <div className="results-header">
-            <div className="results-count">
-              <h2>المنتجات المتاحة</h2>
-              <div className="stats">
-                <span className="count-badge">
-                  <FiPackage size={14} />
-                  {filteredItems.length} منتج
-                </span>
-                <span className="category-badge">
-                  {selectedCategory === 'الكل' ? 'جميع الفئات' : selectedCategory}
-                </span>
-              </div>
-            </div>
-            
-            <div className="results-controls">
-              <div className="sort-container">
-                <label>ترتيب حسب:</label>
-                <select 
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  <option value="الأحدث">الأحدث</option>
-                  <option value="الأقل سعراً">الأقل سعراً</option>
-                  <option value="الأعلى سعراً">الأعلى سعراً</option>
-                  <option value="الأقرب جغرافياً">الأقرب جغرافياً</option>
-                  <option value="الأعلى تقييماً">الأعلى تقييماً</option>
-                </select>
-              </div>
-            </div>
-          </div>
+            {/* Hero Section */}
+            <div className="marketplace-hero" style={{
+                background: 'linear-gradient(135deg, #047857 0%, #10b981 100%)',
+                padding: '3rem 2rem',
+                borderRadius: '1rem',
+                margin: '2rem',
+                color: 'white',
+                textAlign: 'center'
+            }}>
+                <div className="hero-content">
+                    <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>سوق المخلفات الصناعية</h1>
+                    <p style={{ fontSize: '1.1rem', opacity: 0.9, marginBottom: '2rem' }}>
+                        حوّل المخلفات إلى فرص تجارية واستفد من الاقتصاد الدائري
+                    </p>
 
-          {/* Waste Cards Grid */}
-          <div className="waste-cards-grid">
-            {filteredItems.length > 0 ? (
-              filteredItems.map(item => (
-                <div key={item.id} className="waste-card">
-                  <div className="card-header">
-                    <div className="card-category-badge">
-                      {item.category}
-                    </div>
-                    <div className="card-actions">
-                      {item.verified && (
-                        <div className="verified-badge" title="موثق من المنصة">
-                          <FiCheckCircle size={14} />
-                          <span>موثق</span>
+                    <div className="hero-search" style={{
+                        display: 'flex',
+                        maxWidth: '600px',
+                        margin: '0 auto',
+                        gap: '0.5rem'
+                    }}>
+                        <div className="search-input-wrapper" style={{
+                            flex: 1,
+                            position: 'relative'
+                        }}>
+                            <FiSearch className="search-icon" size={20} style={{
+                                position: 'absolute',
+                                right: '1rem',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                color: '#64748b'
+                            }} />
+                            <input
+                                type="text"
+                                placeholder="ابحث عن نوع المخلفات أو اسم الشركة..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1rem 0.75rem 3rem',
+                                    border: 'none',
+                                    borderRadius: '0.5rem',
+                                    fontSize: '1rem'
+                                }}
+                            />
                         </div>
-                      )}
-                      <div className="view-count" title="عدد المشاهدات">
-                        <FiEye size={14} />
-                        <span>{item.views}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="card-image">
-                    <img 
-                      src={getImageForCategory(item.category)} 
-                      alt={item.title}
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/400x300/f1f5f9/64748b?text=ECOv'
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="card-content">
-                    <h3 className="card-title">{item.title}</h3>
-                    <div className="card-subtitle">
-                      <span className="company-name">{item.company}</span>
-                      <div className="rating">
-                        ★ {item.sellerRating}
-                      </div>
-                    </div>
-                    <p className="card-description">{item.description}</p>
-                    
-                    <div className="card-details">
-                      <div className="detail-item" title="الكمية المتاحة">
-                        <FiPackage size={16} />
-                        <span>{item.quantity}</span>
-                      </div>
-                      <div className="detail-item" title="الموقع">
-                        <FiMapPin size={16} />
-                        <span>{item.location}</span>
-                        <small>({item.distance})</small>
-                      </div>
-                    </div>
-                    
-                    <div className="card-footer">
-                      <div className="price-section">
-                        <div className="price-info">
-                          <span className="price-label">السعر للطن</span>
-                          <span className="price-value">{item.price} جنيه</span>
-                        </div>
-                        <div className="date-posted">
-                          {item.date}
-                        </div>
-                      </div>
-                      <div className="action-buttons">
-                        <button 
-                          className="view-details-btn"
-                          onClick={() => viewDetails(item.id)}
+                        <button
+                            className="search-button"
+                            onClick={fetchWasteListings}
+                            style={{
+                                padding: '0.75rem 2rem',
+                                backgroundColor: '#064e3b',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.5rem',
+                                cursor: 'pointer',
+                                fontWeight: '500'
+                            }}
                         >
-                          عرض التفاصيل
+                            بحث
                         </button>
-                        {user && (
-                          <button className="contact-btn">
-                            تواصل مع البائع
-                          </button>
-                        )}
-                      </div>
                     </div>
-                  </div>
                 </div>
-              ))
-            ) : (
-              <div className="no-results">
-                <div className="no-results-icon">
-                  <FiSearch size={64} />
-                </div>
-                <h3>لا توجد نتائج</h3>
-                <p>جرب تغيير معايير البحث أو الفئة المختارة</p>
-                <button 
-                  className="reset-search-btn"
-                  onClick={() => {
-                    setSelectedCategory('الكل');
-                    setSearchTerm('');
-                    setSelectedLocations([]);
-                    setSelectedTypes([]);
-                  }}
-                >
-                  عرض جميع المنتجات
-                </button>
-              </div>
-            )}
-          </div>
-
-          {filteredItems.length > 0 && (
-            <div className="pagination">
-              <button className="page-btn disabled">السابق</button>
-              <button className="page-btn active">1</button>
-              <button className="page-btn">2</button>
-              <button className="page-btn">3</button>
-              <span className="page-dots">...</span>
-              <button className="page-btn">10</button>
-              <button className="page-btn">التالي</button>
             </div>
-          )}
+
+            <div className="marketplace-main" style={{
+                display: 'grid',
+                gridTemplateColumns: '300px 1fr',
+                gap: '2rem',
+                padding: '0 2rem'
+            }}>
+
+                {/* Sidebar Filters */}
+                <aside className="filters-sidebar" style={{
+                    backgroundColor: 'white',
+                    borderRadius: '1rem',
+                    padding: '1.5rem',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+                    height: 'fit-content',
+                    position: 'sticky',
+                    top: '1rem'
+                }}>
+                    <div className="filter-section" style={{ marginBottom: '1.5rem' }}>
+                        <h3 className="filter-title" style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '1rem',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            color: '#1e293b'
+                        }}>
+                            الفئات
+                            <span className="filter-count" style={{
+                                fontSize: '0.875rem',
+                                color: '#64748b',
+                                fontWeight: 'normal'
+                            }}>{filteredItems.length} منتج</span>
+                        </h3>
+                        <div className="filter-options" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {categories.map((cat) => {
+                                const Icon = cat.icon;
+                                return (
+                                    <button
+                                        key={cat.name}
+                                        className={`filter-option ${selectedCategory === cat.name ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setSelectedCategory(cat.name);
+                                            setSelectedTypes([]);
+                                        }}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '0.75rem',
+                                            backgroundColor: selectedCategory === cat.name ? '#d1fae5' : 'transparent',
+                                            border: selectedCategory === cat.name ? '2px solid #10b981' : '2px solid transparent',
+                                            borderRadius: '0.5rem',
+                                            cursor: 'pointer',
+                                            width: '100%',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        <div className="filter-option-content" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <Icon size={18} color={selectedCategory === cat.name ? '#059669' : '#64748b'} />
+                                            <span style={{ color: selectedCategory === cat.name ? '#065f46' : '#1e293b' }}>{cat.name}</span>
+                                        </div>
+                                        <span className="category-count" style={{
+                                            fontSize: '0.875rem',
+                                            color: '#64748b',
+                                            backgroundColor: '#f1f5f9',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '9999px'
+                                        }}>{cat.count}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {selectedCategory !== 'الكل' && getSubTypesForCategory(selectedCategory).length > 0 && (
+                        <div className="filter-section" style={{ marginBottom: '1.5rem' }}>
+                            <h3 className="filter-title" style={{
+                                marginBottom: '1rem',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                                color: '#1e293b'
+                            }}>النوع</h3>
+                            <div className="filter-options" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {getSubTypesForCategory(selectedCategory).map((type, index) => (
+                                    <label key={`type-${index}-${type}`} className="checkbox-option" style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        cursor: 'pointer'
+                                    }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedTypes.includes(type)}
+                                            onChange={() => toggleType(type)}
+                                            style={{ width: '1rem', height: '1rem' }}
+                                        />
+                                        <span style={{ fontSize: '0.95rem' }}>{type}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="filter-section" style={{ marginBottom: '1.5rem' }}>
+                        <h3 className="filter-title" style={{
+                            marginBottom: '1rem',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            color: '#1e293b'
+                        }}>الموقع</h3>
+                        <div className="filter-options" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                            {locations.map((location, index) => (
+                                <label key={`location-${index}-${location}`} className="checkbox-option" style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    cursor: 'pointer'
+                                }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLocations.includes(location)}
+                                        onChange={() => toggleLocation(location)}
+                                        style={{ width: '1rem', height: '1rem' }}
+                                    />
+                                    <span style={{ fontSize: '0.95rem' }}>{location}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="filter-section" style={{ marginBottom: '1.5rem' }}>
+                        <h3 className="filter-title" style={{
+                            marginBottom: '1rem',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            color: '#1e293b'
+                        }}>نطاق السعر (ج/طن)</h3>
+                        <div className="price-range">
+                            <div className="price-values" style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '0.5rem',
+                                fontSize: '0.875rem',
+                                color: '#475569'
+                            }}>
+                                <span>{priceRange[0].toLocaleString()} ج</span>
+                                <span> - </span>
+                                <span>{priceRange[1].toLocaleString()} ج</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="10000"
+                                step="500"
+                                value={priceRange[1]}
+                                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                                className="price-slider"
+                                style={{ width: '100%', marginBottom: '1rem' }}
+                            />
+                            <div className="price-inputs" style={{
+                                display: 'grid',
+                                gridTemplateColumns: '1fr 1fr',
+                                gap: '0.5rem'
+                            }}>
+                                <div className="price-input-group">
+                                    <label style={{ fontSize: '0.875rem', color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>من</label>
+                                    <input
+                                        type="number"
+                                        value={priceRange[0]}
+                                        onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '2px solid #e2e8f0',
+                                            borderRadius: '0.375rem'
+                                        }}
+                                    />
+                                </div>
+                                <div className="price-input-group">
+                                    <label style={{ fontSize: '0.875rem', color: '#64748b', display: 'block', marginBottom: '0.25rem' }}>إلى</label>
+                                    <input
+                                        type="number"
+                                        value={priceRange[1]}
+                                        onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 10000])}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.5rem',
+                                            border: '2px solid #e2e8f0',
+                                            borderRadius: '0.375rem'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        className="reset-filters"
+                        onClick={() => {
+                            setSelectedCategory('الكل');
+                            setSelectedLocations([]);
+                            setSelectedTypes([]);
+                            setPriceRange([0, 10000]);
+                            setSearchTerm('');
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            backgroundColor: '#f1f5f9',
+                            border: '2px solid #e2e8f0',
+                            borderRadius: '0.5rem',
+                            color: '#1e293b',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            fontWeight: '500'
+                        }}
+                    >
+                        <FiSearch size={16} />
+                        إعادة تعيين الفلاتر
+                    </button>
+                </aside>
+
+                {/* Main Content */}
+                <div className="marketplace-content">
+
+                    {/* Results Header */}
+                    <div className="results-header" style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '1.5rem',
+                        backgroundColor: 'white',
+                        padding: '1rem 1.5rem',
+                        borderRadius: '1rem',
+                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+                    }}>
+                        <div className="results-count">
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                                المنتجات المتاحة
+                            </h2>
+                            <div className="stats" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <span className="count-badge" style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem',
+                                    backgroundColor: '#f1f5f9',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.875rem',
+                                    color: '#475569'
+                                }}>
+                                    <FiPackage size={14} />
+                                    {filteredItems.length} منتج
+                                </span>
+                                <span className="category-badge" style={{
+                                    backgroundColor: '#d1fae5',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '9999px',
+                                    fontSize: '0.875rem',
+                                    color: '#065f46'
+                                }}>
+                                    {selectedCategory === 'الكل' ? 'جميع الفئات' : selectedCategory}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="results-controls">
+                            <div className="sort-container" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <label style={{ fontSize: '0.875rem', color: '#475569' }}>ترتيب حسب:</label>
+                                <select
+                                    className="sort-select"
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    style={{
+                                        padding: '0.5rem',
+                                        border: '2px solid #e2e8f0',
+                                        borderRadius: '0.375rem',
+                                        backgroundColor: 'white'
+                                    }}
+                                >
+                                    <option value="الأحدث">الأحدث</option>
+                                    <option value="الأقل سعراً">الأقل سعراً</option>
+                                    <option value="الأعلى سعراً">الأعلى سعراً</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Waste Cards Grid */}
+                    <div className="waste-cards-grid" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                        gap: '1.5rem'
+                    }}>
+                        {filteredItems.length > 0 ? (
+                            filteredItems.map(item => (
+                                <div key={item.id} className="waste-card" style={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '1rem',
+                                    overflow: 'hidden',
+                                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+                                    transition: 'all 0.3s',
+                                    cursor: 'pointer'
+                                }}
+                                    onClick={() => viewDetails(item.id)}
+                                >
+                                    <div className="card-header" style={{
+                                        padding: '0.75rem',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div className="card-category-badge" style={{
+                                            backgroundColor: '#d1fae5',
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: '500',
+                                            color: '#065f46'
+                                        }}>
+                                            {item.category}
+                                        </div>
+                                        <div className="card-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                                            {item.verified && (
+                                                <div className="verified-badge" title="موثق من المنصة" style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.25rem',
+                                                    color: '#10b981',
+                                                    fontSize: '0.75rem'
+                                                }}>
+                                                    <FiCheckCircle size={14} />
+                                                    <span>موثق</span>
+                                                </div>
+                                            )}
+                                            <div className="view-count" title="عدد المشاهدات" style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem',
+                                                color: '#64748b',
+                                                fontSize: '0.75rem'
+                                            }}>
+                                                <FiEye size={14} />
+                                                <span>{item.views}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="card-image" style={{ height: '200px', overflow: 'hidden' }}>
+                                        <img
+                                            src={getImageForCategory(item.category)}
+                                            alt={item.title}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/400x300/f1f5f9/64748b?text=ECOv'
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="card-content" style={{ padding: '1rem' }}>
+                                        <h3 className="card-title" style={{
+                                            fontSize: '1.125rem',
+                                            fontWeight: '600',
+                                            marginBottom: '0.5rem',
+                                            color: '#1e293b'
+                                        }}>{item.title}</h3>
+                                        <div className="card-subtitle" style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '0.75rem',
+                                            fontSize: '0.875rem'
+                                        }}>
+                                            <span className="company-name" style={{ color: '#64748b' }}>{item.company}</span>
+                                            <div className="rating" style={{ color: '#f59e0b' }}>
+                                                ★ {item.sellerRating}
+                                            </div>
+                                        </div>
+                                        <p className="card-description" style={{
+                                            fontSize: '0.875rem',
+                                            color: '#475569',
+                                            marginBottom: '1rem',
+                                            lineHeight: '1.5',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden'
+                                        }}>{item.description}</p>
+
+                                        <div className="card-details" style={{
+                                            display: 'flex',
+                                            gap: '1rem',
+                                            marginBottom: '1rem',
+                                            fontSize: '0.875rem',
+                                            color: '#475569'
+                                        }}>
+                                            <div className="detail-item" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="الكمية المتاحة">
+                                                <FiPackage size={16} />
+                                                <span>{item.quantity}</span>
+                                            </div>
+                                            <div className="detail-item" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="الموقع">
+                                                <FiMapPin size={16} />
+                                                <span>{item.location}</span>
+                                                {item.distance !== 'غير محدد' && (
+                                                    <small style={{ color: '#94a3b8' }}>({item.distance})</small>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="card-footer" style={{
+                                            borderTop: '1px solid #e2e8f0',
+                                            paddingTop: '1rem'
+                                        }}>
+                                            <div className="price-section" style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                marginBottom: '0.75rem'
+                                            }}>
+                                                <div className="price-info">
+                                                    <span className="price-label" style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>السعر للطن</span>
+                                                    <span className="price-value" style={{ fontSize: '1.125rem', fontWeight: '600', color: '#10b981' }}>{item.price} جنيه</span>
+                                                </div>
+                                                <div className="date-posted" style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                    {item.date}
+                                                </div>
+                                            </div>
+                                            <button
+                                                className="view-details-btn"
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.5rem',
+                                                    backgroundColor: '#10b981',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '0.375rem',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '500'
+                                                }}
+                                            >
+                                                عرض التفاصيل
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="no-results" style={{
+                                gridColumn: '1 / -1',
+                                textAlign: 'center',
+                                padding: '4rem',
+                                backgroundColor: 'white',
+                                borderRadius: '1rem',
+                                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+                            }}>
+                                <div className="no-results-icon" style={{ marginBottom: '1rem' }}>
+                                    <FiSearch size={64} color="#94a3b8" />
+                                </div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b', marginBottom: '0.5rem' }}>لا توجد نتائج</h3>
+                                <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>جرب تغيير معايير البحث أو الفئة المختارة</p>
+                                <button
+                                    className="reset-search-btn"
+                                    onClick={() => {
+                                        setSelectedCategory('الكل');
+                                        setSearchTerm('');
+                                        setSelectedLocations([]);
+                                        setSelectedTypes([]);
+                                        fetchWasteListings();
+                                    }}
+                                    style={{
+                                        padding: '0.75rem 2rem',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    عرض جميع المنتجات
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Marketplace;

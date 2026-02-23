@@ -1,8 +1,7 @@
-﻿using ECoV.API.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace shadowfactory.Models  // CHANGED FROM ECoV.API.Models
+namespace shadowfactory.Models
 {
     [Table("AuditLogs")]
     public class AuditLog
@@ -37,6 +36,7 @@ namespace shadowfactory.Models  // CHANGED FROM ECoV.API.Models
 
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
+        // ⭐⭐⭐ ADD THIS NAVIGATION PROPERTY ⭐⭐⭐
         [ForeignKey("FactoryId")]
         public virtual Factory? Factory { get; set; }
     }

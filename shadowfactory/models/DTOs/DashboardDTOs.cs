@@ -224,4 +224,5 @@ namespace shadowfactory.Models.DTOs
         public decimal EnergySaved { get; set; } // in kWh
         public decimal LandfillDiverted { get; set; } // in tons
     }
+
 }

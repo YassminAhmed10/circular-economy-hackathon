@@ -1,9 +1,9 @@
-﻿using ECoV.API.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using shadowfactory.Models.Entities; // Add this for Transaction if needed
 
 namespace shadowfactory.Models
 {
@@ -13,10 +13,6 @@ namespace shadowfactory.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
-        public DateTime? RegistrationDate { get; set; }
-        public bool EmailNotifications { get; set; } = true;
-        public bool AppNotifications { get; set; } = true;
-        public bool PublicProfile { get; set; } = true;
 
         [Required]
         [StringLength(255)]
@@ -89,12 +85,34 @@ namespace shadowfactory.Models
         public string Status { get; set; } = "Pending";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
-        [JsonIgnore]
-        public virtual ICollection<FactoryWasteType> FactoryWasteTypes { get; set; } = new List<FactoryWasteType>();
+        // ============ NAVIGATION PROPERTIES ============
+
+        // Collection of Users associated with this factory
         [JsonIgnore]
         public virtual ICollection<User> Users { get; set; } = new List<User>();
+
+        // Collection of FactoryWasteTypes associated with this factory
+        [JsonIgnore]
+        public virtual ICollection<FactoryWasteType> FactoryWasteTypes { get; set; } = new List<FactoryWasteType>();
+
+        // ⭐⭐⭐ ADD THIS MISSING NAVIGATION PROPERTY ⭐⭐⭐
+        // Collection of AuditLogs associated with this factory
+        [JsonIgnore]
+        public virtual ICollection<AuditLog>? AuditLogs { get; set; }
+
+        // ⭐⭐⭐ ADD THIS MISSING NAVIGATION PROPERTY ⭐⭐⭐
+        // Single VerificationToken associated with this factory (one-to-one)
+        [JsonIgnore]
+        public virtual VerificationToken? VerificationToken { get; set; }
+
+        // Optional: Add these if you need them for transactions
+        [JsonIgnore]
+        public virtual ICollection<Transaction>? SellerTransactions { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection<Transaction>? BuyerTransactions { get; set; }
     }
 }

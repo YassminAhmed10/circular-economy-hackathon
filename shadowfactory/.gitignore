@@ -41,10 +41,22 @@ NuGet.Config
 Thumbs.db
 *.DS_Store
 
-# Project files
-*.esproj
-factory_ui/
+# Build outputs - SPECIFIC folders to ignore
+factory_ui/bin/
+factory_ui/obj/
+factory_ui/node_modules/
+factory_ui/dist/
+factory_ui/build/
+factory_ui/.next/
+
+# Environment files
+factory_ui/.env
+factory_ui/.env.local
+factory_ui/.env.development
+factory_ui/.env.production
 
 # Test files
-test-*.ps1
-test-*.bat
+*.ps1
+*.bat
+test-*
+EOF
