@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="factory_ui/factory_ui.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="shadowfactory/shadowfactory.csproj" />
+</Solution>
