@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Marketplace.css';
 import { FiSearch, FiMapPin, FiPackage, FiCheckCircle, FiEye } from 'react-icons/fi';
 import { MdRecycling } from 'react-icons/md';
@@ -6,44 +6,72 @@ import { GiWoodPile, GiGlassShot } from 'react-icons/gi';
 import { BsFileText, BsBoxSeam } from 'react-icons/bs';
 import { FaIndustry } from 'react-icons/fa';
 import { RiTShirtLine } from 'react-icons/ri';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-// استيراد الصور المحلية
-import paperWasteImage from '../assets/مخلفات الورق.png';
-import plasticWasteImage from '../assets/مخلفات البلاستيك.png';
-import woodWasteImage from '../assets/مخلفات الخشب.png';
-import metalWasteImage from '../assets/مخلفات المعادن.png';
-import glassWasteImage from '../assets/مخلفات الزجاج.png';
-import textileWasteImage from '../assets/مخلفات النسيج.png';
+// ── استيراد الصور المحلية ──
+import paperWasteImage    from '../assets/مخلفات الورق.png';
+import plasticWasteImage  from '../assets/مخلفات البلاستيك.png';
+import woodWasteImage     from '../assets/مخلفات الخشب.png';
+import metalWasteImage    from '../assets/مخلفات المعادن.png';
+import glassWasteImage    from '../assets/مخلفات الزجاج.png';
+import textileWasteImage  from '../assets/مخلفات النسيج.png';
+import chemicalsImg       from '../assets/Chemicals.png';
+import mineralsImg        from '../assets/Minerals.png';
+import electronicsImg     from '../assets/Electronics .png';   // لاحظ المسافة
 
 const Marketplace = ({ user }) => {
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState('الكل');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('الأحدث');
-  const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const navigate  = useNavigate();
+  const location  = useLocation();                              // ← لقراءة URL params
 
-  // دالة للحصول على الصورة المناسبة لكل فئة
+  // ── قراءة ?category= من الـ URL ──
+  const getInitialCategory = () => {
+    const params = new URLSearchParams(location.search);
+    const cat    = params.get('category');
+    if (!cat) return 'الكل';
+    // الفئات المدعومة
+    const validCats = ['بلاستيك','معادن','ورق','زجاج','خشب','نسيج','كيماويات','إلكترونيات'];
+    return validCats.includes(cat) ? cat : 'الكل';
+  };
+
+  const [selectedCategory,  setSelectedCategory]  = useState(getInitialCategory);
+  const [searchTerm,        setSearchTerm]        = useState('');
+  const [sortBy,            setSortBy]            = useState('الأحدث');
+  const [priceRange,        setPriceRange]        = useState([0, 10000]);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedTypes,     setSelectedTypes]     = useState([]);
+
+  // ── تحديث الفئة لو تغيّر الـ URL من الخارج ──
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cat    = params.get('category');
+    if (cat) {
+      const validCats = ['بلاستيك','معادن','ورق','زجاج','خشب','نسيج','كيماويات','إلكترونيات'];
+      if (validCats.includes(cat)) {
+        setSelectedCategory(cat);
+        setSelectedTypes([]);           // reset sub-types عند تغيير الفئة
+      }
+    }
+  }, [location.search]);
+
+  // ── دالة الصورة لكل فئة (صور محلية + fallback) ──
   const getImageForCategory = (category) => {
     switch(category) {
-      case 'ورق': return paperWasteImage;
-      case 'بلاستيك': return plasticWasteImage;
-      case 'خشب': return woodWasteImage;
-      case 'معادن': return metalWasteImage;
-      case 'زجاج': return glassWasteImage;
-      case 'نسيج': return textileWasteImage;
-      default: return plasticWasteImage;
+      case 'ورق':         return paperWasteImage;
+      case 'بلاستيك':     return plasticWasteImage;
+      case 'خشب':         return woodWasteImage;
+      case 'معادن':       return metalWasteImage;
+      case 'زجاج':        return glassWasteImage;
+      case 'نسيج':        return textileWasteImage;
+      case 'كيماويات':    return chemicalsImg;
+      case 'إلكترونيات':  return electronicsImg;
+      default:            return plasticWasteImage;
     }
   };
 
-  // أنواع البلاستيك
   const plasticTypes = ['PET', 'HDPE', 'PVC', 'LDPE', 'PP', 'PS', 'Other'];
-  const metalTypes = ['حديد', 'ألومنيوم', 'نحاس', 'ستيل', 'مختلط'];
-  const paperTypes = ['كرتون', 'ورق أبيض', 'ورق جرائد', 'ورق مختلط'];
+  const metalTypes   = ['حديد', 'ألومنيوم', 'نحاس', 'ستيل', 'مختلط'];
+  const paperTypes   = ['كرتون', 'ورق أبيض', 'ورق جرائد', 'ورق مختلط'];
 
-  // بيانات تجريبية للمخلفات مع الصور المحلية
   const wasteItems = [
     {
       id: 1,
@@ -60,15 +88,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.8,
       views: 245,
       distance: '5 كم',
-      details: {
-        type: 'PET',
-        purity: '95%',
-        packaging: 'بالات مكبوسة',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'تحويل بنكي أو نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'PET', purity:'95%', packaging:'بالات مكبوسة', availability:'متوفر فوراً', minOrder:'1 طن', payment:'تحويل بنكي أو نقدي', delivery:'متاح' }
     },
     {
       id: 2,
@@ -85,15 +105,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.5,
       views: 187,
       distance: '15 كم',
-      details: {
-        type: 'خشب طبيعي',
-        thickness: 'متنوعة',
-        quality: 'جيدة',
-        availability: 'متوفر فوراً',
-        minOrder: '2 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'خشب طبيعي', thickness:'متنوعة', quality:'جيدة', availability:'متوفر فوراً', minOrder:'2 طن', payment:'نقدي', delivery:'متاح' }
     },
     {
       id: 3,
@@ -110,15 +122,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.2,
       views: 89,
       distance: '8 كم',
-      details: {
-        type: 'مختلطة',
-        metals: 'حديد، ألومنيوم، نحاس',
-        purity: '90%',
-        availability: 'خلال أسبوع',
-        minOrder: '500 كجم',
-        payment: 'تحويل بنكي',
-        delivery: 'يتطلب ترتيب'
-      }
+      details: { type:'مختلطة', metals:'حديد، ألومنيوم، نحاس', purity:'90%', availability:'خلال أسبوع', minOrder:'500 كجم', payment:'تحويل بنكي', delivery:'يتطلب ترتيب' }
     },
     {
       id: 4,
@@ -135,15 +139,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.9,
       views: 312,
       distance: '3 كم',
-      details: {
-        type: 'كرتون مموج',
-        weight: 'متوسط',
-        condition: 'جاف ونظيف',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي أو تحويل',
-        delivery: 'متاح'
-      }
+      details: { type:'كرتون مموج', weight:'متوسط', condition:'جاف ونظيف', availability:'متوفر فوراً', minOrder:'1 طن', payment:'نقدي أو تحويل', delivery:'متاح' }
     },
     {
       id: 5,
@@ -160,15 +156,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.7,
       views: 156,
       distance: '12 كم',
-      details: {
-        type: 'زجاج صودا-جير',
-        color: 'شفاف',
-        purity: '98%',
-        availability: 'متوفر فوراً',
-        minOrder: '500 كجم',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'زجاج صودا-جير', color:'شفاف', purity:'98%', availability:'متوفر فوراً', minOrder:'500 كجم', payment:'نقدي', delivery:'متاح' }
     },
     {
       id: 6,
@@ -185,15 +173,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.0,
       views: 78,
       distance: '25 كم',
-      details: {
-        type: 'قطن 100%',
-        color: 'أبيض ومتنوع',
-        quality: 'جيد',
-        availability: 'خلال 3 أيام',
-        minOrder: '200 كجم',
-        payment: 'تحويل بنكي',
-        delivery: 'يتم التوصيل'
-      }
+      details: { type:'قطن 100%', color:'أبيض ومتنوع', quality:'جيد', availability:'خلال 3 أيام', minOrder:'200 كجم', payment:'تحويل بنكي', delivery:'يتم التوصيل' }
     },
     {
       id: 7,
@@ -210,15 +190,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.6,
       views: 198,
       distance: '30 كم',
-      details: {
-        type: 'HDPE',
-        purity: '96%',
-        packaging: 'بالات',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'تحويل بنكي',
-        delivery: 'متاح'
-      }
+      details: { type:'HDPE', purity:'96%', packaging:'بالات', availability:'متوفر فوراً', minOrder:'1 طن', payment:'تحويل بنكي', delivery:'متاح' }
     },
     {
       id: 8,
@@ -235,15 +207,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.4,
       views: 123,
       distance: '18 كم',
-      details: {
-        type: 'MDF',
-        thickness: '18 مم',
-        condition: 'جيد',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'MDF', thickness:'18 مم', condition:'جيد', availability:'متوفر فوراً', minOrder:'1 طن', payment:'نقدي', delivery:'متاح' }
     },
     {
       id: 9,
@@ -260,15 +224,7 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.3,
       views: 167,
       distance: '10 كم',
-      details: {
-        type: 'حديد',
-        purity: '92%',
-        packaging: 'قطع كبيرة',
-        availability: 'متوفر فوراً',
-        minOrder: '2 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'حديد', purity:'92%', packaging:'قطع كبيرة', availability:'متوفر فوراً', minOrder:'2 طن', payment:'نقدي', delivery:'متاح' }
     },
     {
       id: 10,
@@ -285,82 +241,66 @@ const Marketplace = ({ user }) => {
       sellerRating: 4.7,
       views: 189,
       distance: '7 كم',
-      details: {
-        type: 'ورق جرائد',
-        condition: 'جاف ونظيف',
-        quality: 'جيد',
-        availability: 'متوفر فوراً',
-        minOrder: '1 طن',
-        payment: 'نقدي',
-        delivery: 'متاح'
-      }
+      details: { type:'ورق جرائد', condition:'جاف ونظيف', quality:'جيد', availability:'متوفر فوراً', minOrder:'1 طن', payment:'نقدي', delivery:'متاح' }
     }
   ];
 
   const categories = [
-    { name: 'الكل', icon: BsBoxSeam, count: wasteItems.length },
-    { name: 'بلاستيك', icon: MdRecycling, count: wasteItems.filter(item => item.category === 'بلاستيك').length },
-    { name: 'معادن', icon: FaIndustry, count: wasteItems.filter(item => item.category === 'معادن').length },
-    { name: 'ورق', icon: BsFileText, count: wasteItems.filter(item => item.category === 'ورق').length },
-    { name: 'زجاج', icon: GiGlassShot, count: wasteItems.filter(item => item.category === 'زجاج').length },
-    { name: 'خشب', icon: GiWoodPile, count: wasteItems.filter(item => item.category === 'خشب').length },
-    { name: 'نسيج', icon: RiTShirtLine, count: wasteItems.filter(item => item.category === 'نسيج').length }
+    { name:'الكل',        icon:BsBoxSeam,    count:wasteItems.length },
+    { name:'بلاستيك',    icon:MdRecycling,  count:wasteItems.filter(i=>i.category==='بلاستيك').length },
+    { name:'معادن',      icon:FaIndustry,   count:wasteItems.filter(i=>i.category==='معادن').length },
+    { name:'ورق',        icon:BsFileText,   count:wasteItems.filter(i=>i.category==='ورق').length },
+    { name:'زجاج',       icon:GiGlassShot,  count:wasteItems.filter(i=>i.category==='زجاج').length },
+    { name:'خشب',        icon:GiWoodPile,   count:wasteItems.filter(i=>i.category==='خشب').length },
+    { name:'نسيج',       icon:RiTShirtLine, count:wasteItems.filter(i=>i.category==='نسيج').length },
   ];
 
-  const locations = ['القاهرة', 'الإسكندرية', 'الجيزة', 'المحلة الكبرى', 'السويس', 'المنصورة', 'حلوان'];
+  const locations = ['القاهرة','الإسكندرية','الجيزة','المحلة الكبرى','السويس','المنصورة','حلوان'];
 
-  const getSubTypesForCategory = (category) => {
-    switch(category) {
+  const getSubTypesForCategory = (cat) => {
+    switch(cat) {
       case 'بلاستيك': return plasticTypes;
-      case 'معادن': return metalTypes;
-      case 'ورق': return paperTypes;
-      default: return [];
+      case 'معادن':   return metalTypes;
+      case 'ورق':     return paperTypes;
+      default:        return [];
     }
   };
 
   const filteredItems = wasteItems.filter(item => {
     const matchesCategory = selectedCategory === 'الكل' || item.category === selectedCategory;
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const itemPrice = parseInt(item.price.replace(/,/g, ''));
-    const matchesPrice = itemPrice >= priceRange[0] && itemPrice <= priceRange[1];
+    const matchesSearch   = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            item.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const itemPrice       = parseInt(item.price.replace(/,/g, ''));
+    const matchesPrice    = itemPrice >= priceRange[0] && itemPrice <= priceRange[1];
     const matchesLocation = selectedLocations.length === 0 || selectedLocations.includes(item.location);
-    const matchesType = selectedTypes.length === 0 || selectedTypes.includes(item.subType);
-    
+    const matchesType     = selectedTypes.length === 0     || selectedTypes.includes(item.subType);
     return matchesCategory && matchesSearch && matchesPrice && matchesLocation && matchesType;
   });
 
-  const toggleLocation = (location) => {
-    setSelectedLocations(prev => 
-      prev.includes(location) 
-        ? prev.filter(l => l !== location)
-        : [...prev, location]
-    );
-  };
+  const toggleLocation = (loc)  => setSelectedLocations(p => p.includes(loc)  ? p.filter(l=>l!==loc)  : [...p, loc]);
+  const toggleType     = (type) => setSelectedTypes(p      => p.includes(type) ? p.filter(t=>t!==type) : [...p, type]);
+  const viewDetails    = (id)   => navigate(`/waste-details/${id}`);
 
-  const toggleType = (type) => {
-    setSelectedTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
-  };
-
-  const viewDetails = (id) => {
-    navigate(`/waste-details/${id}`);
+  // ── تغيير الفئة يُحدّث الـ URL أيضاً ──
+  const handleCategoryChange = (catName) => {
+    setSelectedCategory(catName);
+    setSelectedTypes([]);
+    if (catName === 'الكل') {
+      navigate('/market', { replace: true });
+    } else {
+      navigate(`/market?category=${encodeURIComponent(catName)}`, { replace: true });
+    }
   };
 
   return (
     <div className="marketplace-page" dir="rtl">
-      
-      {/* Hero Section */}
+
+      {/* Hero */}
       <div className="marketplace-hero">
         <div className="hero-content">
           <h1>سوق المخلفات الصناعية</h1>
           <p>حوّل المخلفات إلى فرص تجارية واستفد من الاقتصاد الدائري</p>
-          
-          {/* Search Bar */}
           <div className="hero-search">
             <div className="search-input-wrapper">
               <FiSearch className="search-icon" size={20} />
@@ -371,16 +311,14 @@ const Marketplace = ({ user }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="search-button">
-              بحث
-            </button>
+            <button className="search-button">بحث</button>
           </div>
         </div>
       </div>
 
       <div className="marketplace-main">
-        
-        {/* Sidebar Filters */}
+
+        {/* Sidebar */}
         <aside className="filters-sidebar">
           <div className="filter-section">
             <h3 className="filter-title">
@@ -394,10 +332,7 @@ const Marketplace = ({ user }) => {
                   <button
                     key={cat.name}
                     className={`filter-option ${selectedCategory === cat.name ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedCategory(cat.name);
-                      setSelectedTypes([]);
-                    }}
+                    onClick={() => handleCategoryChange(cat.name)}
                   >
                     <div className="filter-option-content">
                       <Icon size={18} />
@@ -416,11 +351,7 @@ const Marketplace = ({ user }) => {
               <div className="filter-options">
                 {getSubTypesForCategory(selectedCategory).map((type) => (
                   <label key={type} className="checkbox-option">
-                    <input
-                      type="checkbox"
-                      checked={selectedTypes.includes(type)}
-                      onChange={() => toggleType(type)}
-                    />
+                    <input type="checkbox" checked={selectedTypes.includes(type)} onChange={() => toggleType(type)} />
                     <span>{type}</span>
                   </label>
                 ))}
@@ -431,14 +362,10 @@ const Marketplace = ({ user }) => {
           <div className="filter-section">
             <h3 className="filter-title">الموقع</h3>
             <div className="filter-options">
-              {locations.map((location) => (
-                <label key={location} className="checkbox-option">
-                  <input
-                    type="checkbox"
-                    checked={selectedLocations.includes(location)}
-                    onChange={() => toggleLocation(location)}
-                  />
-                  <span>{location}</span>
+              {locations.map((loc) => (
+                <label key={loc} className="checkbox-option">
+                  <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} />
+                  <span>{loc}</span>
                 </label>
               ))}
             </div>
@@ -453,10 +380,7 @@ const Marketplace = ({ user }) => {
                 <span>{priceRange[1].toLocaleString()} ج</span>
               </div>
               <input
-                type="range"
-                min="0"
-                max="10000"
-                step="500"
+                type="range" min="0" max="10000" step="500"
                 value={priceRange[1]}
                 onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                 className="price-slider"
@@ -464,25 +388,17 @@ const Marketplace = ({ user }) => {
               <div className="price-inputs">
                 <div className="price-input-group">
                   <label>من</label>
-                  <input
-                    type="number"
-                    value={priceRange[0]}
-                    onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
-                  />
+                  <input type="number" value={priceRange[0]} onChange={(e) => setPriceRange([parseInt(e.target.value)||0, priceRange[1]])} />
                 </div>
                 <div className="price-input-group">
                   <label>إلى</label>
-                  <input
-                    type="number"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 10000])}
-                  />
+                  <input type="number" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)||10000])} />
                 </div>
               </div>
             </div>
           </div>
 
-          <button 
+          <button
             className="reset-filters"
             onClick={() => {
               setSelectedCategory('الكل');
@@ -490,6 +406,7 @@ const Marketplace = ({ user }) => {
               setSelectedTypes([]);
               setPriceRange([0, 10000]);
               setSearchTerm('');
+              navigate('/market', { replace: true });
             }}
           >
             <FiSearch size={16} />
@@ -497,32 +414,20 @@ const Marketplace = ({ user }) => {
           </button>
         </aside>
 
-        {/* Main Content */}
+        {/* Content */}
         <div className="marketplace-content">
-          
-          {/* Results Header */}
           <div className="results-header">
             <div className="results-count">
               <h2>المنتجات المتاحة</h2>
               <div className="stats">
-                <span className="count-badge">
-                  <FiPackage size={14} />
-                  {filteredItems.length} منتج
-                </span>
-                <span className="category-badge">
-                  {selectedCategory === 'الكل' ? 'جميع الفئات' : selectedCategory}
-                </span>
+                <span className="count-badge"><FiPackage size={14} />{filteredItems.length} منتج</span>
+                <span className="category-badge">{selectedCategory === 'الكل' ? 'جميع الفئات' : selectedCategory}</span>
               </div>
             </div>
-            
             <div className="results-controls">
               <div className="sort-container">
                 <label>ترتيب حسب:</label>
-                <select 
-                  className="sort-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
+                <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                   <option value="الأحدث">الأحدث</option>
                   <option value="الأقل سعراً">الأقل سعراً</option>
                   <option value="الأعلى سعراً">الأعلى سعراً</option>
@@ -533,82 +438,61 @@ const Marketplace = ({ user }) => {
             </div>
           </div>
 
-          {/* Waste Cards Grid */}
           <div className="waste-cards-grid">
             {filteredItems.length > 0 ? (
               filteredItems.map(item => (
                 <div key={item.id} className="waste-card">
                   <div className="card-header">
-                    <div className="card-category-badge">
-                      {item.category}
-                    </div>
+                    <div className="card-category-badge">{item.category}</div>
                     <div className="card-actions">
                       {item.verified && (
                         <div className="verified-badge" title="موثق من المنصة">
-                          <FiCheckCircle size={14} />
-                          <span>موثق</span>
+                          <FiCheckCircle size={14} /><span>موثق</span>
                         </div>
                       )}
                       <div className="view-count" title="عدد المشاهدات">
-                        <FiEye size={14} />
-                        <span>{item.views}</span>
+                        <FiEye size={14} /><span>{item.views}</span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="card-image">
-                    <img 
-                      src={getImageForCategory(item.category)} 
+                    <img
+                      src={getImageForCategory(item.category)}
                       alt={item.title}
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/400x300/f1f5f9/64748b?text=ECOv'
-                      }}
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300/f1f5f9/64748b?text=ECOv'; }}
                     />
                   </div>
-                  
+
                   <div className="card-content">
                     <h3 className="card-title">{item.title}</h3>
                     <div className="card-subtitle">
                       <span className="company-name">{item.company}</span>
-                      <div className="rating">
-                        ★ {item.sellerRating}
-                      </div>
+                      <div className="rating">★ {item.sellerRating}</div>
                     </div>
                     <p className="card-description">{item.description}</p>
-                    
                     <div className="card-details">
                       <div className="detail-item" title="الكمية المتاحة">
-                        <FiPackage size={16} />
-                        <span>{item.quantity}</span>
+                        <FiPackage size={16} /><span>{item.quantity}</span>
                       </div>
                       <div className="detail-item" title="الموقع">
-                        <FiMapPin size={16} />
-                        <span>{item.location}</span>
-                        <small>({item.distance})</small>
+                        <FiMapPin size={16} /><span>{item.location}</span><small>({item.distance})</small>
                       </div>
                     </div>
-                    
                     <div className="card-footer">
                       <div className="price-section">
                         <div className="price-info">
                           <span className="price-label">السعر للطن</span>
                           <span className="price-value">{item.price} جنيه</span>
                         </div>
-                        <div className="date-posted">
-                          {item.date}
-                        </div>
+                        <div className="date-posted">{item.date}</div>
                       </div>
                       <div className="action-buttons">
-                        <button 
-                          className="view-details-btn"
-                          onClick={() => viewDetails(item.id)}
-                        >
+                        <button className="view-details-btn" onClick={() => viewDetails(item.id)}>
                           عرض التفاصيل
                         </button>
                         {user && (
-                          <button className="contact-btn">
-                            تواصل مع البائع
-                          </button>
+                          <button className="contact-btn">تواصل مع البائع</button>
                         )}
                       </div>
                     </div>
@@ -617,19 +501,12 @@ const Marketplace = ({ user }) => {
               ))
             ) : (
               <div className="no-results">
-                <div className="no-results-icon">
-                  <FiSearch size={64} />
-                </div>
+                <div className="no-results-icon"><FiSearch size={64} /></div>
                 <h3>لا توجد نتائج</h3>
                 <p>جرب تغيير معايير البحث أو الفئة المختارة</p>
-                <button 
+                <button
                   className="reset-search-btn"
-                  onClick={() => {
-                    setSelectedCategory('الكل');
-                    setSearchTerm('');
-                    setSelectedLocations([]);
-                    setSelectedTypes([]);
-                  }}
+                  onClick={() => { setSelectedCategory('الكل'); setSearchTerm(''); setSelectedLocations([]); setSelectedTypes([]); navigate('/market', { replace:true }); }}
                 >
                   عرض جميع المنتجات
                 </button>

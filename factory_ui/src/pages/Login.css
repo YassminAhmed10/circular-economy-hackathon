@@ -1,75 +1,83 @@
-/* Login Page Styles */
+/* Login.css - تصميم مستوحى من الطبيعة */
 
-/* خطوط عربية محسّنة */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
 * {
-  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Cairo', sans-serif;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes float {
+/* Animations طبيعية */
+@keyframes floatLeaf {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-20px) rotate(5deg);
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
+@keyframes grow {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
     opacity: 1;
   }
+}
+
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
   50% {
-    opacity: 0.8;
+    transform: rotate(2deg);
   }
 }
 
-/* Form Animations */
-.login-form {
-  animation: fadeIn 0.6s ease-out;
+/* تطبيق animations على العناصر */
+.grow-animation {
+  animation: grow 0.6s ease-out;
 }
 
-.login-info {
-  animation: slideIn 0.8s ease-out;
+.sway-animation {
+  animation: sway 4s ease-in-out infinite;
 }
 
-/* Input Focus Effects */
+/* تخصيص الـ scrollbar بألوان طبيعية */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A2E25;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2B4B3C;
+  border-radius: 5px;
+  border: 2px solid #8FBC8F;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3A5E4A;
+}
+
+/* تأثيرات الـ focus */
 input:focus {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.3);
 }
 
-/* Button Hover Effects */
+/* تأثيرات hover طبيعية */
 button {
   position: relative;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-button::before {
+button::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -77,64 +85,25 @@ button::before {
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(152, 251, 152, 0.2);
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
 }
 
-button:hover::before {
+button:hover::after {
   width: 300px;
   height: 300px;
 }
 
-/* Gradient Background Animation */
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.bg-gradient-animated {
-  background-size: 200% 200%;
-  animation: gradient 15s ease infinite;
-}
-
-/* Loading Spinner */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Card Hover Effect */
-.login-card {
-  transition: all 0.3s ease;
-}
-
-.login-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* Checkbox Custom Style */
+/* تأثيرات الـ checkbox */
 input[type="checkbox"] {
-  accent-color: #10b981;
-  cursor: pointer;
+  accent-color: #2B4B3C;
 }
 
-/* Link Hover Effect */
+/* تأثيرات الروابط */
 a {
   position: relative;
+  text-decoration: none;
 }
 
 a::after {
@@ -144,17 +113,51 @@ a::after {
   right: 0;
   width: 0;
   height: 2px;
-  background: currentColor;
+  background: #98FB98;
   transition: width 0.3s ease;
 }
 
 a:hover::after {
   width: 100%;
-  right: auto;
   left: 0;
+  right: auto;
 }
 
-/* Responsive Design */
+/* Glass effect طبيعي */
+.nature-glass {
+  background: rgba(43, 75, 60, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(143, 188, 143, 0.3);
+}
+
+/* Card hover effect */
+.nature-card {
+  transition: all 0.4s ease;
+}
+
+.nature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(43, 75, 60, 0.3);
+}
+
+/* Loading spinner طبيعي */
+@keyframes leafSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.nature-spinner {
+  animation: leafSpin 2s ease-in-out infinite;
+}
+
+/* Responsive تصميم */
 @media (max-width: 1024px) {
   .login-info {
     display: none;
@@ -163,105 +166,79 @@ a:hover::after {
 
 @media (max-width: 640px) {
   input {
-    font-size: 16px !important; /* Prevent zoom on iOS */
+    font-size: 16px !important;
   }
   
-  .login-card {
-    border-radius: 0;
-    min-height: 100vh;
+  .container {
+    padding: 1rem;
   }
 }
 
-/* Accessibility */
-*:focus-visible {
-  outline: 2px solid #10b981;
-  outline-offset: 2px;
-}
-
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1e293b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #10b981;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #059669;
-}
-
-/* Text Selection */
-::selection {
-  background-color: #10b981;
-  color: white;
-}
-
-/* Placeholder Styles */
-::placeholder {
-  color: #94a3b8;
-  opacity: 1;
-}
-
-/* Input Autofill Override */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px white inset;
-  -webkit-text-fill-color: #1e293b;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
-/* Error States */
+/* حالة الخطأ */
 .error-input {
-  border-color: #ef4444 !important;
+  border-color: #CD5C5C !important;
+  background-color: rgba(205, 92, 92, 0.05) !important;
 }
 
-.error-message {
-  color: #ef4444;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
-/* Success States */
+/* حالة النجاح */
 .success-input {
-  border-color: #10b981 !important;
+  border-color: #2B4B3C !important;
+  background-color: rgba(43, 75, 60, 0.05) !important;
 }
 
-/* Disabled States */
-button:disabled {
-  cursor: not-allowed;
+/* تأثير الظل الطبيعي */
+.nature-shadow {
+  box-shadow: 0 10px 30px -5px rgba(43, 75, 60, 0.3);
+}
+
+.nature-shadow-hover:hover {
+  box-shadow: 0 20px 40px -8px rgba(43, 75, 60, 0.4);
+}
+
+/* تخصيص النص المحدد */
+::selection {
+  background-color: #2B4B3C;
+  color: #F0E68C;
+}
+
+/* تخصيص الـ placeholder */
+::placeholder {
+  color: #8FBC8F;
   opacity: 0.7;
 }
 
-/* Loading State */
-.loading {
+/* تأثير الـ loading */
+.loading-state {
   pointer-events: none;
   opacity: 0.7;
+  filter: grayscale(0.3);
 }
 
-/* Glass Effect */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* تأثير الـ pulse الطبيعي */
+@keyframes naturePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
 }
 
-/* Shadow Effects */
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+.nature-pulse {
+  animation: naturePulse 3s ease-in-out infinite;
 }
 
-.shadow-glow-hover:hover {
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+/* زوايا دائرية طبيعية */
+.nature-border {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* تدرجات لونية طبيعية */
+.green-gradient {
+  background: linear-gradient(135deg, #2B4B3C 0%, #3A5E4A 50%, #4A7258 100%);
+}
+
+.earth-gradient {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
 }

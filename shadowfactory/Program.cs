@@ -3,21 +3,36 @@ using Microsoft.OpenApi.Models;
 using shadowfactory.Data;
 using shadowfactory.Services;
 using shadowfactory.Services.Interfaces;
+using ECoV.API.Services;
+using ECoV.API.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ===== CORS =====
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add DbContext
+// ===== استخدام In-Memory Database =====
 builder.Services.AddDbContext<ECoVDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseInMemoryDatabase("ECoVFactoryDB"));
 
 // Add other services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 var app = builder.Build();
 
@@ -27,6 +42,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// ===== CORS =====
+app.UseCors();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
@@ -40,8 +58,8 @@ app.MapGet("/", () => new
     Version = "1.0.0",
     Endpoints = new
     {
-        FactoryRegistration = "/api/factories/register",
-        GetAllFactories = "/api/factories",
+        FactoryRegistration = "/api/Register/factory",
+        GetStatus = "/api/Register/status/{factoryId}",
         Swagger = "/swagger"
     }
 });

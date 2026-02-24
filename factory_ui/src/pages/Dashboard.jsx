@@ -1,219 +1,668 @@
+// src/pages/Dashboard.js - الإصدار الكامل بعد إزالة الصور المحلية واستخدام ui-avatars
+
 import { useState } from 'react'
-import { TrendingUp, Package, DollarSign, AlertCircle, Plus, ArrowUpRight, Clock, CheckCircle2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import {
+  Package, DollarSign, Clock, CheckCircle2, AlertCircle,
+  Plus, Eye, Users, TrendingUp, Clock3, Award,
+  ArrowRight, Download, X, MessageSquare,
+  Building2, Star, ShoppingCart, Bell,
+  Zap, Settings, Check
+} from 'lucide-react'
 import './Dashboard.css'
 
-function Dashboard({ user }) {
-  const navigate = useNavigate()
+// ═══════════════════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════════════════
+const T = {
+  ar: {
+    welcome:'مرحباً', tons:'طن', egp:'ج',
+    totalRevenue:'إجمالي الإيرادات', wasteOffered:'المخلفات المعروضة',
+    pendingOrders:'طلبات معلّقة', completionRate:'معدل الإتمام', needsReply:'يحتاج رد',
+    monthlyRevenue:'الإيرادات الشهرية', last6months:'آخر 6 أشهر',
+    vsLastPeriod:'▲ 18.3% عن الفترة السابقة',
+    weeklyViews:'مشاهدات الإعلانات (آخر 7 أيام)', total:'إجمالي',
+    recentActivity:'النشاط الأخير', viewAll:'عرض الكل',
+    completed:'✓ مكتمل', pending:'⏳ معلّق',
+    wasteBreakdown:'توزيع المخلفات',
+    performance:'مؤشرات الأداء', details:'تفاصيل',
+    completionDeals:'معدل إتمام الصفقات', quickReply:'نسبة الرد السريع',
+    buyerSatisfaction:'رضا المشترين', descAccuracy:'دقة وصف المنتجات',
+    pendingAlertTitle:'طلبات تنتظر ردك',
+    pendingAlertDesc:'الرد السريع يرفع تقييمك ويزيد فرص البيع',
+    reviewOrders:'مراجعة الطلبات', myListingsTitle:'إعلاناتي',
+    product:'المنتج', category:'الفئة', quantity:'الكمية',
+    pricePerTon:'السعر/طن', views:'المشاهدات', offers:'العروض',
+    status:'الحالة', published:'نُشر', action:'إجراء',
+    edit:'تعديل', delete:'حذف',
+    activeListings:'إعلانات نشطة', suspendedListings:'إعلانات معلّقة',
+    totalOffers:'إجمالي العروض', totalViews:'إجمالي المشاهدات',
+    viewsLast7:'مشاهدات آخر 7 أيام',
+    activeTag:'● نشط', suspendedTag:'⏸ معلّق',
+    avgDealValue:'متوسط قيمة الصفقة', daysSinceLastSale:'أيام منذ آخر بيع',
+    repeatBuyers:'مشترون متكررون', topDeal:'أعلى صفقة',
+    topSelling:'أفضل الفئات مبيعاً', byRevenue:'حسب الإيراد',
+    monthlyDeals:'عدد الصفقات شهرياً', totalDeals:'إجمالي',
+    deal:'صفقة', export:'تصدير', analyticsSummary:'ملخص التحليلات',
+    days:['أح','إث','ث','أر','خ','ج','س'],
+    months:{ يوليو:'يوليو', أغسطس:'أغسطس', سبتمبر:'سبتمبر', أكتوبر:'أكتوبر', نوفمبر:'نوفمبر', ديسمبر:'ديسمبر' },
+    incomingReq:'طلبات الشراء الواردة', incomingDesc:'مصانع طلبت شراء منتجاتك من السوق',
+    accept:'قبول', reject:'رفض', contact:'تواصل',
+    reqProduct:'المنتج المطلوب', reqQty:'الكمية المطلوبة',
+    offeredPrice:'السعر المعروض', reqTime:'وقت الطلب',
+    accepted:'✓ مقبول', rejected:'✗ مرفوض', newBadge:'جديد',
+    noReqs:'لا توجد طلبات حالياً', noReqsSub:'ستظهر هنا طلبات المصانع',
+    notifications:'الإشعارات', markAll:'قراءة الكل', today:'اليوم', earlier:'سابقاً',
+    noNotifs:'لا توجد إشعارات',
+  },
+  en: {
+    welcome:'Welcome', tons:'ton', egp:'EGP',
+    totalRevenue:'Total Revenue', wasteOffered:'Waste Offered',
+    pendingOrders:'Pending Orders', completionRate:'Completion Rate', needsReply:'Needs Reply',
+    monthlyRevenue:'Monthly Revenue', last6months:'Last 6 months',
+    vsLastPeriod:'▲ 18.3% vs last period',
+    weeklyViews:'Ad Views (Last 7 days)', total:'Total',
+    recentActivity:'Recent Activity', viewAll:'View All',
+    completed:'✓ Completed', pending:'⏳ Pending',
+    wasteBreakdown:'Waste Breakdown',
+    performance:'Performance Indicators', details:'Details',
+    completionDeals:'Deal Completion Rate', quickReply:'Quick Reply Rate',
+    buyerSatisfaction:'Buyer Satisfaction', descAccuracy:'Description Accuracy',
+    pendingAlertTitle:'Orders awaiting your reply',
+    pendingAlertDesc:'Quick replies boost your rating and sales',
+    reviewOrders:'Review Orders', myListingsTitle:'My Listings',
+    product:'Product', category:'Category', quantity:'Quantity',
+    pricePerTon:'Price/ton', views:'Views', offers:'Offers',
+    status:'Status', published:'Published', action:'Action',
+    edit:'Edit', delete:'Delete',
+    activeListings:'Active Listings', suspendedListings:'Suspended',
+    totalOffers:'Total Offers', totalViews:'Total Views',
+    viewsLast7:'Views last 7 days',
+    activeTag:'● Active', suspendedTag:'⏸ Suspended',
+    avgDealValue:'Avg Deal Value', daysSinceLastSale:'Days Since Last Sale',
+    repeatBuyers:'Repeat Buyers', topDeal:'Top Deal',
+    topSelling:'Top Selling Categories', byRevenue:'By Revenue',
+    monthlyDeals:'Monthly Deals', totalDeals:'Total',
+    deal:'deals', export:'Export', analyticsSummary:'Analytics Summary',
+    days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    months:{ يوليو:'July', أغسطس:'Aug', سبتمبر:'Sep', أكتوبر:'Oct', نوفمبر:'Nov', ديسمبر:'Dec' },
+    incomingReq:'Incoming Purchase Requests', incomingDesc:'Factories requesting to buy your products',
+    accept:'Accept', reject:'Reject', contact:'Contact',
+    reqProduct:'Requested Product', reqQty:'Requested Qty',
+    offeredPrice:'Offered Price', reqTime:'Request Time',
+    accepted:'✓ Accepted', rejected:'✗ Rejected', newBadge:'New',
+    noReqs:'No requests yet', noReqsSub:'Factory purchase requests will appear here',
+    notifications:'Notifications', markAll:'Mark all read', today:'Today', earlier:'Earlier',
+    noNotifs:'No notifications',
+  }
+}
 
-  // الإحصائيات الرئيسية
-  const stats = [
-    { 
-      label: 'إجمالي المبيعات',
-      value: '87,240 ج',
-      change: '+12.5%',
-      trend: 'up',
-      icon: DollarSign,
-      color: 'emerald'
-    },
-    { 
-      label: 'المخلفات المتاحة',
-      value: '2.4 طن',
-      change: '-8%',
-      trend: 'down',
-      icon: Package,
-      color: 'blue'
-    },
-    { 
-      label: 'الطلبات النشطة',
-      value: '12',
-      change: '+3',
-      trend: 'up',
-      icon: Clock,
-      color: 'amber'
-    }
-  ]
+// ═══════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════
+const MONTHLY_REV = [
+  { m:'يوليو',   v:42000, deals:8  }, { m:'أغسطس',  v:58000, deals:11 },
+  { m:'سبتمبر', v:51000, deals:9  }, { m:'أكتوبر',  v:67000, deals:13 },
+  { m:'نوفمبر',  v:74000, deals:15 }, { m:'ديسمبر', v:87240, deals:18 },
+]
+const WASTE_BREAKDOWN = [
+  { ar:'بلاستيك', en:'Plastic', tons:5.2, pct:38, rev:15600, color:'#3b82f6' },
+  { ar:'معادن',   en:'Metals',  tons:3.1, pct:23, rev:20150, color:'#ca8a04' },
+  { ar:'ورق',     en:'Paper',   tons:2.8, pct:21, rev:4200,  color:'#db2777' },
+  { ar:'خشب',     en:'Wood',    tons:1.4, pct:10, rev:2520,  color:'#16a34a' },
+  { ar:'أخرى',    en:'Other',   tons:1.1, pct:8,  rev:2200,  color:'#6b7280' },
+]
+const WEEKLY_VIEWS = [45,78,52,91,63,88,112]
+const ACTIVITIES = [
+  { id:1, ar:'بيع بلاستيك PET',  en:'Sell PET Plastic',  buyerAr:'مصنع إعادة التدوير الأخضر', buyerEn:'Green Recycling Factory', qtyAr:'500 كجم', qtyEn:'500 kg', price:3500,  timeAr:'منذ ساعتين', timeEn:'2h ago',    status:'completed' },
+  { id:2, ar:'طلب زيوت مستعملة', en:'Used Oil Request',   buyerAr:'شركة الطاقة المتجددة',      buyerEn:'Renewable Energy Co.',    qtyAr:'200 لتر', qtyEn:'200 L',  price:4000,  timeAr:'منذ 5 ساعات',timeEn:'5h ago',    status:'pending'   },
+  { id:3, ar:'بيع كرتون',         en:'Sell Cardboard',     buyerAr:'مصنع الورق المتحد',          buyerEn:'United Paper Factory',    qtyAr:'1 طن',   qtyEn:'1 ton',  price:2000,  timeAr:'أمس',         timeEn:'Yesterday', status:'completed' },
+  { id:4, ar:'عرض حديد خردة',    en:'Scrap Iron Offer',   buyerAr:'شركة الصلب المصرية',         buyerEn:'Egyptian Steel Co.',      qtyAr:'3 طن',   qtyEn:'3 tons', price:19500, timeAr:'منذ يومين',  timeEn:'2d ago',    status:'pending'   },
+  { id:5, ar:'بيع زجاج شفاف',    en:'Sell Clear Glass',   buyerAr:'مصنع الزجاج الحديث',         buyerEn:'Modern Glass Factory',    qtyAr:'400 كجم',qtyEn:'400 kg', price:1200,  timeAr:'منذ 3 أيام', timeEn:'3d ago',    status:'completed' },
+]
+const LISTINGS = [
+  { id:1, ar:'بلاستيك PET',catAr:'بلاستيك',en:'PET Plastic', catEn:'Plastic', qtyAr:'5 طن', qtyEn:'5 ton', price:3000, views:245, offers:3, status:'active',  ageAr:'منذ يومين', ageEn:'2d ago' },
+  { id:2, ar:'كرتون نظيف', catAr:'ورق',    en:'Cardboard',    catEn:'Paper',   qtyAr:'8 طن', qtyEn:'8 ton', price:1500, views:312, offers:5, status:'active',  ageAr:'منذ يوم',   ageEn:'1d ago' },
+  { id:3, ar:'حديد خردة',  catAr:'معادن',  en:'Scrap Iron',   catEn:'Metals',  qtyAr:'3 طن', qtyEn:'3 ton', price:6500, views:89,  offers:1, status:'pending', ageAr:'منذ 5 أيام',ageEn:'5d ago' },
+  { id:4, ar:'خشب MDF',    catAr:'خشب',    en:'MDF Wood',     catEn:'Wood',    qtyAr:'6 طن', qtyEn:'6 ton', price:1800, views:123, offers:2, status:'active',  ageAr:'منذ 3 أيام',ageEn:'3d ago' },
+  { id:5, ar:'زجاج شفاف',  catAr:'زجاج',   en:'Clear Glass',  catEn:'Glass',   qtyAr:'4 طن', qtyEn:'4 ton', price:2200, views:67,  offers:0, status:'pending', ageAr:'منذ 5 أيام',ageEn:'5d ago' },
+]
 
-  // العمليات الأخيرة
-  const recentActivity = [
-    { 
-      id: 1,
-      title: 'بيع بلاستيك PET',
-      buyer: 'مصنع إعادة التدوير الأخضر',
-      amount: '500 كجم',
-      price: '3,500 ج',
-      time: 'منذ ساعتين',
-      status: 'completed'
-    },
-    { 
-      id: 2,
-      title: 'طلب شراء زيوت مستعملة',
-      buyer: 'شركة الطاقة المتجددة',
-      amount: '200 لتر',
-      price: '4,000 ج',
-      time: 'منذ 5 ساعات',
-      status: 'pending'
-    },
-    { 
-      id: 3,
-      title: 'بيع كرتون',
-      buyer: 'مصنع الورق المتحد',
-      amount: '1 طن',
-      price: '2,000 ج',
-      time: 'أمس',
-      status: 'completed'
-    }
-  ]
+// بيانات طلبات الشراء (بدون خاصية img)
+const PURCHASE_REQS_INIT = [
+  { id:1, factoryAr:'مصنع إعادة التدوير الأخضر',factoryEn:'Green Recycling Factory', locAr:'القاهرة',locEn:'Cairo',     productAr:'بلاستيك PET',productEn:'PET Plastic',    qtyAr:'2 طن',qtyEn:'2 tons', price:5800,  timeAr:'منذ 10 دقائق',timeEn:'10 min ago', rating:4.8, deals:24, status:'new',      msgAr:'نحتاج 2 طن من بلاستيك PET أسبوعياً، يمكن توقيع عقد طويل الأمد.', msgEn:'We need 2 tons of PET plastic weekly, open to a long-term contract.' },
+  { id:2, factoryAr:'شركة الصلب المصرية',         factoryEn:'Egyptian Steel Co.',       locAr:'الإسكندرية',locEn:'Alexandria', productAr:'حديد خردة',  productEn:'Scrap Iron',    qtyAr:'5 طن',qtyEn:'5 tons', price:32000, timeAr:'منذ ساعة',    timeEn:'1h ago',    rating:4.5, deals:61, status:'new',      msgAr:'مهتمون بشراء حديد الخردة بشكل دوري كل شهر.',                        msgEn:'Interested in purchasing scrap iron on a monthly recurring basis.' },
+  { id:3, factoryAr:'مصنع الورق المتحد',           factoryEn:'United Paper Factory',     locAr:'الجيزة',  locEn:'Giza',      productAr:'كرتون نظيف', productEn:'Clean Cardboard',qtyAr:'10 طن',qtyEn:'10 tons',price:14000, timeAr:'منذ 3 ساعات', timeEn:'3h ago',    rating:4.2, deals:38, status:'accepted', msgAr:'لدينا خط إنتاج جديد يحتاج كرتون بصفة منتظمة.',                       msgEn:'New production line requiring regular cardboard supply.' },
+  { id:4, factoryAr:'مصنع الزجاج الحديث',          factoryEn:'Modern Glass Factory',     locAr:'بورسعيد', locEn:'Port Said', productAr:'زجاج شفاف',  productEn:'Clear Glass',   qtyAr:'3 طن',qtyEn:'3 tons', price:7200,  timeAr:'أمس',          timeEn:'Yesterday', rating:4.9, deals:82, status:'rejected', msgAr:'نريد زجاجاً بمواصفات محددة، يرجى التواصل لمعرفة التفاصيل.',          msgEn:'Need glass with specific specs, please contact for details.' },
+]
+
+// بيانات الإشعارات
+const NOTIFS_INIT = [
+  { id:1,  type:'purchase', unread:true,  today:true,  titleAr:'طلب شراء جديد',         titleEn:'New Purchase Request',   bodyAr:'مصنع إعادة التدوير الأخضر يريد شراء 2 طن بلاستيك PET',  bodyEn:'Green Recycling Factory wants to buy 2 tons PET plastic',   timeAr:'منذ 10 دقائق', timeEn:'10 min ago' },
+  { id:2,  type:'message',  unread:true,  today:true,  titleAr:'رسالة جديدة',            titleEn:'New Message',            bodyAr:'شركة الصلب المصرية: متى يمكنك شحن الحديد؟',               bodyEn:'Egyptian Steel Co.: When can you ship the iron?',            timeAr:'منذ 30 دقيقة', timeEn:'30 min ago' },
+  { id:3,  type:'offer',    unread:true,  today:true,  titleAr:'عرض سعر مقبول',          titleEn:'Offer Accepted',         bodyAr:'تم قبول عرضك على كرتون نظيف بسعر 14,000 ج',               bodyEn:'Your cardboard offer of 14,000 EGP was accepted',            timeAr:'منذ ساعة',     timeEn:'1h ago'     },
+  { id:4,  type:'purchase', unread:true,  today:true,  titleAr:'طلب شراء جديد',         titleEn:'New Purchase Request',   bodyAr:'شركة الصلب المصرية تطلب 5 طن حديد خردة بـ 32,000 ج',     bodyEn:'Egyptian Steel Co. requests 5 tons scrap iron at 32,000 EGP', timeAr:'منذ ساعة',     timeEn:'1h ago'     },
+  { id:5,  type:'deal',     unread:false, today:true,  titleAr:'تأكيد صفقة',             titleEn:'Deal Confirmed',         bodyAr:'تم تأكيد بيع 500 كجم PET لمصنع إعادة التدوير الأخضر',    bodyEn:'Sale of 500kg PET to Green Recycling Factory confirmed',     timeAr:'منذ 3 ساعات',  timeEn:'3h ago'     },
+  { id:6,  type:'message',  unread:false, today:false, titleAr:'رسالة من مصنع الزجاج',  titleEn:'Message from Glass Co.', bodyAr:'مصنع الزجاج الحديث: هل لديك زجاج بمواصفات أخرى؟',        bodyEn:'Modern Glass Factory: Do you have glass with other specs?',  timeAr:'أمس',          timeEn:'Yesterday'  },
+  { id:7,  type:'system',   unread:false, today:false, titleAr:'تحديث سياسات الجودة',    titleEn:'Quality Policy Update',  bodyAr:'تمت إضافة معايير جودة جديدة لفئة المعادن',                bodyEn:'New quality standards added for metals category',            timeAr:'منذ يومين',    timeEn:'2d ago'     },
+  { id:8,  type:'rating',   unread:false, today:false, titleAr:'تقييم 5 نجوم',           titleEn:'5-Star Rating',          bodyAr:'حصلت على تقييم ممتاز من مصنع الزجاج الحديث',              bodyEn:'You received an excellent rating from Modern Glass Factory', timeAr:'منذ 3 أيام',   timeEn:'3d ago'     },
+]
+
+// ═══════════════════════════════════════════════════
+// DONUT CHART
+// ═══════════════════════════════════════════════════
+function DonutChart({ data, size=130 }) {
+  const cx=size/2, cy=size/2, r=size*0.34, stroke=size*0.13, circ=2*Math.PI*r
+  let offset=0
+  const slices=data.map(d=>{const len=(d.pct/100)*circ;const s={...d,dashOffset:circ*0.25-offset,len};offset+=len;return s})
+  return (
+    <svg width={size} height={size} style={{flexShrink:0}}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--db-prog)" strokeWidth={stroke}/>
+      {slices.map((s,i)=>(<circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={stroke} strokeDasharray={`${s.len} ${circ-s.len}`} strokeDashoffset={s.dashOffset} strokeLinecap="round"/>))}
+      <text x={cx} y={cy-7} textAnchor="middle" style={{fontSize:size*0.11,fontWeight:900,fill:'var(--db-txt)',fontFamily:"'Cairo',sans-serif"}}>13.6</text>
+      <text x={cx} y={cy+10} textAnchor="middle" style={{fontSize:size*0.075,fill:'var(--db-txt3)',fontFamily:"'Cairo',sans-serif"}}>طن</text>
+    </svg>
+  )
+}
+
+// ═══════════════════════════════════════════════════
+// NOTIFICATION PANEL
+// ═══════════════════════════════════════════════════
+const NOTIF_TYPE = {
+  purchase: { bg:'rgba(5,150,105,.15)',  ic:'#059669', Icon:ShoppingCart },
+  message:  { bg:'rgba(37,99,235,.14)', ic:'#2563eb', Icon:MessageSquare },
+  offer:    { bg:'rgba(245,158,11,.14)',ic:'#d97706', Icon:Zap           },
+  deal:     { bg:'rgba(5,150,105,.15)', ic:'#059669', Icon:CheckCircle2  },
+  system:   { bg:'rgba(124,58,237,.14)',ic:'#7c3aed', Icon:Settings      },
+  rating:   { bg:'rgba(245,158,11,.14)',ic:'#f59e0b', Icon:Star          },
+}
+
+function NotifPanel({ notifs, onClose, onMarkAll, t, ar }) {
+  const todayNotifs   = notifs.filter(n=>n.today)
+  const earlierNotifs = notifs.filter(n=>!n.today)
+  const unread = notifs.filter(n=>n.unread).length
 
   return (
-    <div className="dashboard-container" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            مرحباً، {user?.name || 'أحمد محمد'} 👋
-          </h1>
-          <p className="text-slate-600">إليك نظرة سريعة على نشاط مصنعك اليوم</p>
+    <>
+      <div className="db-notif-overlay" onClick={onClose}/>
+      <div className="db-notif-panel">
+        <div className="db-notif-hd">
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="db-notif-hd-title">{t.notifications}</span>
+            {unread>0 && (
+              <span style={{padding:'2px 9px',background:'#ef4444',color:'#fff',borderRadius:99,fontSize:11,fontWeight:800}}>{unread}</span>
+            )}
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <button className="db-notif-ft" style={{padding:0,border:'none',background:'none'}} onClick={onMarkAll}>
+              <span style={{fontSize:11,fontWeight:700,color:'var(--db-green)',cursor:'pointer',fontFamily:"'Cairo',sans-serif"}}>{t.markAll}</span>
+            </button>
+            <button onClick={onClose} style={{padding:6,background:'var(--db-surface2)',border:'1px solid var(--db-border)',borderRadius:8,cursor:'pointer',display:'flex',color:'var(--db-txt3)',transition:'background .15s'}}>
+              <X size={15}/>
+            </button>
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <div key={index} className="bg-white rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-all">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-xl bg-${stat.color}-100 flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 text-${stat.color}-600`} />
-                  </div>
-                  <span className={`flex items-center gap-1 text-sm font-medium ${
-                    stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'
-                  }`}>
-                    {stat.change}
-                    <ArrowUpRight className={`w-4 h-4 ${stat.trend === 'down' ? 'rotate-90' : ''}`} />
-                  </span>
+        <div className="db-notif-list">
+          {notifs.length===0 ? (
+            <div className="db-empty">
+              <Bell size={36} color="var(--db-border2)" style={{margin:'0 auto 12px',display:'block'}}/>
+              <div className="db-empty-ttl">{t.noNotifs}</div>
+            </div>
+          ) : (
+            <>
+              {todayNotifs.length>0 && (
+                <>
+                  <div className="db-notif-group">{t.today}</div>
+                  {todayNotifs.map(n=>(<NotifItem key={n.id} n={n} ar={ar}/>))}
+                </>
+              )}
+              {earlierNotifs.length>0 && (
+                <>
+                  <div className="db-notif-group">{t.earlier}</div>
+                  {earlierNotifs.map(n=>(<NotifItem key={n.id} n={n} ar={ar}/>))}
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="db-notif-ft">
+          <button onClick={onClose}>{ar?'عرض كل الإشعارات':'View all notifications'} →</button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function NotifItem({ n, ar }) {
+  const cfg = NOTIF_TYPE[n.type] || NOTIF_TYPE.system
+  const Ic  = cfg.Icon
+  return (
+    <div className={`db-ni ${n.unread?'unread':''}`}>
+      <div className="db-ni-ico" style={{background:cfg.bg}}>
+        <Ic size={16} color={cfg.ic}/>
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div className="db-ni-title">{ar?n.titleAr:n.titleEn}</div>
+        <div className="db-ni-body">{ar?n.bodyAr:n.bodyEn}</div>
+        <div className="db-ni-time">{ar?n.timeAr:n.timeEn}</div>
+      </div>
+      {n.unread && <div className="db-ni-dot"/>}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════
+// PURCHASE REQUESTS SECTION (معدل مع الصور من ui-avatars)
+// ═══════════════════════════════════════════════════
+function PurchaseReqs({ t, ar, reqs, onStatus }) {
+  const newCount = reqs.filter(r=>r.status==='new').length
+  return (
+    <div className="db-pr">
+      <div className="db-pr-hd">
+        <div className="db-pr-hd-info">
+          <div className="db-pr-hd-ico"><ShoppingCart size={18} color="#fff"/></div>
+          <div>
+            <div className="db-pr-hd-title">{t.incomingReq}</div>
+            <div className="db-pr-hd-sub">{t.incomingDesc}</div>
+          </div>
+          {newCount>0 && (
+            <span style={{padding:'3px 10px',background:'#ef4444',color:'#fff',borderRadius:99,fontSize:11,fontWeight:900,animation:'pulse 2s infinite'}}>{newCount} {t.newBadge}</span>
+          )}
+        </div>
+        <button className="db-cl">{t.viewAll} <ArrowRight size={13}/></button>
+      </div>
+
+      {reqs.length===0 ? (
+        <div className="db-empty">
+          <ShoppingCart size={34} color="var(--db-border2)" style={{margin:'0 auto 10px',display:'block'}}/>
+          <div className="db-empty-ttl">{t.noReqs}</div>
+          <div className="db-empty-sub">{t.noReqsSub}</div>
+        </div>
+      ) : reqs.map((req,idx)=>{
+        const isNew = req.status==='new'
+        const acc   = req.status==='accepted'
+        const rej   = req.status==='rejected'
+        const factoryName = ar ? req.factoryAr : req.factoryEn
+        return (
+          <div key={req.id} className={`db-pr-row ${isNew?'is-new':''}`}>
+            <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+
+              {/* صورة المصنع من ui-avatars */}
+              <img
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(factoryName)}&background=059669&color=fff&size=46&bold=true&length=2`}
+                alt={factoryName}
+                style={{
+                  width:46, height:46, borderRadius:12, objectFit:'cover',
+                  flexShrink:0, border:'2px solid var(--db-border)'
+                }}
+                onError={(e) => {
+                  e.target.src = 'https://ui-avatars.com/api/?name=ECOv&background=059669&color=fff&size=46';
+                }}
+              />
+
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
+                  <span className="db-pr-name">{factoryName}</span>
+                  {isNew && <span style={{padding:'2px 8px',background:'#dcfce7',color:'#059669',borderRadius:99,fontSize:10,fontWeight:900}}>{t.newBadge}</span>}
+                  {acc   && <span style={{padding:'2px 8px',background:'#dcfce7',color:'#059669',borderRadius:99,fontSize:10,fontWeight:900}}>{t.accepted}</span>}
+                  {rej   && <span style={{padding:'2px 8px',background:'#fee2e2',color:'#dc2626',borderRadius:99,fontSize:10,fontWeight:900}}>{t.rejected}</span>}
                 </div>
-                <p className="text-slate-600 text-sm mb-1">{stat.label}</p>
-                <p className="text-3xl font-bold text-slate-900">{stat.value}</p>
+
+                <div style={{display:'flex',gap:14,marginBottom:10,flexWrap:'wrap'}}>
+                  <span className="db-pr-meta"><Building2 size={11}/>{ar?req.locAr:req.locEn}</span>
+                  <span className="db-pr-meta"><Star size={11} color="#f59e0b"/>{req.rating} · {req.deals} {ar?'صفقة':'deals'}</span>
+                </div>
+
+                <div className="db-pr-msg">"{ar?req.msgAr:req.msgEn}"</div>
+
+                <div className="db-pr-chips">
+                  {[
+                    {lbl:t.reqProduct,  val:ar?req.productAr:req.productEn, c:'#3b82f6'},
+                    {lbl:t.reqQty,      val:ar?req.qtyAr:req.qtyEn,         c:'#059669'},
+                    {lbl:t.offeredPrice,val:`${req.price.toLocaleString()} ${t.egp}`,   c:'#d97706'},
+                    {lbl:t.reqTime,     val:ar?req.timeAr:req.timeEn,        c:'#7c3aed'},
+                  ].map(chip=>(
+                    <div key={chip.lbl} className="db-pr-chip">
+                      <div className="db-pr-chip-lbl">{chip.lbl}</div>
+                      <div className="db-pr-chip-val" style={{color:chip.c}}>{chip.val}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="db-pr-actions">
+                  {isNew && <>
+                    <button className="db-btn-green" style={{padding:'7px 16px',fontSize:13}} onClick={()=>onStatus(req.id,'accepted')}>
+                      <CheckCircle2 size={14}/>{t.accept}
+                    </button>
+                    <button className="db-btn-danger" onClick={()=>onStatus(req.id,'rejected')}>
+                      <X size={14}/>{t.reject}
+                    </button>
+                  </>}
+                  <button className="db-btn-blue">
+                    <MessageSquare size={13}/>{t.contact}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD MAIN
+// ═══════════════════════════════════════════════════
+export default function Dashboard({ user, lang='ar', dark=false, showNotif, setShowNotif }) {
+  const navigate = useNavigate()
+  const [reqs,    setReqs]    = useState(PURCHASE_REQS_INIT)
+  const [notifs,  setNotifs]  = useState(NOTIFS_INIT)
+
+  const t   = T[lang] || T.ar
+  const ar  = lang === 'ar'
+  const dir = ar ? 'rtl' : 'ltr'
+  const name = user?.name || (ar?'أحمد محمد':'Ahmed Mohamed')
+  const maxRev = Math.max(...MONTHLY_REV.map(d=>d.v))
+  const pendingCount = ACTIVITIES.filter(a=>a.status==='pending').length
+  const unreadCount  = notifs.filter(n=>n.unread).length
+  const todayStr = new Date().toLocaleDateString(ar?'ar-EG':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+
+  const handleStatus  = (id,st) => setReqs(prev=>prev.map(r=>r.id===id?{...r,status:st}:r))
+  const handleMarkAll = () => setNotifs(prev=>prev.map(n=>({...n,unread:false})))
+
+  const rootCls = `db-root${dark?' db-dark':''}`
+
+  const C = {
+    kpi:    dark ? {bg:'rgba(16,185,129,.12)',bd:'rgba(16,185,129,.25)'} : {bg:'#ecfdf5',bd:'#bbf7d0'},
+    revBar: dark ? {active:'linear-gradient(180deg,#10b981,#059669)',idle:'linear-gradient(180deg,rgba(167,243,208,.4),rgba(110,231,183,.3))'} : {active:'linear-gradient(180deg,#10b981,#059669)',idle:'linear-gradient(180deg,#a7f3d0,#6ee7b7)'},
+    wkBar:  dark ? {active:'#10b981',idle:'rgba(187,247,208,.3)'} : {active:'#059669',idle:'#bbf7d0'},
+  }
+
+  return (
+    <div className={rootCls} dir={dir}>
+      {showNotif && (
+        <NotifPanel
+          notifs={notifs}
+          t={t}
+          ar={ar}
+          onClose={() => setShowNotif(false)}
+          onMarkAll={handleMarkAll}
+        />
+      )}
+      <div className="db-body">
+        <div className="db-hdr">
+          <div>
+            <h1>{t.welcome}، {name} 👋</h1>
+            <p>{todayStr}</p>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div className="db-kpis">
+          {[
+            {lbl:t.totalRevenue,  val:'87,240',           unit:t.egp,  chg:'▲ 12.5%', up:true,  Icon:DollarSign, bg:'#ecfdf5', ic:'#059669'},
+            {lbl:t.wasteOffered,  val:'13.6',              unit:t.tons, chg:'▲ 2.1',   up:true,  Icon:Package,    bg:'#eff6ff', ic:'#2563eb'},
+            {lbl:t.pendingOrders, val:String(pendingCount),unit:'',     chg:t.needsReply,up:false,Icon:Clock,     bg:'#fffbeb', ic:'#d97706'},
+            {lbl:t.completionRate,val:'78',                unit:'%',    chg:'▲ 5%',    up:true,  Icon:TrendingUp, bg:'#f5f3ff', ic:'#7c3aed'},
+          ].map(({lbl,val,unit,chg,up,Icon,bg,ic},idx)=>{
+            const bgAdj = dark ? (up?'rgba(5,150,105,.14)':'rgba(217,119,6,.14)') : (up?'#ecfdf5':'#fffbeb')
+            const icoBg = dark ? 'rgba(255,255,255,.06)' : bg
+            return (
+              <div className="db-kpi" key={lbl} style={{animationDelay:`${idx*.08}s`}}>
+                <div className="db-kpi-top">
+                  <div className="db-kpi-ico" style={{background:icoBg}}><Icon size={19} color={ic}/></div>
+                  <span className="db-kpi-chg" style={{color:up?'#059669':'#d97706',background:bgAdj}}>{chg}</span>
+                </div>
+                <div className="db-kpi-val">{val}<span className="db-kpi-unit">{unit}</span></div>
+                <div className="db-kpi-lbl">{lbl}</div>
               </div>
             )
           })}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">النشاط الأخير</h2>
-              <button 
-                onClick={() => navigate('/transactions')}
-                className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center gap-1"
-              >
-                عرض الكل
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
+        {/* Two columns layout */}
+        <div className="db-two-columns">
+          <div className="db-main-column">
+            {/* Revenue chart */}
+            <div className="db-card">
+              <div className="db-ch">
+                <div>
+                  <h3>{t.monthlyRevenue}</h3>
+                  <div className="db-ch-sub">{t.last6months}</div>
+                </div>
+                <div style={{textAlign:ar?'left':'right'}}>
+                  <div style={{fontSize:20,fontWeight:900,color:'var(--db-txt)'}}>379,240 <span style={{fontSize:12,color:'var(--db-txt3)'}}>{t.egp}</span></div>
+                  <div style={{fontSize:12,fontWeight:700,color:'var(--db-green)'}}>{t.vsLastPeriod}</div>
+                </div>
+              </div>
+              <div style={{padding:'20px 20px 16px'}}>
+                <div style={{display:'flex',alignItems:'flex-end',gap:10,height:140,marginBottom:8}}>
+                  {MONTHLY_REV.map((d,i)=>{
+                    const isLast=i===MONTHLY_REV.length-1
+                    const pct=(d.v/maxRev)*100
+                    return (
+                      <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                        <div style={{fontSize:9.5,fontWeight:800,color:isLast?'var(--db-green)':'var(--db-txt4)'}}>{(d.v/1000).toFixed(0)}k</div>
+                        <div style={{width:'100%',height:`${Math.max(pct,5)}%`,minHeight:6,borderRadius:'8px 8px 0 0',
+                          background:isLast?C.revBar.active:C.revBar.idle,
+                          position:'relative',transition:'height .5s ease',
+                          boxShadow:isLast?'0 -2px 12px rgba(5,150,105,.4)':'none'}}>
+                          {isLast&&<div style={{position:'absolute',top:-4,left:'50%',transform:'translateX(-50%)',width:8,height:8,borderRadius:'50%',background:'#059669',border:'2px solid var(--db-surface)',boxShadow:'0 0 0 3px rgba(5,150,105,.25)'}}/>}
+                        </div>
+                        <div style={{fontSize:9.5,color:'var(--db-txt4)',whiteSpace:'nowrap'}}>{t.months[d.m]||d.m}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{borderTop:'1px dashed var(--db-border2)',paddingTop:8,display:'flex',justifyContent:'space-between'}}>
+                  <span style={{fontSize:10,color:'var(--db-txt4)'}}>0</span>
+                  <span style={{fontSize:10,color:'var(--db-txt4)'}}>87,240 {t.egp}</span>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-all border border-slate-100">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activity.status === 'completed' ? 'bg-emerald-100' : 'bg-amber-100'
-                  }`}>
-                    {activity.status === 'completed' ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    ) : (
-                      <Clock className="w-5 h-5 text-amber-600" />
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="font-semibold text-slate-900">{activity.title}</h3>
-                      <span className="text-lg font-bold text-slate-900 mr-2">{activity.price}</span>
-                    </div>
-                    <p className="text-sm text-slate-600 mb-1">{activity.buyer}</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
-                      <span>{activity.amount}</span>
-                      <span>•</span>
-                      <span>{activity.time}</span>
-                    </div>
-                  </div>
+            {/* Weekly views */}
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.weeklyViews}</h3>
+                <span style={{fontSize:12,fontWeight:800,color:'var(--db-green)'}}>{t.total}: {WEEKLY_VIEWS.reduce((a,b)=>a+b,0)}</span>
+              </div>
+              <div style={{padding:'16px 20px 20px'}}>
+                <div style={{display:'flex',alignItems:'flex-end',gap:8,height:80}}>
+                  {WEEKLY_VIEWS.map((v,i)=>{
+                    const max=Math.max(...WEEKLY_VIEWS), isToday=i===6
+                    return (
+                      <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+                        <div style={{width:'100%',height:`${(v/max)*100}%`,minHeight:4,borderRadius:'5px 5px 0 0',background:isToday?C.wkBar.active:C.wkBar.idle,transition:'background .3s'}}/>
+                        <span style={{fontSize:9,color:isToday?'var(--db-green)':'var(--db-txt4)',fontWeight:isToday?800:400}}>{t.days[i]}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Listings table */}
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.myListingsTitle} ({LISTINGS.length})</h3>
+                <button className="db-btn-green" style={{padding:'7px 14px',fontSize:12}} onClick={()=>navigate('/list-waste')}>
+                  <Plus size={13}/>{ar?'إعلان جديد':'New Listing'}
+                </button>
+              </div>
+              <div style={{overflowX:'auto'}}>
+                <table className="db-tbl">
+                  <thead><tr>
+                    <th>{t.product}</th><th>{t.category}</th><th>{t.quantity}</th>
+                    <th>{t.pricePerTon}</th><th>{t.views}</th><th>{t.offers}</th>
+                    <th>{t.status}</th><th>{t.published}</th><th>{t.action}</th>
+                  </tr></thead>
+                  <tbody>
+                    {LISTINGS.map(l=>(
+                      <tr key={l.id}>
+                        <td style={{fontWeight:700,color:'var(--db-txt)'}}>{ar?l.ar:l.en}</td>
+                        <td><span style={{padding:'2px 9px',background:'var(--db-chip)',borderRadius:99,fontSize:11,fontWeight:600,color:'var(--db-txt3)'}}>{ar?l.catAr:l.catEn}</span></td>
+                        <td>{ar?l.qtyAr:l.qtyEn}</td>
+                        <td style={{fontWeight:700,color:'var(--db-green)'}}>{l.price.toLocaleString()} {t.egp}</td>
+                        <td><span style={{display:'flex',alignItems:'center',gap:4}}><Eye size={12} color="var(--db-txt4)"/>{l.views}</span></td>
+                        <td><span className="badge" style={{background:l.offers>0?(dark?'rgba(5,150,105,.18)':'#ecfdf5'):'var(--db-chip)',color:l.offers>0?'#059669':'var(--db-txt3)'}}>{l.offers} {t.offers}</span></td>
+                        <td><span className="badge" style={{background:l.status==='active'?(dark?'rgba(5,150,105,.18)':'#ecfdf5'):(dark?'rgba(217,119,6,.16)':'#fffbeb'),color:l.status==='active'?'#059669':'#d97706'}}>{l.status==='active'?t.activeTag:t.suspendedTag}</span></td>
+                        <td style={{fontSize:11,color:'var(--db-txt4)'}}>{ar?l.ageAr:l.ageEn}</td>
+                        <td>
+                          <div style={{display:'flex',gap:6}}>
+                            <button className="db-btn-ghost" style={{padding:'4px 10px',fontSize:11}}>{t.edit}</button>
+                            <button className="db-btn-danger" style={{padding:'4px 10px',fontSize:11}}>{t.delete}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="space-y-6">
-            
-            {/* Primary Action */}
-            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-6 text-white">
-              <Package className="w-12 h-12 mb-4 opacity-90" />
-              <h3 className="text-xl font-bold mb-2">أضف مخلفات جديدة</h3>
-              <p className="text-emerald-100 text-sm mb-6">ابدأ في بيع المخلفات الصناعية الخاصة بك</p>
-              <button
-                onClick={() => navigate('/list-waste')}
-                className="w-full bg-white text-emerald-700 hover:bg-emerald-50 font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                إضافة الآن
-              </button>
-            </div>
+          <div className="db-side-column">
+            <PurchaseReqs t={t} ar={ar} reqs={reqs} onStatus={handleStatus}/>
 
-            {/* Secondary Actions */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200">
-              <h3 className="font-bold text-slate-900 mb-4">إجراءات سريعة</h3>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => navigate('/marketplace')}
-                  className="w-full text-right p-4 rounded-xl hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-between group"
-                >
-                  <span className="font-medium text-slate-700">تصفح السوق</span>
-                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                </button>
-                
-                <button
-                  onClick={() => navigate('/orders')}
-                  className="w-full text-right p-4 rounded-xl hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-between group"
-                >
-                  <span className="font-medium text-slate-700">طلباتي</span>
-                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                </button>
-                
-                <button
-                  onClick={() => navigate('/analytics')}
-                  className="w-full text-right p-4 rounded-xl hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-between group"
-                >
-                  <span className="font-medium text-slate-700">التقارير</span>
-                  <ArrowUpRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
-                </button>
+            {/* Recent Activity */}
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.recentActivity}</h3>
+                <button className="db-cl" onClick={()=>navigate('/orders')}>{t.viewAll} <ArrowRight size={13}/></button>
               </div>
+              {ACTIVITIES.map(a=>{
+                const isOk = a.status==='completed'
+                const icoBg = dark
+                  ? (isOk?'rgba(5,150,105,.18)':'rgba(217,119,6,.16)')
+                  : (isOk?'#ecfdf5':'#fffbeb')
+                return (
+                  <div key={a.id} className="db-act">
+                    <div className="db-act-ico" style={{background:icoBg}}>
+                      {isOk?<CheckCircle2 size={16} color="#059669"/>:<Clock size={16} color="#d97706"/>}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'var(--db-txt)',marginBottom:2}}>{ar?a.ar:a.en}</div>
+                      <div style={{fontSize:11,color:'var(--db-txt3)',marginBottom:3}}>{ar?a.buyerAr:a.buyerEn}</div>
+                      <div style={{display:'flex',gap:8,fontSize:10,color:'var(--db-txt4)'}}>
+                        <span>{ar?a.qtyAr:a.qtyEn}</span><span>·</span><span>{ar?a.timeAr:a.timeEn}</span>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5}}>
+                      <span style={{fontSize:14,fontWeight:900,color:'var(--db-txt)'}}>{a.price.toLocaleString()} {t.egp}</span>
+                      <span className="badge" style={{background:isOk?(dark?'rgba(5,150,105,.18)':'#ecfdf5'):(dark?'rgba(217,119,6,.16)':'#fffbeb'),color:isOk?'#059669':'#d97706'}}>
+                        {isOk?t.completed:t.pending}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
-            {/* Alert/Notice */}
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-              <div className="flex gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-blue-900 mb-1 text-sm">تنبيه هام</h4>
-                  <p className="text-blue-700 text-sm leading-relaxed">
-                    لديك 3 طلبات تنتظر الموافقة. راجعها الآن لتسريع عملية البيع.
-                  </p>
+            {/* باقي البطاقات */}
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.wasteBreakdown}</h3>
+                <span style={{fontSize:11,color:'var(--db-txt4)'}}>13.6 {t.tons}</span>
+              </div>
+              <div style={{padding:'18px 20px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:16}}>
+                  <DonutChart data={WASTE_BREAKDOWN}/>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    {WASTE_BREAKDOWN.map(d=>(
+                      <div key={d.ar} style={{display:'flex',alignItems:'center',gap:7}}>
+                        <div style={{width:9,height:9,borderRadius:3,background:d.color,flexShrink:0}}/>
+                        <span style={{fontSize:12,color:'var(--db-txt2)',fontWeight:600}}>{ar?d.ar:d.en}</span>
+                        <span style={{fontSize:11,color:'var(--db-txt4)',marginRight:'auto',paddingRight:4}}>{d.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+                {WASTE_BREAKDOWN.map(d=>(
+                  <div key={d.ar} style={{marginBottom:9}}>
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                      <span style={{fontSize:11,color:'var(--db-txt2)',fontWeight:600}}>{ar?d.ar:d.en}</span>
+                      <span style={{fontSize:11,color:'var(--db-txt3)'}}>{d.tons} {t.tons}</span>
+                    </div>
+                    <div className="db-prog"><div className="db-prog-fill" style={{width:`${d.pct}%`,background:d.color}}/></div>
+                  </div>
+                ))}
               </div>
             </div>
 
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.performance}</h3>
+                <button className="db-cl" onClick={()=>navigate('/analytics')}>{t.details} <ArrowRight size={13}/></button>
+              </div>
+              <div style={{padding:'14px 20px',display:'flex',flexDirection:'column',gap:14}}>
+                {[
+                  {l:t.completionDeals,  v:78, c:'#059669'},
+                  {l:t.quickReply,       v:92, c:'#2563eb'},
+                  {l:t.buyerSatisfaction,v:88, c:'#7c3aed'},
+                  {l:t.descAccuracy,     v:95, c:'#d97706'},
+                ].map(({l,v,c})=>(
+                  <div key={l}>
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                      <span style={{fontSize:12,color:'var(--db-txt3)'}}>{l}</span>
+                      <span style={{fontSize:13,fontWeight:800,color:c}}>{v}%</span>
+                    </div>
+                    <div className="db-prog"><div className="db-prog-fill" style={{width:`${v}%`,background:c}}/></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="db-card">
+              <div className="db-ch">
+                <h3>{t.analyticsSummary}</h3>
+                <button className="db-cl" onClick={()=>navigate('/analytics')}>{t.details} <ArrowRight size={13}/></button>
+              </div>
+              <div style={{padding:'14px 20px',display:'flex',flexDirection:'column',gap:0}}>
+                {[
+                  {l:t.avgDealValue,      v:`6,040 ${t.egp}`, Icon:DollarSign, c:'#059669', bg:'#ecfdf5'},
+                  {l:t.daysSinceLastSale, v:'2',               Icon:Clock3,     c:'#2563eb', bg:'#eff6ff'},
+                  {l:t.repeatBuyers,      v:'7',               Icon:Users,      c:'#7c3aed', bg:'#f5f3ff'},
+                  {l:t.topDeal,           v:`19,500 ${t.egp}`, Icon:Award,      c:'#d97706', bg:'#fffbeb'},
+                ].map(({l,v,Icon,c,bg})=>{
+                  const icoBg = dark ? `${c}22` : bg
+                  return (
+                    <div key={l} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:'1px solid var(--db-border)'}}>
+                      <div style={{width:32,height:32,borderRadius:9,background:icoBg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <Icon size={14} color={c}/>
+                      </div>
+                      <span style={{fontSize:12,color:'var(--db-txt3)',flex:1}}>{l}</span>
+                      <span style={{fontSize:13,fontWeight:800,color:c}}>{v}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {pendingCount>0&&(
+              <div style={{
+                background:dark?'rgba(146,64,14,.14)':'linear-gradient(135deg,#fffbeb,#fef3c7)',
+                border:`1px solid ${dark?'rgba(253,211,77,.2)':'#fde68a'}`,
+                borderRadius:14, padding:16
+              }}>
+                <div style={{display:'flex',gap:10,marginBottom:12}}>
+                  <AlertCircle size={17} color="#d97706" style={{flexShrink:0}}/>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:800,color:dark?'#fcd34d':'#92400e',marginBottom:3}}>{pendingCount} {t.pendingAlertTitle}</div>
+                    <div style={{fontSize:11,color:dark?'#fbbf24':'#b45309',lineHeight:1.55}}>{t.pendingAlertDesc}</div>
+                  </div>
+                </div>
+                <button onClick={()=>navigate('/orders')} style={{width:'100%',padding:9,background:'#d97706',color:'#fff',border:'none',borderRadius:9,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:"'Cairo',sans-serif"}}>
+                  {t.reviewOrders}
+                </button>
+              </div>
+            )}
           </div>
         </div>
-
       </div>
     </div>
   )
 }
-
-export default Dashboard

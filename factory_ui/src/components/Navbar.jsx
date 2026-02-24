@@ -1,9 +1,10 @@
+// ==================== Navbar.js (معدل لإضافة onClick للإشعارات) ====================
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, MessageSquare, User, LogOut, Home, ShoppingCart, Factory, BarChart3, Package, Eye, TrendingUp, Menu, X, Settings, ChevronDown, Plus } from 'lucide-react';
 import './Navbar.css';
 
-function Navbar({ user, onLogout }) {
+function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop onNotificationClick
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +76,11 @@ function Navbar({ user, onLogout }) {
                   />
                 </form>
 
-                <button className="navbar-action-button relative">
+                {/* أيقونة الجرس مع onClick */}
+                <button
+                  className="navbar-action-button relative"
+                  onClick={onNotificationClick}  // استدعاء الدالة القادمة من الأب
+                >
                   <Bell className="w-5 h-5" />
                   <span className="notification-badge">3</span>
                 </button>

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, Home, Factory, Shield, CheckCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, Recycle, Leaf, Droplets, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logooo1ecov.png'
+import logo from '../assets/ecovnew.png'
+import backgroundImg from '../assets/ecovlogin.png'
 import './Login.css'
 
 function Login({ onLoginSuccess }) {
@@ -36,85 +37,105 @@ function Login({ onLoginSuccess }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 relative overflow-hidden" dir="rtl">
-      {/* خلفية متحركة */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-emerald-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-teal-500/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-[#2B4B3C] relative overflow-hidden" dir="rtl">
+      {/* خلفية الصورة الطبيعية */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${backgroundImg})`,
+          filter: 'brightness(0.85) contrast(1.1)',
+        }}
+      >
+        {/* Overlay طبيعي بألوان الأرض */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2B4B3C]/70 via-[#3A5E4A]/60 to-[#1A2E25]/80"></div>
       </div>
 
-      {/* Header */}
-      <nav className="relative bg-black/30 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      {/* عناصر طبيعية متحركة - أوراق الشجر */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 text-[#8FBC8F]/20 transform rotate-12">
+          <Leaf className="w-32 h-32" />
+        </div>
+        <div className="absolute bottom-40 right-10 text-[#98FB98]/10 transform -rotate-12">
+          <Leaf className="w-40 h-40" />
+        </div>
+        <div className="absolute top-1/2 left-1/4 text-[#6B8E23]/10">
+          <Recycle className="w-24 h-24" />
+        </div>
+      </div>
+
+      {/* Header بشفافية كاملة */}
+      <nav className="relative bg-transparent py-6">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="ECOv Logo" className="h-12 w-auto object-contain" />
-              <div className="hidden sm:block">
-                <h1 className="text-white font-bold text-lg">ECOv</h1>
-                <p className="text-emerald-300 text-xs">منصة الاقتصاد الدائري</p>
-              </div>
+            {/* اللوجو بدون خلفية */}
+            <div className="flex items-center">
+              <img 
+                src={logo} 
+                alt="ECOv" 
+                className="h-16 w-auto object-contain drop-shadow-lg"
+                style={{ filter: 'brightness(1.1) contrast(1.2)' }}
+              />
             </div>
+            
             <button 
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 backdrop-blur-sm"
+              className="flex items-center gap-2 px-6 py-3 bg-white/90 hover:bg-white text-[#2B4B3C] rounded-full transition-all shadow-lg hover:shadow-xl border border-[#8FBC8F] backdrop-blur-sm font-bold"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="font-semibold">الرئيسية</span>
+              <span>الرئيسية</span>
             </button>
           </div>
         </div>
       </nav>
 
       {/* المحتوى الرئيسي */}
-      <div className="relative py-12 px-4">
+      <div className="relative py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
-            {/* القسم الأيسر - معلومات */}
+            {/* القسم الأيسر - معلومات بيئية */}
             <div className="hidden lg:block text-white space-y-8">
-              <div>
-                <h2 className="text-5xl font-bold mb-4 leading-tight">
-                  مرحباً بك في
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400"> ECOv</span>
-                </h2>
-                <p className="text-xl text-slate-300 leading-relaxed">
-                  منصة الاقتصاد الدائري للمصانع المصرية
+              <div className="backdrop-blur-sm bg-white/5 p-8 rounded-3xl border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-[#98FB98]/20 rounded-full flex items-center justify-center">
+                    <Sun className="w-6 h-6 text-[#F0E68C]" />
+                  </div>
+                  <h2 className="text-4xl font-bold text-[#F0E68C]">ECOv</h2>
+                </div>
+                
+                <p className="text-2xl mb-8 text-[#E5E5E5] leading-relaxed">
+                  معاً نحو مستقبل أخضر
+                  <span className="block text-lg text-[#98FB98] mt-2">منصة الاقتصاد الدائري للمصانع المصرية</span>
                 </p>
-              </div>
 
-              <div className="space-y-6">
-                <div className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-                  <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Factory className="w-6 h-6 text-emerald-400" />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 bg-[#2B4B3C]/40 backdrop-blur-sm p-5 rounded-2xl border border-[#98FB98]/30">
+                    <div className="w-12 h-12 bg-[#98FB98]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Recycle className="w-6 h-6 text-[#98FB98]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#F0E68C] mb-1">إعادة تدوير ذكية</h3>
+                      <p className="text-[#E5E5E5] text-sm">حوِّل نفايات مصنعك إلى موارد قيمة</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">إدارة مصنعك بكفاءة</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      تتبع النفايات، تحليل البيانات، والتواصل مع الشركاء في مكان واحد
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-                  <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-6 h-6 text-teal-400" />
+                  <div className="flex items-center gap-4 bg-[#2B4B3C]/40 backdrop-blur-sm p-5 rounded-2xl border border-[#98FB98]/30">
+                    <div className="w-12 h-12 bg-[#98FB98]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Leaf className="w-6 h-6 text-[#98FB98]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#F0E68C] mb-1">بصمة كربونية صفرية</h3>
+                      <p className="text-[#E5E5E5] text-sm">ساهم في حماية البيئة وتقليل الانبعاثات</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">أمان متقدم</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      حماية بيانات مصنعك بأحدث معايير الأمان والتشفير
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-4 bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
-                  <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-6 h-6 text-emerald-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2">شبكة شركاء موثوقين</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      تواصل مع مصانع ومعيدي تدوير معتمدين من جميع أنحاء مصر
-                    </p>
+                  <div className="flex items-center gap-4 bg-[#2B4B3C]/40 backdrop-blur-sm p-5 rounded-2xl border border-[#98FB98]/30">
+                    <div className="w-12 h-12 bg-[#98FB98]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Droplets className="w-6 h-6 text-[#98FB98]" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-[#F0E68C] mb-1">استدامة الموارد</h3>
+                      <p className="text-[#E5E5E5] text-sm">حافظ على الموارد الطبيعية للأجيال القادمة</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -122,20 +143,25 @@ function Login({ onLoginSuccess }) {
 
             {/* القسم الأيمن - نموذج تسجيل الدخول */}
             <div className="w-full">
-              <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-                {/* العنوان */}
-                <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-8 text-white text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/30">
-                      <Lock className="w-10 h-10 text-white" />
-                    </div>
+              <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border-2 border-[#98FB98]/30">
+                {/* العنوان بخلفية طبيعية */}
+                <div className="bg-gradient-to-r from-[#2B4B3C] to-[#3A5E4A] p-8 text-white text-center relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#98FB98] rounded-full"></div>
+                    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#F0E68C] rounded-full"></div>
                   </div>
-                  <h2 className="text-3xl font-bold mb-2">
-                    تسجيل الدخول
-                  </h2>
-                  <p className="text-emerald-100 text-lg">
-                    ادخل إلى لوحة تحكم مصنعك
-                  </p>
+                  
+                  <div className="relative">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-20 h-20 bg-[#98FB98]/20 rounded-2xl flex items-center justify-center border-2 border-[#F0E68C]/50 backdrop-blur-sm">
+                        <Recycle className="w-10 h-10 text-[#F0E68C]" />
+                      </div>
+                    </div>
+                    <h2 className="text-3xl font-bold mb-2 text-[#F0E68C]">
+                      تسجيل الدخول
+                    </h2>
+                    <p className="text-[#E5E5E5]">أهلاً بعودتك إلى منصة الاستدامة</p>
+                  </div>
                 </div>
 
                 {/* النموذج */}
@@ -143,18 +169,18 @@ function Login({ onLoginSuccess }) {
                   <div className="space-y-6">
                     {/* البريد الإلكتروني */}
                     <div>
-                      <label className="block text-slate-700 font-bold mb-3 text-lg">
+                      <label className="block text-[#2B4B3C] font-bold mb-3 text-lg">
                         البريد الإلكتروني
                       </label>
                       <div className="relative">
                         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
-                          <Mail className="w-5 h-5 text-emerald-600" />
+                          <Mail className="w-5 h-5 text-[#3A5E4A]" />
                         </div>
                         <input
                           type="email"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="w-full pr-12 pl-4 py-4 border-2 border-slate-300 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 outline-none transition-all text-lg bg-white"
+                          className="w-full pr-12 pl-4 py-4 border-2 border-[#8FBC8F] rounded-xl focus:border-[#2B4B3C] focus:ring-4 focus:ring-[#98FB98]/30 outline-none transition-all text-lg bg-white/90"
                           placeholder="example@company.com"
                           required
                         />
@@ -163,25 +189,25 @@ function Login({ onLoginSuccess }) {
 
                     {/* كلمة المرور */}
                     <div>
-                      <label className="block text-slate-700 font-bold mb-3 text-lg">
+                      <label className="block text-[#2B4B3C] font-bold mb-3 text-lg">
                         كلمة المرور
                       </label>
                       <div className="relative">
                         <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10">
-                          <Lock className="w-5 h-5 text-emerald-600" />
+                          <Lock className="w-5 h-5 text-[#3A5E4A]" />
                         </div>
                         <input
                           type={showPassword ? 'text' : 'password'}
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full pr-12 pl-12 py-4 border-2 border-slate-300 rounded-xl focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 outline-none transition-all text-lg bg-white"
+                          className="w-full pr-12 pl-12 py-4 border-2 border-[#8FBC8F] rounded-xl focus:border-[#2B4B3C] focus:ring-4 focus:ring-[#98FB98]/30 outline-none transition-all text-lg bg-white/90"
                           placeholder="أدخل كلمة المرور"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors z-10"
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#3A5E4A] hover:text-[#2B4B3C] transition-colors z-10"
                         >
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -193,11 +219,11 @@ function Login({ onLoginSuccess }) {
                       <label className="flex items-center gap-2 cursor-pointer group">
                         <input 
                           type="checkbox" 
-                          className="w-5 h-5 text-emerald-600 rounded border-2 border-slate-300 focus:ring-emerald-500 cursor-pointer" 
+                          className="w-5 h-5 text-[#2B4B3C] rounded border-2 border-[#8FBC8F] focus:ring-[#98FB98] cursor-pointer" 
                         />
-                        <span className="text-slate-700 font-medium group-hover:text-emerald-600 transition-colors">تذكرني</span>
+                        <span className="text-[#2B4B3C] font-medium group-hover:text-[#3A5E4A] transition-colors">تذكرني</span>
                       </label>
-                      <a href="#" className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline transition-all">
+                      <a href="#" className="text-[#2B4B3C] hover:text-[#3A5E4A] font-semibold hover:underline transition-all">
                         نسيت كلمة المرور؟
                       </a>
                     </div>
@@ -206,7 +232,7 @@ function Login({ onLoginSuccess }) {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg disabled:opacity-70 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+                      className="w-full py-4 bg-gradient-to-r from-[#2B4B3C] to-[#3A5E4A] hover:from-[#1A2E25] hover:to-[#2B4B3C] text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg disabled:opacity-70 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] border border-[#98FB98]/30"
                     >
                       {isLoading ? (
                         <>
@@ -216,7 +242,7 @@ function Login({ onLoginSuccess }) {
                       ) : (
                         <>
                           <span>تسجيل الدخول</span>
-                          <ArrowLeft className="w-5 h-5" />
+                          <Leaf className="w-5 h-5" />
                         </>
                       )}
                     </button>
@@ -225,13 +251,13 @@ function Login({ onLoginSuccess }) {
 
                 {/* رابط التسجيل الجديد */}
                 <div className="px-8 pb-8">
-                  <div className="border-t-2 border-slate-200 pt-6 text-center">
-                    <p className="text-slate-600 mb-4 text-lg font-medium">
-                      ليس لديك حساب؟ سجّل مصنعك الآن
+                  <div className="border-t-2 border-[#8FBC8F] pt-6 text-center">
+                    <p className="text-[#2B4B3C] mb-4 text-lg font-medium">
+                      انضم إلى مجتمع الاستدامة
                     </p>
                     <button
                       onClick={() => navigate('/registration')}
-                      className="w-full py-4 border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold rounded-xl transition-all hover:shadow-md text-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                      className="w-full py-4 border-2 border-[#2B4B3C] text-[#2B4B3C] hover:bg-[#98FB98]/20 font-bold rounded-xl transition-all hover:shadow-md text-lg transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                       تسجيل مصنع جديد
                     </button>
@@ -241,10 +267,10 @@ function Login({ onLoginSuccess }) {
 
               {/* معلومات إضافية */}
               <div className="mt-6 text-center">
-                <p className="text-slate-300">
-                  تواجه مشكلة في الدخول؟{' '}
-                  <a href="#" className="text-emerald-400 hover:text-emerald-300 font-semibold hover:underline transition-colors">
-                    اتصل بالدعم الفني
+                <p className="text-white/90">
+                  لديك استفسار؟{' '}
+                  <a href="#" className="text-[#F0E68C] hover:text-[#98FB98] font-semibold hover:underline transition-colors">
+                    تواصل مع فريق الاستدامة
                   </a>
                 </p>
               </div>
@@ -254,8 +280,8 @@ function Login({ onLoginSuccess }) {
       </div>
 
       {/* Footer */}
-      <div className="relative text-center pb-8 text-slate-400 text-sm">
-        <p>© 2026 ECOv - جميع الحقوق محفوظة</p>
+      <div className="relative text-center py-6 text-white/80 text-sm">
+        <p>© 2026 ECOv - معاً نحو بيئة أفضل</p>
       </div>
     </div>
   )
