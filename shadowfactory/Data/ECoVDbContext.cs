@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using shadowfactory.Models;
 using shadowfactory.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 namespace shadowfactory.Data
 {
     public class ECoVDbContext : DbContext
@@ -18,6 +18,7 @@ namespace shadowfactory.Data
 
         // DbSets for all entities
         public DbSet<Factory> Factories { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<VerificationToken> VerificationTokens { get; set; }
         public DbSet<User> Users { get; set; }
@@ -241,6 +242,86 @@ namespace shadowfactory.Data
                     .WithMany()
                     .HasForeignKey(e => e.FactoryId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ==================== ORDER CONFIGURATION ====================
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.ToTable("Orders");
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => e.OrderNumber).IsUnique();
+                entity.HasIndex(e => e.BuyerFactoryId);
+                entity.HasIndex(e => e.SellerFactoryId);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.OrderDate);
+
+                entity.Property(e => e.OrderNumber)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.WasteType)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.WasteCategory)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Amount)
+                    .HasColumnType("decimal(18,2)")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
+
+                entity.Property(e => e.Unit)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(18,2)")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
+
+                entity.Property(e => e.BuyerName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.SellerName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("معلق");
+
+                entity.Property(e => e.Notes)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.OrderDate)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                // Relationships
+                entity.HasOne(e => e.WasteListing)
+                    .WithMany()
+                    .HasForeignKey(e => e.WasteListingId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.BuyerFactory)
+                    .WithMany()
+                    .HasForeignKey(e => e.BuyerFactoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.SellerFactory)
+                    .WithMany()
+                    .HasForeignKey(e => e.SellerFactoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ==================== TRANSACTION CONFIGURATION ====================
