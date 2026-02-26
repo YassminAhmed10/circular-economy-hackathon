@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, MapPin, Star, Phone, Mail, Globe, Building2, Recycle, Package, Users, CheckCircle } from 'lucide-react';
+import './Partners.css';
 
 function Partners() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,253 +123,233 @@ function Partners() {
   ];
 
   const filteredPartners = partners.filter(partner => {
-    const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         partner.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = searchTerm === '' ||
+      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      partner.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || partner.type === selectedType;
     const matchesLocation = selectedLocation === 'جميع المحافظات' || partner.location === selectedLocation;
-    
     return matchesSearch && matchesType && matchesLocation;
   });
 
-  const getPartnerTypeLabel = (typeId) => {
-    return partnerTypes.find(type => type.id === typeId)?.label || typeId;
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">شبكة الشركاء</h1>
-          <p className="text-slate-600">تواصل مع شركات إعادة التدوير والخدمات المتخصصة</p>
-        </div>
+    <div className="partners-container">
+      {/* Header */}
+      <div className="partners-header">
+        <h1>شبكة الشركاء</h1>
+        <p>تواصل مع شركات إعادة التدوير والخدمات المتخصصة</p>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">إجمالي الشركاء</p>
-                <p className="text-2xl font-bold text-slate-900">{partners.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                <Users className="w-6 h-6 text-emerald-600" />
-              </div>
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>إجمالي الشركاء</p>
+              <div className="stat-number">{partners.length}</div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">شركاء معتمدون</p>
-                <p className="text-2xl font-bold text-emerald-600">
-                  {partners.filter(p => p.verified).length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-emerald-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">متوسط التقييم</p>
-                <p className="text-2xl font-bold text-amber-600">
-                  {(partners.reduce((sum, p) => sum + p.rating, 0) / partners.length).toFixed(1)}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center">
-                <Star className="w-6 h-6 text-amber-500" />
-              </div>
+            <div className="stat-icon">
+              <Users />
             </div>
           </div>
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-            <div className="relative w-full md:w-auto md:flex-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="ابحث عن شركاء..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-2 border border-slate-300 rounded-lg focus:border-emerald-500 focus:outline-none"
-              />
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>شركاء معتمدون</p>
+              <div className="stat-number emerald">
+                {partners.filter(p => p.verified).length}
+              </div>
             </div>
-
-            <div className="flex flex-wrap gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:flex-none">
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="appearance-none w-full md:w-48 pr-10 pl-4 py-2 border border-slate-300 rounded-lg focus:border-emerald-500 focus:outline-none"
-                >
-                  {partnerTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.label}</option>
-                  ))}
-                </select>
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-
-              <div className="relative flex-1 md:flex-none">
-                <select
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="appearance-none w-full md:w-48 pr-10 pl-4 py-2 border border-slate-300 rounded-lg focus:border-emerald-500 focus:outline-none"
-                >
-                  {locations.map(location => (
-                    <option key={location} value={location}>{location}</option>
-                  ))}
-                </select>
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
+            <div className="stat-icon">
+              <CheckCircle />
             </div>
           </div>
+        </div>
 
-          {/* Partner Type Filters */}
-          <div className="flex flex-wrap gap-2">
-            {partnerTypes.map(type => (
-              <button
-                key={type.id}
-                onClick={() => setSelectedType(type.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                  selectedType === type.id
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>متوسط التقييم</p>
+              <div className="stat-number amber">
+                {(partners.reduce((sum, p) => sum + p.rating, 0) / partners.length).toFixed(1)}
+              </div>
+            </div>
+            <div className="stat-icon amber">
+              <Star />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="filter-section">
+        <div className="search-row">
+          <div className="search-wrapper">
+            <Search className="search-icon" />
+            <input
+              type="text"
+              placeholder="ابحث عن شركاء..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          <div className="filter-group">
+            <div className="select-wrapper">
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="select-input"
               >
-                {type.icon === '🚚' || type.icon === '💻' ? (
-                  <span>{type.icon}</span>
-                ) : (
-                  <type.icon className="w-4 h-4" />
-                )}
-                <span>{type.label}</span>
-              </button>
-            ))}
+                {partnerTypes.map(type => (
+                  <option key={type.id} value={type.id}>{type.label}</option>
+                ))}
+              </select>
+              <Filter className="select-icon" />
+            </div>
+
+            <div className="select-wrapper">
+              <select
+                value={selectedLocation}
+                onChange={(e) => setSelectedLocation(e.target.value)}
+                className="select-input"
+              >
+                {locations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+              <MapPin className="select-icon" />
+            </div>
           </div>
         </div>
 
-        {/* Partners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPartners.map(partner => (
-            <div key={partner.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-all">
-              <div className="p-6">
-                {/* Partner Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={partner.logo}
-                      alt={partner.name}
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">{partner.name}</h3>
-                        {partner.verified && (
-                          <CheckCircle className="w-4 h-4 text-emerald-600" title="شريك معتمد" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <MapPin className="w-3 h-3 text-slate-500" />
-                        <span className="text-sm text-slate-600">{partner.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 bg-amber-50 text-amber-800 px-2 py-1 rounded">
-                    <Star className="w-3 h-3" />
-                    <span className="text-sm font-medium">{partner.rating}</span>
-                    <span className="text-xs">({partner.reviews})</span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-slate-600 mb-4 line-clamp-2">{partner.description}</p>
-
-                {/* Specialties */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {partner.specialties.map(specialty => (
-                    <span
-                      key={specialty}
-                      className="px-3 py-1 bg-slate-100 text-slate-700 text-sm rounded-full"
-                    >
-                      {specialty}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Contact Info */}
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span>{partner.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{partner.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    <span className="truncate">{partner.website}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 mt-6 pt-6 border-t border-slate-100">
-                  <button className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all">
-                    تواصل الآن
-                  </button>
-                  <button className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition-all">
-                    عرض الملف
-                  </button>
-                </div>
-              </div>
-            </div>
+        {/* Partner Type Buttons */}
+        <div className="type-filters">
+          {partnerTypes.map(type => (
+            <button
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`type-btn ${selectedType === type.id ? 'active' : ''}`}
+            >
+              {type.icon === '🚚' || type.icon === '💻' ? (
+                <span>{type.icon}</span>
+              ) : (
+                <type.icon />
+              )}
+              <span>{type.label}</span>
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Empty State */}
-        {filteredPartners.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-12 h-12 text-slate-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">لا توجد نتائج</h3>
-            <p className="text-slate-600">جرب البحث باستخدام مصطلحات مختلفة أو تغيير الفلاتر</p>
-          </div>
-        )}
-
-        {/* Become a Partner Section */}
-        <div className="mt-12 bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-xl p-8 text-white">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-2xl font-bold mb-2">كن شريكاً معنا</h3>
-              <p className="text-emerald-100 mb-4">
-                انضم إلى شبكتنا من الشركاء المتميزين ووسع فرص أعمالك في مجال الاقتصاد الدائري
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>وصول إلى آلاف المصانع</span>
+      {/* Partners Grid */}
+      <div className="partners-grid">
+        {filteredPartners.map(partner => (
+          <div key={partner.id} className="partner-card">
+            <div className="partner-content">
+              {/* Header */}
+              <div className="partner-header">
+                <div className="partner-profile">
+                  <img
+                    src={partner.logo}
+                    alt={partner.name}
+                    className="partner-logo"
+                  />
+                  <div>
+                    <div className="partner-name-wrapper">
+                      <span className="partner-name">{partner.name}</span>
+                      {partner.verified && (
+                        <CheckCircle className="verified-badge" />
+                      )}
+                    </div>
+                    <div className="partner-location">
+                      <MapPin />
+                      <span>{partner.location}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>علامة تجارية معتمدة</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>دعم فني ومتابعة مستمرة</span>
+                <div className="partner-rating">
+                  <Star />
+                  <span>{partner.rating}</span>
+                  <span className="rating-count">({partner.reviews})</span>
                 </div>
               </div>
+
+              {/* Description */}
+              <p className="partner-description">{partner.description}</p>
+
+              {/* Specialties */}
+              <div className="partner-specialties">
+                {partner.specialties.map(specialty => (
+                  <span key={specialty} className="specialty-tag">
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+
+              {/* Contact Info */}
+              <div className="contact-info">
+                <div className="contact-item">
+                  <Phone />
+                  <span>{partner.phone}</span>
+                </div>
+                <div className="contact-item">
+                  <Mail />
+                  <span>{partner.email}</span>
+                </div>
+                <div className="contact-item">
+                  <Globe />
+                  <span>{partner.website}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="partner-actions">
+                <button className="btn-primary">تواصل الآن</button>
+                <button className="btn-secondary">عرض الملف</button>
+              </div>
             </div>
-            <button className="px-8 py-3 bg-white text-emerald-700 font-bold rounded-lg hover:bg-emerald-50 transition-all whitespace-nowrap">
-              سجل كشريك
-            </button>
           </div>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {filteredPartners.length === 0 && (
+        <div className="empty-state">
+          <div className="empty-icon">
+            <Search />
+          </div>
+          <h3>لا توجد نتائج</h3>
+          <p>جرب البحث باستخدام مصطلحات مختلفة أو تغيير الفلاتر</p>
+        </div>
+      )}
+
+      {/* Become a Partner Section */}
+      <div className="become-partner">
+        <div className="partner-cta">
+          <div className="cta-content">
+            <h3>كن شريكاً معنا</h3>
+            <p>
+              انضم إلى شبكتنا من الشركاء المتميزين ووسع فرص أعمالك في مجال الاقتصاد الدائري
+            </p>
+            <div className="cta-features">
+              <div className="feature-item">
+                <CheckCircle />
+                <span>وصول إلى آلاف المصانع</span>
+              </div>
+              <div className="feature-item">
+                <CheckCircle />
+                <span>علامة تجارية معتمدة</span>
+              </div>
+              <div className="feature-item">
+                <CheckCircle />
+                <span>دعم فني ومتابعة مستمرة</span>
+              </div>
+            </div>
+          </div>
+          <button className="cta-button">سجل كشريك</button>
         </div>
       </div>
     </div>

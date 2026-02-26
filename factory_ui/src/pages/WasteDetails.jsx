@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { useJsApiLoader, GoogleMap, Marker } from '@react-google-maps/api';
 import {
   MapPin, Eye, Users, Shield, Heart, Share2, AlertCircle,
@@ -7,6 +8,10 @@ import {
   RefreshCw, ExternalLink, ShoppingCart, Package, Link as LinkIcon,
   ChevronLeft, ChevronRight, Image
 } from 'lucide-react';
+=======
+import { Package, MapPin, Calendar, DollarSign, Trash2, Clock, Eye, Users, MessageCircle, Phone, Mail, Shield, ChevronLeft, Heart, Share2, AlertCircle } from 'lucide-react';
+import './WasteDetails.css'; // استيراد ملف التنسيق الجديد
+>>>>>>> dd8175e027ba12906e483f07f92a3ab7c6618baf
 
 import paperWasteImage   from '../assets/مخلفات الورق.png';
 import plasticWasteImage from '../assets/مخلفات البلاستيك.png';
@@ -124,6 +129,7 @@ export default function WasteDetails() {
 
   if (!waste) return <div>لم يتم العثور على الإعلان</div>;
 
+<<<<<<< HEAD
   const wasteImages = waste.images?.length > 0 ? waste.images : waste.image ? [waste.image] : [];
   const fallbackImg = getCategoryFallback(waste.category);
   const total = Number(waste.price) * Number(waste.amount);
@@ -160,6 +166,98 @@ export default function WasteDetails() {
                   <span style={chip('#059669','#ecfdf5')}>{waste.category}</span>
                   {waste.frequency && <span style={chip('#0ea5e9','#f0f9ff')}><RefreshCw size={10}/> {waste.frequency}</span>}
                   <span style={chip('#059669','#dcfce7')}><CheckCircle size={10}/> {waste.status || 'نشط'}</span>
+=======
+  const handleMakeOffer = () => {
+    navigate('/messages');
+  };
+
+  const getTypeClass = (type) => {
+    switch(type) {
+      case 'بلاستيك': return 'type-plastic';
+      case 'ورق': return 'type-paper';
+      case 'معادن': return 'type-metal';
+      case 'زجاج': return 'type-glass';
+      default: return '';
+    }
+  };
+
+  return (
+    <div className="waste-container">
+      {/* زر العودة */}
+      <button onClick={() => navigate(-1)} className="back-button">
+        <ChevronLeft className="w-4 h-4" />
+        العودة
+      </button>
+
+      <div className="waste-grid">
+        {/* العمود الأيسر - معلومات الإعلان */}
+        <div className="waste-left">
+          {/* بطاقة الإعلان الرئيسية */}
+          <div className="waste-card">
+            <div className="waste-header">
+              <div>
+                <div className="waste-tags">
+                  <span className={`waste-tag ${getTypeClass(waste.type)}`}>{waste.type}</span>
+                  <span className="waste-tag" style={{background:'var(--db-surface2)', color:'var(--db-txt3)'}}>{waste.frequency}</span>
+                  <span className={`waste-tag ${waste.status === 'متاح' ? 'status-available' : 'status-pending'}`}>
+                    {waste.status}
+                  </span>
+                </div>
+                <h1 className="waste-title">{waste.title}</h1>
+                <div className="waste-meta">
+                  <span className="waste-meta-item">
+                    <Eye />
+                    <span>{waste.views} مشاهدة</span>
+                  </span>
+                  <span className="waste-meta-item">
+                    <Users />
+                    <span>{waste.offers} عروض</span>
+                  </span>
+                  <span className="waste-meta-item">
+                    <Calendar />
+                    <span>تاريخ النشر: {waste.date}</span>
+                  </span>
+                </div>
+              </div>
+              <div className="waste-actions">
+                <button
+                  onClick={() => setIsLiked(!isLiked)}
+                  className={`icon-button ${isLiked ? 'liked' : ''}`}
+                >
+                  <Heart className={isLiked ? 'fill-current' : ''} />
+                </button>
+                <button className="icon-button">
+                  <Share2 />
+                </button>
+              </div>
+            </div>
+
+            {/* الصورة والإحصائيات */}
+            <div className="waste-media">
+              <div className="waste-image">
+                <Package />
+              </div>
+              <div className="waste-stats">
+                <div className="stat-box">
+                  <p className="stat-label">الكمية المتاحة</p>
+                  <p className="stat-value">
+                    {waste.amount} <small>{waste.unit}</small>
+                  </p>
+                </div>
+                <div className="stat-box">
+                  <p className="stat-label">السعر</p>
+                  <p className="stat-value emerald">
+                    {waste.price} <small>{waste.currency}</small>
+                  </p>
+                  <p className="stat-label" style={{marginTop:4}}>لل{waste.unit} الواحد</p>
+                </div>
+                <div className="stat-box">
+                  <p className="stat-label">الموقع</p>
+                  <div className="stat-location">
+                    <MapPin />
+                    <span>{waste.location}</span>
+                  </div>
+>>>>>>> dd8175e027ba12906e483f07f92a3ab7c6618baf
                 </div>
                 <h1 style={{ fontSize:'1.7rem', fontWeight:800, color:'#064e3b', lineHeight:1.35, margin:'0 0 18px', letterSpacing:'-0.02em' }}>{waste.titleAr}</h1>
                 <div style={{ display:'flex', alignItems:'center', gap:'18px', flexWrap:'wrap', marginBottom: wasteImages.length > 1 ? '14px' : 0 }}>
@@ -178,6 +276,7 @@ export default function WasteDetails() {
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* إحصاء */}
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', borderTop:'1.5px solid #f0fdf4', borderBottom:'1.5px solid #f0fdf4' }}>
               {[
@@ -276,6 +375,159 @@ export default function WasteDetails() {
                   <WhatsAppIcon size={17}/> تواصل عبر واتساب
                 </button>
               </div>
+=======
+            {/* الوصف */}
+            <h3 className="section-title">الوصف التفصيلي</h3>
+            <p className="waste-description">{waste.description}</p>
+
+            {/* المواصفات */}
+            <h3 className="section-title">المواصفات</h3>
+            <div className="specs-grid">
+              <div className="spec-item">
+                <p className="spec-label">نوع المادة</p>
+                <p className="spec-value">{waste.specifications.material}</p>
+              </div>
+              <div className="spec-item">
+                <p className="spec-label">اللون</p>
+                <p className="spec-value">{waste.specifications.color}</p>
+              </div>
+              <div className="spec-item">
+                <p className="spec-label">النقاوة</p>
+                <p className="spec-value">{waste.specifications.purity}</p>
+              </div>
+              <div className="spec-item">
+                <p className="spec-label">التغليف</p>
+                <p className="spec-value">{waste.specifications.packaging}</p>
+              </div>
+              <div className="spec-item">
+                <p className="spec-label">التخزين</p>
+                <p className="spec-value">{waste.specifications.storage}</p>
+              </div>
+              <div className="spec-item">
+                <p className="spec-label">العنوان</p>
+                <p className="spec-value">{waste.address}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* معلومات البائع */}
+          <div className="waste-card">
+            <h3 className="section-title">عن البائع</h3>
+            <div className="seller-info">
+              <div className="seller-profile">
+                <div className="seller-avatar">
+                  <Package />
+                </div>
+                <div className="seller-details">
+                  <div className="seller-name">
+                    <span>{waste.seller.name}</span>
+                    {waste.seller.verified && (
+                      <Shield className="verified-badge" size={18} />
+                    )}
+                  </div>
+                  <div className="seller-stats">
+                    <span>{waste.seller.rating} ⭐</span>
+                    <span>{waste.seller.totalSales} عملية بيع</span>
+                    <span>منضم منذ {waste.seller.joined}</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowContactForm(!showContactForm)}
+                className="contact-button"
+              >
+                تواصل مع البائع
+              </button>
+            </div>
+
+            {showContactForm && (
+              <div className="contact-form">
+                <div className="contact-details">
+                  <div className="contact-item">
+                    <Phone />
+                    <span>{waste.seller.phone}</span>
+                  </div>
+                  <div className="contact-item">
+                    <Mail />
+                    <span>{waste.seller.email}</span>
+                  </div>
+                </div>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="اكتب رسالتك هنا..."
+                  className="message-input"
+                />
+                <button onClick={handleSendMessage} className="send-button">
+                  <MessageCircle size={16} />
+                  إرسال رسالة
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* العمود الأيمن - الإجراءات */}
+        <div className="waste-right">
+          {/* بطاقة الإجراءات */}
+          <div className="actions-card">
+            <h3 className="actions-title">إتخاذ إجراء</h3>
+            <div className="action-buttons">
+              <button onClick={handleMakeOffer} className="action-btn-primary">
+                <DollarSign size={18} />
+                تقديم عرض شراء
+              </button>
+              <button onClick={() => setShowContactForm(true)} className="action-btn-secondary">
+                <MessageCircle size={18} />
+                مراسلة البائع
+              </button>
+              <button className="action-btn-outline">
+                <Phone size={18} />
+                الاتصال بالبائع
+              </button>
+            </div>
+            <div className="price-total">
+              <span>السعر الإجمالي</span>
+              <span>{waste.price * waste.amount} {waste.currency}</span>
+            </div>
+            <p className="price-unit">لـ {waste.amount} {waste.unit}</p>
+          </div>
+
+          {/* نصائح الأمان */}
+          <div className="safety-card">
+            <div className="safety-header">
+              <AlertCircle size={20} />
+              <h4>نصائح أمان</h4>
+            </div>
+            <ul className="safety-list">
+              <li><span>•</span> لا تدفع مبالغ خارج المنصة</li>
+              <li><span>•</span> تحقق من هوية البائع</li>
+              <li><span>•</span> استخدم وسائل الدفع الآمنة</li>
+              <li><span>•</span> تأكد من فحص البضاعة قبل الشراء</li>
+            </ul>
+          </div>
+
+          {/* عروض مشابهة */}
+          <div className="similar-card">
+            <h4 className="similar-title">عروض مشابهة</h4>
+            <div className="similar-list">
+              {[
+                { title: 'بلاستيك PET نظيف', amount: '1.5 طن', price: '1400', location: 'الجيزة' },
+                { title: 'نفايات ورق مكتبي', amount: '800 كجم', price: '750', location: 'القاهرة' },
+                { title: 'معادن خردة', amount: '3 طن', price: '3200', location: 'الإسكندرية' },
+              ].map((item, index) => (
+                <div key={index} className="similar-item">
+                  <div className="similar-item-info">
+                    <p>{item.title}</p>
+                    <p>{item.amount} • {item.location}</p>
+                  </div>
+                  <div className="similar-item-price">
+                    <span className="price">{item.price} جنيه</span>
+                    <span className="unit">للطن</span>
+                  </div>
+                </div>
+              ))}
+>>>>>>> dd8175e027ba12906e483f07f92a3ab7c6618baf
             </div>
           </div>
         </div>

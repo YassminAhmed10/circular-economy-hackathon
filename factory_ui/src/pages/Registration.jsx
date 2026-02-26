@@ -679,7 +679,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
               <img src={logo} alt="ECOv" className="h-10 w-auto" />
               <div className="hidden sm:block">
                 <h1 className="text-lg font-black bg-gradient-to-l from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase tracking-tight">
-                  ECOv
+                  
                 </h1>
                 <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
                   {currentLanguage === 'ar' ? 'منصة الاقتصاد الدائري' : 'CIRCULAR ECONOMY PLATFORM'}
