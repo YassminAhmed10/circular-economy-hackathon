@@ -1,22 +1,67 @@
-// ==================== Navbar.js (معدل لإضافة onClick للإشعارات) ====================
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, MessageSquare, User, LogOut, Home, ShoppingCart, Factory, BarChart3, Package, Eye, TrendingUp, Menu, X, Settings, ChevronDown, Plus } from 'lucide-react';
+import {
+  Search,
+  Bell,
+  MessageSquare,
+  User,
+  LogOut,
+  Home,
+  ShoppingCart,
+  Factory,
+  BarChart3,
+  Package,
+  Eye,
+  TrendingUp,
+  Menu,
+  X,
+  Settings,
+  ChevronDown,
+  Plus,
+  Globe,
+  Sun,
+  Moon,
+} from 'lucide-react';
+import NotificationPanel from './NotificationPanel';
 import './Navbar.css';
 
-function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop onNotificationClick
+function Navbar({
+  user,
+  onLogout,
+  lang,
+  onLanguageToggle,
+  darkMode,
+  onDarkModeToggle,
+  notifications,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const mainLinks = [
     { id: 'home', label: 'الرئيسية', path: '/', icon: <Home className="w-4 h-4" /> },
-    { id: 'dashboard', label: 'لوحة التحكم', path: '/dashboard', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'marketplace', label: 'سوق النفايات', path: '/marketplace', icon: <ShoppingCart className="w-4 h-4" /> },
+    {
+      id: 'dashboard',
+      label: 'لوحة التحكم',
+      path: '/dashboard',
+      icon: <BarChart3 className="w-4 h-4" />,
+    },
+    {
+      id: 'marketplace',
+      label: 'سوق النفايات',
+      path: '/marketplace',
+      icon: <ShoppingCart className="w-4 h-4" />,
+    },
     { id: 'partners', label: 'الشركاء', path: '/partners', icon: <Factory className="w-4 h-4" /> },
-    { id: 'analytics', label: 'التحليل', path: '/analytics', icon: <TrendingUp className="w-4 h-4" /> },
+    {
+      id: 'analytics',
+      label: 'التحليل',
+      path: '/analytics',
+      icon: <TrendingUp className="w-4 h-4" />,
+    },
   ];
 
   const userLinks = [
@@ -33,13 +78,11 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
     }
   };
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
-      <header className="navbar-container" dir="rtl">
+      <header className="navbar-container" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
         {/* الشريط العلوي */}
         <div className="navbar-top-bar">
           <div className="navbar-container-inner">
@@ -55,15 +98,15 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                 </div>
               </Link>
 
-              {/* قائمة الهاتف المحمول */}
-              <button 
+              {/* زر القائمة للجوال */}
+              <button
                 className="navbar-mobile-toggle"
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
               >
                 {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
 
-              {/* البحث والإشعارات */}
+              {/* الإجراءات (بحث، إشعارات، ملف) */}
               <div className="navbar-actions">
                 <form onSubmit={handleSearch} className="navbar-search">
                   <Search className="search-icon" />
@@ -76,19 +119,44 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                   />
                 </form>
 
-                {/* أيقونة الجرس مع onClick */}
-                <button
-                  className="navbar-action-button relative"
-                  onClick={onNotificationClick}  // استدعاء الدالة القادمة من الأب
-                >
-                  <Bell className="w-5 h-5" />
-                  <span className="notification-badge">3</span>
+                {/* زر تغيير اللغة */}
+                <button className="navbar-action-button" onClick={onLanguageToggle}>
+                  <Globe className="w-5 h-5" />
+                  <span className="lang-label">{lang === 'ar' ? 'EN' : 'AR'}</span>
                 </button>
+
+                {/* زر الوضع الليلي */}
+                <button className="navbar-action-button" onClick={onDarkModeToggle}>
+                  {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+
+                {/* الإشعارات مع القائمة المنسدلة */}
+                <div className="notification-wrapper">
+                  <button
+                    className="navbar-action-button relative"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                  >
+                    <Bell className="w-5 h-5" />
+                    {notifications.filter((n) => !n.read).length > 0 && (
+                      <span className="notification-badge">
+                        {notifications.filter((n) => !n.read).length}
+                      </span>
+                    )}
+                  </button>
+                  {showNotifications && (
+                    <NotificationPanel
+                      notifications={notifications}
+                      lang={lang}
+                      onClose={() => setShowNotifications(false)}
+                    />
+                  )}
+                </div>
 
                 <Link to="/messages" className="navbar-action-button">
                   <MessageSquare className="w-5 h-5" />
                 </Link>
 
+                {/* القائمة الشخصية */}
                 <div className="relative">
                   <button
                     className="navbar-profile-button"
@@ -98,9 +166,7 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                       {user?.name?.charAt(0) || <User className="w-4 h-4" />}
                     </div>
                     <div className="profile-info">
-                      <span className="profile-name">
-                        {user?.name || 'مصنع الأمل'}
-                      </span>
+                      <span className="profile-name">{user?.name || 'مصنع الأمل'}</span>
                       <ChevronDown className="w-3 h-3" />
                     </div>
                   </button>
@@ -123,7 +189,7 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                         </Link>
                       ))}
                       <hr />
-                      <button 
+                      <button
                         className="dropdown-item text-red-600"
                         onClick={() => {
                           onLogout();
@@ -145,7 +211,6 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
         <div className="navbar-bottom-bar">
           <div className="navbar-container-inner">
             <div className="navbar-bottom-content">
-              {/* الروابط الرئيسية */}
               <nav className="navbar-main-links">
                 {mainLinks.map((link) => (
                   <Link
@@ -159,14 +224,10 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                 ))}
               </nav>
 
-              {/* روابط المستخدم السريعة */}
               <div className="navbar-quick-links">
                 {user ? (
                   <div className="flex gap-4">
-                    <Link 
-                      to="/list-waste" 
-                      className="btn-primary"
-                    >
+                    <Link to="/list-waste" className="btn-primary">
                       <Plus className="w-4 h-4" />
                       إضافة نفايات
                     </Link>
@@ -187,11 +248,10 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
         </div>
       </header>
 
-      {/* قائمة الهاتف المحمول */}
+      {/* قائمة الجوال */}
       {showMobileMenu && (
         <div className="mobile-menu-overlay">
           <div className="mobile-menu">
-            {/* بحث للجوال */}
             <form onSubmit={handleSearch} className="mobile-search">
               <Search className="search-icon" />
               <input
@@ -203,7 +263,6 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
               />
             </form>
 
-            {/* الروابط الرئيسية */}
             <div className="mobile-links">
               {mainLinks.map((link) => (
                 <Link
@@ -220,7 +279,6 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
               ))}
             </div>
 
-            {/* روابط المستخدم */}
             {user && (
               <>
                 <hr />
@@ -242,7 +300,7 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
                       </div>
                     </Link>
                   ))}
-                  <button 
+                  <button
                     className="mobile-logout"
                     onClick={() => {
                       onLogout();
@@ -258,7 +316,6 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
               </>
             )}
 
-            {/* روابط إضافية للمستخدمين غير المسجلين */}
             {!user && (
               <>
                 <hr />
@@ -276,7 +333,6 @@ function Navbar({ user, onLogout, onNotificationClick }) { // إضافة prop on
         </div>
       )}
 
-      {/* المساحة الفارغة للـ Navbar الثابت */}
       <div className="navbar-spacer"></div>
     </>
   );

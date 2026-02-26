@@ -29,25 +29,14 @@ function HomeLayout({ children, user, onLogout, lang, setLang, dark, setDark }) 
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       style={{ background: dark ? '#0f1a12' : '#fff', minHeight: '100vh', transition: 'background .3s' }}
     >
-      {user ? (
-        <HomeNavbar
-          user={user}
-          onLogout={onLogout}
-          lang={lang}
-          setLang={setLang}
-          dark={dark}
-          setDark={setDark}
-        />
-      ) : (
-        <HomeNavbar
-          user={user}
-          onLogout={onLogout}
-          lang={lang}
-          setLang={setLang}
-          dark={dark}
-          setDark={setDark}
-        />
-      )}
+      <HomeNavbar
+        user={user}
+        onLogout={onLogout}
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+      />
       <main className="main-content">
         {children}
       </main>
@@ -61,7 +50,7 @@ function MarketLayout({ children, user, onLogout, lang, setLang, dark, setDark }
   return (
     <div
       className="app-container"
-      dir="rtl"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
       style={{ background: dark ? '#0f1a12' : '#fff', minHeight: '100vh', transition: 'background .3s' }}
     >
       <HomeNavbar
@@ -85,8 +74,8 @@ function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDar
   return (
     <div
       className="app-container"
-      dir="rtl"
-      style={{ background: '#f1f5f9', minHeight: '100vh' }}
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      style={{ background: dark ? '#0f1a12' : '#f1f5f9', minHeight: '100vh', transition: 'background .3s' }}
     >
       <HomeNavbar
         user={user}
@@ -104,10 +93,14 @@ function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDar
 }
 
 // ── MainLayout (للصفحات التانية اللي مش dashboard) ───────────────────────────
-function MainLayout({ children, user, onLogout }) {
+function MainLayout({ children, user, onLogout, lang, setLang, dark, setDark }) {
   return (
-    <div className="app-container" dir="rtl">
-      {user && <Navbar user={user} onLogout={onLogout} />}
+    <div
+      className="app-container"
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
+      style={{ background: dark ? '#0f1a12' : '#fff', minHeight: '100vh', transition: 'background .3s' }}
+    >
+      {user && <Navbar user={user} onLogout={onLogout} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />}
       <main className="main-content">
         {children}
       </main>
@@ -123,15 +116,9 @@ function ProtectedRoute({ children, user }) {
 }
 
 // ── PageLoader ────────────────────────────────────────────────────────────────
+// تم استبدال المحتوى القديم بـ LoadingScreen الجديد
 function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-emerald-700 font-medium">جاري تحميل الصفحة...</p>
-      </div>
-    </div>
-  )
+  return <LoadingScreen message="جاري تحميل الصفحة..." />
 }
 
 // ── AppContent ────────────────────────────────────────────────────────────────
@@ -162,10 +149,12 @@ function AppContent() {
 
   const handleRegistrationSuccess = (userData) => {
     try {
-      const newUser = { ...userData, isLoggedIn: true, joinedDate: new Date().toISOString(), level: 'مبتدئ', rating: 4.5 }
+      const newUser = { ...userData, isLoggedIn: true, joinedDate: new Date().toISOString(), level: 'مبتدئ', rating: 4.5,logoPreview: userData.logoPreview}
       setUser(newUser)
       localStorage.setItem('ecov_user', JSON.stringify(newUser))
-    } catch { setError('حدث خطأ أثناء حفظ بيانات المستخدم') }
+    } catch (e) {
+      setError('حدث خطأ أثناء حفظ بيانات المستخدم')
+    }
   }
 
   const handleLoginSuccess = (userData) => {
@@ -173,12 +162,14 @@ function AppContent() {
       const loggedInUser = { ...userData, isLoggedIn: true, lastLogin: new Date().toISOString() }
       setUser(loggedInUser)
       localStorage.setItem('ecov_user', JSON.stringify(loggedInUser))
-    } catch { setError('حدث خطأ أثناء تسجيل الدخول') }
+    } catch (e) {
+      setError('حدث خطأ أثناء تسجيل الدخول')
+    }
   }
 
   const handleLogout = () => {
     try { setUser(null); localStorage.removeItem('ecov_user') }
-    catch { setError('حدث خطأ أثناء تسجيل الخروج') }
+    catch (e) { setError('حدث خطأ أثناء تسجيل الخروج') }
   }
 
   if (isLoading) return <LoadingScreen message="جاري تحميل التطبيق..." />
@@ -214,7 +205,7 @@ function AppContent() {
           <Route path="/market" element={
             <MarketLayout {...navProps}>
               <Suspense fallback={<PageLoader />}>
-                <Marketplace user={user} />
+                <Marketplace user={user} lang={lang} dark={dark} />
               </Suspense>
             </MarketLayout>
           } />
@@ -225,7 +216,7 @@ function AppContent() {
           <Route path="/waste-details/:id" element={
             <MarketLayout {...navProps}>
               <Suspense fallback={<PageLoader />}>
-                <WasteDetails user={user} />
+                <WasteDetails user={user} lang={lang} dark={dark} />
               </Suspense>
             </MarketLayout>
           } />
@@ -264,19 +255,19 @@ function AppContent() {
 
           {/* ══ PROTECTED ROUTES — بـ HomeNavbar الأبيض ══ */}
           {[
-            { path:'/list-waste',  Component:ListWaste,  props:{ user } },
-            { path:'/profile',     Component:Profile,    props:{ user, onUpdateUser:setUser } },
-            { path:'/partners',    Component:Partners,   props:{ user } },
-            { path:'/my-listings', Component:MyListings, props:{ user } },
-            { path:'/orders',      Component:Orders,     props:{ user } },
-            { path:'/messages',    Component:Messages,   props:{ user } },
-            { path:'/analytics',   Component:Analytics,  props:{ user } },
-          ].map(({ path, Component, props }) => (
+            { path:'/list-waste',  Component:ListWaste },
+            { path:'/profile',     Component:Profile,    extraProps:{ onUpdateUser:setUser } },
+            { path:'/partners',    Component:Partners },
+            { path:'/my-listings', Component:MyListings },
+            { path:'/orders',      Component:Orders },
+            { path:'/messages',    Component:Messages },
+            { path:'/analytics',   Component:Analytics },
+          ].map(({ path, Component, extraProps = {} }) => (
             <Route key={path} path={path} element={
               <ProtectedRoute user={user}>
                 <DashboardLayout {...navProps}>
                   <Suspense fallback={<PageLoader />}>
-                    <Component {...props} />
+                    <Component user={user} lang={lang} dark={dark} {...extraProps} />
                   </Suspense>
                 </DashboardLayout>
               </ProtectedRoute>

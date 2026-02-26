@@ -18,7 +18,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
   const ar = lang === 'ar';
   const D  = dark;
 
-  // روابط الصفحات
+  // روابط الصفحات (تُعرض فقط إذا كان المستخدم مسجلاً)
   const NAV_LINKS = user ? [
     { ar: 'الرئيسية',      en: 'Home',        path: '/',            Icon: Home        },
     { ar: 'السوق',         en: 'Market',      path: '/market',      Icon: ShoppingBag },
@@ -28,10 +28,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
     { ar: 'الرسائل',       en: 'Messages',    path: '/messages',    Icon: MessageSquare },
     { ar: 'التقارير',      en: 'Analytics',   path: '/analytics',   Icon: TrendingUp  },
     { ar: 'الشركاء',       en: 'Partners',    path: '/partners',    Icon: Users       },
-  ] : [
-    { ar: 'الرئيسية',  en: 'Home',    path: '/',       Icon: Home        },
-    { ar: 'السوق',     en: 'Market',  path: '/market', Icon: ShoppingBag },
-  ];
+  ] : []; // ← بدون روابط إذا لم يكن هناك مستخدم
 
   useEffect(() => {
     const h = e => { if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false); };
@@ -57,6 +54,14 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
   const bgHov  = D ? 'rgba(5,150,105,.12)' : '#f0fdf4';
   const badgeBg= D ? '#0f1a12' : '#ffffff';
 
+  // دالة للحصول على الحرف الأول من اسم المستخدم (أو استخدام اللوجو)
+  const getUserAvatar = () => {
+    if (user?.logoPreview) {
+      return <img src={user.logoPreview} alt={user.factoryName} className="hn-av-img" />;
+    }
+    return <div className="hn-av">{(user?.factoryName || user?.name || 'م').charAt(0)}</div>;
+  };
+
   return (
     <>
       <style>{`
@@ -64,25 +69,16 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
         .hn * { box-sizing:border-box; font-family:'Cairo',system-ui,sans-serif; }
 
         .hn-top { background:${bg}; border-bottom:1px solid ${border}; transition:background .3s,border-color .3s; box-shadow:${D?'none':'0 1px 8px rgba(0,0,0,.06)'}; position:sticky; top:0; z-index:300; }
-        .hn-row { max-width:1440px; margin:0 auto; padding:0 32px; height:72px; display:flex; align-items:center; gap:18px; }
+        .hn-row { max-width:1440px; margin:0 auto; padding:0 32px; height:72px; display:flex; align-items:center; gap:18px; justify-content:space-between; }
 
         /* LOGO */
         .hn-logo { display:flex; align-items:center; text-decoration:none; flex-shrink:0; transition:opacity .2s,transform .2s; }
         .hn-logo:hover { opacity:.85; transform:scale(1.02); }
-        .hn-logo img { height:54px; width:auto; object-fit:contain; display:block; }
+        .hn-logo img { height:44px; width:auto; object-fit:contain; display:block; }
 
-        /* SEARCH */
-        .hn-sf { flex:1; max-width:720px; display:flex; align-items:center; border:2px solid ${D?'#1e3320':'#e2e8f0'}; border-radius:14px; overflow:hidden; background:${D?'#0d1a10':'#f8fafc'}; transition:border-color .2s,box-shadow .2s,background .2s; height:48px; }
-        .hn-sf:focus-within { border-color:#059669; box-shadow:0 0 0 4px rgba(5,150,105,.12); background:${D?'#0f1a12':'#fff'}; }
-        .hn-loc { display:flex; align-items:center; gap:6px; padding:0 16px; border:none; border-left:2px solid ${D?'#1e3320':'#e2e8f0'}; background:transparent; font-size:14px; font-weight:700; color:${txtMain}; cursor:pointer; white-space:nowrap; transition:all .15s; height:100%; flex-shrink:0; }
-        .hn-loc:hover { color:#059669; }
-        .hn-si { flex:1; padding:0 18px; border:none; outline:none; font-size:14.5px; color:${txtMain}; background:transparent; direction:rtl; height:100%; font-family:'Cairo',sans-serif; }
-        .hn-si::placeholder { color:${D?'#4b7a5a':'#94a3b8'}; }
-        .hn-sb { width:52px; height:100%; background:#059669; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; flex-shrink:0; }
-        .hn-sb:hover { background:#047857; }
+        /* ACTIONS (على اليسار في RTL) */
+        .hn-acts { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 
-        /* ACTIONS */
-        .hn-acts { display:flex; align-items:center; gap:6px; margin-right:auto; flex-shrink:0; }
         .hn-icon-btn { padding:9px; border:none; background:transparent; cursor:pointer; border-radius:10px; color:${txtMu}; transition:all .2s; position:relative; }
         .hn-icon-btn:hover { background:${bgHov}; color:#059669; }
         .hn-ctrl { display:flex; align-items:center; gap:5px; padding:8px 13px; border:1.5px solid ${border}; border-radius:10px; background:transparent; font-size:13px; font-weight:600; color:${txtMu}; cursor:pointer; transition:all .2s; white-space:nowrap; height:40px; }
@@ -102,7 +98,8 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
         .hn-pwrap { position:relative; }
         .hn-pbtn { display:flex; align-items:center; gap:8px; padding:7px 13px; border:1.5px solid ${border}; border-radius:10px; background:transparent; cursor:pointer; transition:all .2s; height:42px; }
         .hn-pbtn:hover { border-color:#059669; background:${bgHov}; }
-        .hn-av { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#059669,#10b981); display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; font-size:12px; font-weight:800; }
+        .hn-av { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#059669,#10b981); display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; font-size:14px; font-weight:800; }
+        .hn-av-img { width:34px; height:34px; border-radius:50%; object-fit:contain; border:1px solid #059669; }
         .hn-uname { font-size:13px; font-weight:600; color:${txtMain}; max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .hn-dd { position:absolute; top:calc(100% + 8px); left:0; background:${bg}; border:1px solid ${border}; border-radius:12px; box-shadow:0 12px 32px rgba(0,0,0,.15); min-width:200px; padding:6px; z-index:400; animation:ddIn .15s ease; }
         @keyframes ddIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:none} }
@@ -111,7 +108,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
         .hn-ddi.red:hover { background:#fef2f2; color:#dc2626; }
         .hn-sep { border:none; border-top:1px solid ${border}; margin:4px 0; }
 
-        /* NAV BAR — شريط الصفحات */
+        /* NAV BAR — شريط الصفحات (يظهر فقط عند وجود user) */
         .hn-navbar { background:${bgNav}; border-bottom:1px solid ${border}; transition:background .3s; }
         .hn-navbar-inner { max-width:1440px; margin:0 auto; padding:0 32px; display:flex; align-items:stretch; justify-content:space-between; overflow-x:auto; scrollbar-width:none; }
         .hn-navbar-inner::-webkit-scrollbar { display:none; }
@@ -159,7 +156,6 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
         .hn-mbtns button { padding:11px; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; border:none; font-family:'Cairo',sans-serif; }
 
         @media(max-width:960px){
-          .hn-sf { display:none !important; }
           .hn-navlinks { display:none !important; }
           .hn-navright { display:none !important; }
           .hn-acts .hn-ctrl,.hn-acts .hn-login,.hn-acts .hn-register,.hn-acts .hn-icon-btn,.hn-acts .hn-pwrap,.hn-acts .hn-divider,.hn-acts .hn-add-btn { display:none; }
@@ -172,37 +168,37 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
         {/* TOP ROW */}
         <div className="hn-top">
           <div className="hn-row">
+            {/* زر القائمة للجوال */}
             <button className="hn-mtog" onClick={() => setShowMobile(true)}><Menu size={20}/></button>
 
+            {/* اللوجو */}
             <Link to="/" className="hn-logo">
               <img src={logoImage} alt="ECOv" />
             </Link>
 
-            <form className="hn-sf" onSubmit={handleSearch}>
-              <button type="button" className="hn-loc">
-                <MapPin size={13} color="#059669"/>
-                {ar ? 'مصر' : 'Egypt'}
-                <ChevronDown size={11} color="#9ca3af"/>
-              </button>
-              <input className="hn-si"
-                placeholder={ar ? 'ابحث عن نفايات، خامات، مصانع...' : 'Find waste, materials, factories...'}
-                value={query} onChange={e => setQuery(e.target.value)}
-              />
-              <button className="hn-sb" type="submit"><Search size={17} color="white"/></button>
-            </form>
-
+            {/* الأزرار على الجانب الآخر (يسار في RTL) */}
             <div className="hn-acts">
+              {/* زر تغيير اللغة */}
               <button className="hn-ctrl" onClick={() => setLang(ar ? 'en' : 'ar')}><Globe size={13}/> {ar ? 'EN' : 'ع'}</button>
+              
+              {/* زر الوضع الليلي/النهاري */}
               <button className="hn-ctrl" onClick={() => setDark(!dark)}>{dark ? <Sun size={14}/> : <Moon size={14}/>}</button>
+              
               <div className="hn-divider"/>
+
               {user ? (
                 <>
+                  {/* إشعارات - تظهر دائماً */}
                   <button className="hn-icon-btn"><Bell size={19}/><span className="hn-badge">3</span></button>
+                  
+                  {/* رسائل */}
                   <button className="hn-icon-btn" onClick={() => navigate('/messages')}><MessageSquare size={19}/></button>
+                  
+                  {/* الملف الشخصي مع الصورة */}
                   <div className="hn-pwrap" ref={profileRef}>
                     <button className="hn-pbtn" onClick={() => setShowProfile(!showProfile)}>
-                      <div className="hn-av">{(user.name || 'م').charAt(0)}</div>
-                      <span className="hn-uname">{user.name || (ar?'مصنعي':'My Factory')}</span>
+                      {getUserAvatar()}
+                      <span className="hn-uname">{user?.factoryName || user?.name || (ar?'مصنعي':'My Factory')}</span>
                       <ChevronDown size={11} color="#9ca3af"/>
                     </button>
                     {showProfile && (
@@ -220,6 +216,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
                 </>
               ) : (
                 <>
+                  {/* أزرار تسجيل الدخول والتسجيل - بدون مستخدم */}
                   <button className="hn-login" onClick={() => navigate('/login')}>{ar ? 'تسجيل الدخول' : 'Login'}</button>
                   <button className="hn-register" onClick={() => navigate('/registration')}><Plus size={14}/> {ar ? 'سجّل مصنعك' : 'Register Factory'}</button>
                 </>
@@ -228,36 +225,35 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
           </div>
         </div>
 
-        {/* NAV BAR — شريط روابط الصفحات */}
-        <div className="hn-navbar">
-          <div className="hn-navbar-inner">
-            {/* الروابط على اليمين */}
-            <div className="hn-navlinks">
-              {NAV_LINKS.map(({ ar: arL, en, path, Icon }) => {
-                const active = isActive(path);
-                return (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`hn-nl${active ? ' hn-nl-active' : ''}`}
-                  >
-                    <Icon size={15} color={active ? '#059669' : undefined}/>
-                    {ar ? arL : en}
-                  </Link>
-                );
-              })}
-            </div>
+        {/* NAV BAR — يظهر فقط إذا كان هناك مستخدم */}
+        {user && (
+          <div className="hn-navbar">
+            <div className="hn-navbar-inner">
+              <div className="hn-navlinks">
+                {NAV_LINKS.map(({ ar: arL, en, path, Icon }) => {
+                  const active = isActive(path);
+                  return (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`hn-nl${active ? ' hn-nl-active' : ''}`}
+                    >
+                      <Icon size={15} color={active ? '#059669' : undefined}/>
+                      {ar ? arL : en}
+                    </Link>
+                  );
+                })}
+              </div>
 
-            {/* زر إضافة إعلان على اليسار */}
-            {user && (
+              {/* زر إضافة إعلان */}
               <div className="hn-navright">
                 <button className="hn-add-btn" onClick={() => navigate('/list-waste')}>
                   <Plus size={14}/> {ar ? 'إضافة إعلان' : 'Add Listing'}
                 </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* MOBILE DRAWER */}
         {showMobile && (
@@ -267,28 +263,48 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
                 <img src={logoImage} alt="ECOv" style={{ height: 38, objectFit: 'contain' }} />
                 <button className="hn-mclose" onClick={() => setShowMobile(false)}><X size={17}/></button>
               </div>
+              
+              {/* شريط بحث للجوال (يمكن إزالته إذا أردت) */}
               <form className="hn-msearch" onSubmit={e => { handleSearch(e); setShowMobile(false); }}>
                 <input placeholder={ar?'ابحث...':'Search...'} value={query} onChange={e => setQuery(e.target.value)}/>
                 <button type="submit"><Search size={15} color="white"/></button>
               </form>
+              
               <div className="hn-mtoggle-row">
                 <button className="hn-mtoggle-btn" onClick={() => setLang(ar?'en':'ar')}><Globe size={13}/> {ar?'English':'العربية'}</button>
                 <button className="hn-mtoggle-btn" onClick={() => setDark(!dark)}>{dark?<><Sun size={13}/> {ar?'فاتح':'Light'}</>:<><Moon size={13}/> {ar?'داكن':'Dark'}</>}</button>
               </div>
+
+              {/* روابط الجوال */}
               <div className="hn-mlinks">
                 <p className="hn-mlinks-lbl">{ar?'الصفحات':'PAGES'}</p>
-                {NAV_LINKS.map(({ ar: arL, en, path, Icon }) => {
-                  const active = isActive(path);
-                  return (
-                    <Link key={path}
-                      to={path}
-                      className={`hn-mlink${active ? ' hn-mlink-active' : ''}`}
-                      onClick={() => setShowMobile(false)}>
-                      <Icon size={16} color={active ? '#059669' : undefined}/> {ar ? arL : en}
-                    </Link>
-                  );
-                })}
+                {user ? (
+                  // إذا كان مستخدم، نعرض الروابط كاملة
+                  NAV_LINKS.map(({ ar: arL, en, path, Icon }) => {
+                    const active = isActive(path);
+                    return (
+                      <Link key={path}
+                        to={path}
+                        className={`hn-mlink${active ? ' hn-mlink-active' : ''}`}
+                        onClick={() => setShowMobile(false)}>
+                        <Icon size={16} color={active ? '#059669' : undefined}/> {ar ? arL : en}
+                      </Link>
+                    );
+                  })
+                ) : (
+                  // إذا لم يكن مستخدم، نعرض فقط خيارات اللغة والوضع
+                  <>
+                    <button className="hn-mlink" onClick={() => { setLang(ar?'en':'ar'); setShowMobile(false); }}>
+                      <Globe size={16}/> {ar?'English':'العربية'}
+                    </button>
+                    <button className="hn-mlink" onClick={() => { setDark(!dark); setShowMobile(false); }}>
+                      {dark ? <Sun size={16}/> : <Moon size={16}/>} {ar?'الوضع الفاتح':'Light Mode'}
+                    </button>
+                  </>
+                )}
               </div>
+
+              {/* أزرار الجوال السفلية */}
               <div className="hn-mbtns">
                 {user ? (
                   <>

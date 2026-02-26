@@ -560,3 +560,25 @@
     justify-content: center;
   }
 }
+/* إضافات للعناصر الجديدة */
+.lang-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+[dir="ltr"] .lang-label {
+  margin-right: 0;
+  margin-left: 4px;
+}
+
+.notification-wrapper {
+  position: relative;
+}
+
+/* تحسين responsiveness للشاشات الصغيرة */
+@media (max-width: 992px) {
+  .navbar-actions .navbar-action-button .lang-label {
+    display: none; /* إخفاء النص في الشاشات الصغيرة */
+  }
+}
