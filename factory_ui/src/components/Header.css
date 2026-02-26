@@ -1,0 +1,260 @@
+/* components/Header.css */
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.top-bar {
+  padding: 1rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.logo-circle {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.logo-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.main-nav {
+  display: flex;
+  gap: 2rem;
+  margin: 0 2rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #059669;
+}
+
+.search-container {
+  position: relative;
+  width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  width: 18px;
+  height: 18px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  background-color: #f8fafc;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #059669;
+  background-color: white;
+}
+
+.icon-button {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background-color: #f1f5f9;
+  color: #059669;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.profile-button:hover {
+  background-color: #f1f5f9;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  background-color: #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.profile-name {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.profile-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  min-width: 180px;
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: right;
+  cursor: pointer;
+}
+
+.profile-menu-item:hover {
+  background-color: #f1f5f9;
+  color: #059669;
+}
+
+.quick-links-bar {
+  background-color: #f8fafc;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.quick-link:hover {
+  background-color: #e2e8f0;
+  color: #059669;
+}
+
+@media (max-width: 1200px) {
+  .main-nav {
+    gap: 1rem;
+    margin: 0 1rem;
+  }
+  
+  .search-container {
+    width: 200px;
+  }
+}
+
+@media (max-width: 992px) {
+  .top-bar > div > div {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .main-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin: 1rem 0 0 0;
+  }
+  
+  .search-container {
+    width: 100%;
+    order: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .quick-links-bar > div > div {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .quick-links-bar .flex {
+    justify-content: center;
+  }
+}

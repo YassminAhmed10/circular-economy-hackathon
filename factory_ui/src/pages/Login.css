@@ -1,0 +1,244 @@
+/* Login.css - تصميم مستوحى من الطبيعة */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+* {
+  font-family: 'Cairo', sans-serif;
+}
+
+/* Animations طبيعية */
+@keyframes floatLeaf {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sway {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+/* تطبيق animations على العناصر */
+.grow-animation {
+  animation: grow 0.6s ease-out;
+}
+
+.sway-animation {
+  animation: sway 4s ease-in-out infinite;
+}
+
+/* تخصيص الـ scrollbar بألوان طبيعية */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A2E25;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2B4B3C;
+  border-radius: 5px;
+  border: 2px solid #8FBC8F;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3A5E4A;
+}
+
+/* تأثيرات الـ focus */
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.3);
+}
+
+/* تأثيرات hover طبيعية */
+button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(152, 251, 152, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* تأثيرات الـ checkbox */
+input[type="checkbox"] {
+  accent-color: #2B4B3C;
+}
+
+/* تأثيرات الروابط */
+a {
+  position: relative;
+  text-decoration: none;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background: #98FB98;
+  transition: width 0.3s ease;
+}
+
+a:hover::after {
+  width: 100%;
+  left: 0;
+  right: auto;
+}
+
+/* Glass effect طبيعي */
+.nature-glass {
+  background: rgba(43, 75, 60, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(143, 188, 143, 0.3);
+}
+
+/* Card hover effect */
+.nature-card {
+  transition: all 0.4s ease;
+}
+
+.nature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(43, 75, 60, 0.3);
+}
+
+/* Loading spinner طبيعي */
+@keyframes leafSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.nature-spinner {
+  animation: leafSpin 2s ease-in-out infinite;
+}
+
+/* Responsive تصميم */
+@media (max-width: 1024px) {
+  .login-info {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  input {
+    font-size: 16px !important;
+  }
+  
+  .container {
+    padding: 1rem;
+  }
+}
+
+/* حالة الخطأ */
+.error-input {
+  border-color: #CD5C5C !important;
+  background-color: rgba(205, 92, 92, 0.05) !important;
+}
+
+/* حالة النجاح */
+.success-input {
+  border-color: #2B4B3C !important;
+  background-color: rgba(43, 75, 60, 0.05) !important;
+}
+
+/* تأثير الظل الطبيعي */
+.nature-shadow {
+  box-shadow: 0 10px 30px -5px rgba(43, 75, 60, 0.3);
+}
+
+.nature-shadow-hover:hover {
+  box-shadow: 0 20px 40px -8px rgba(43, 75, 60, 0.4);
+}
+
+/* تخصيص النص المحدد */
+::selection {
+  background-color: #2B4B3C;
+  color: #F0E68C;
+}
+
+/* تخصيص الـ placeholder */
+::placeholder {
+  color: #8FBC8F;
+  opacity: 0.7;
+}
+
+/* تأثير الـ loading */
+.loading-state {
+  pointer-events: none;
+  opacity: 0.7;
+  filter: grayscale(0.3);
+}
+
+/* تأثير الـ pulse الطبيعي */
+@keyframes naturePulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}
+
+.nature-pulse {
+  animation: naturePulse 3s ease-in-out infinite;
+}
+
+/* زوايا دائرية طبيعية */
+.nature-border {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* تدرجات لونية طبيعية */
+.green-gradient {
+  background: linear-gradient(135deg, #2B4B3C 0%, #3A5E4A 50%, #4A7258 100%);
+}
+
+.earth-gradient {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #CD853F 100%);
+}
