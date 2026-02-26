@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ShoppingBag, CheckCircle, Clock, XCircle, Package, DollarSign, Calendar, Truck } from 'lucide-react';
+import './Orders.css';
 
 function Orders() {
-  const [orders, setOrders] = useState([
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const statusFilter = searchParams.get('status');
+
+  const statusMap = {
+    completed: 'مكتمل',
+    pending: 'معلق',
+    cancelled: 'ملغى',
+    delivered: 'قيد التوصيل'
+  };
+
+  const [orders] = useState([
     {
       id: 'ORD-001',
       wasteType: 'بلاستيك',
       amount: '2.5 طن',
-      price: '1500 جنيه',
+      price: '1500',
       buyer: 'مصنع إعادة التدوير المتقدم',
       date: '2024-01-15',
       status: 'مكتمل',
@@ -17,7 +30,7 @@ function Orders() {
       id: 'ORD-002',
       wasteType: 'ورق',
       amount: '800 كجم',
-      price: '800 جنيه',
+      price: '800',
       buyer: 'شركة الأوراق الخضراء',
       date: '2024-01-10',
       status: 'قيد التوصيل',
@@ -27,7 +40,7 @@ function Orders() {
       id: 'ORD-003',
       wasteType: 'معادن',
       amount: '5 طن',
-      price: '3500 جنيه',
+      price: '3500',
       buyer: 'مصنع المعادن الجديد',
       date: '2023-12-20',
       status: 'ملغى',
@@ -37,7 +50,7 @@ function Orders() {
       id: 'ORD-004',
       wasteType: 'زجاج',
       amount: '1.2 طن',
-      price: '1200 جنيه',
+      price: '1200',
       buyer: 'مصنع الزجاج الحديث',
       date: '2024-01-05',
       status: 'معلق',
@@ -45,13 +58,22 @@ function Orders() {
     }
   ]);
 
+  const filteredOrders = useMemo(() => {
+    if (!statusFilter) return orders;
+    const arabicStatus = statusMap[statusFilter];
+    if (!arabicStatus) return orders;
+    return orders.filter(order => order.status === arabicStatus);
+  }, [orders, statusFilter]);
+
+  const pageTitle = statusFilter === 'completed' ? 'الطلبات المكتملة' : 'الطلبات والمبيعات';
+
   const getStatusColor = (status) => {
     switch(status) {
-      case 'مكتمل': return 'bg-emerald-100 text-emerald-800';
-      case 'قيد التوصيل': return 'bg-blue-100 text-blue-800';
-      case 'معلق': return 'bg-amber-100 text-amber-800';
-      case 'ملغى': return 'bg-red-100 text-red-800';
-      default: return 'bg-slate-100 text-slate-800';
+      case 'مكتمل': return 'completed';
+      case 'قيد التوصيل': return 'delivered';
+      case 'معلق': return 'pending';
+      case 'ملغى': return 'cancelled';
+      default: return '';
     }
   };
 
@@ -65,135 +87,176 @@ function Orders() {
     }
   };
 
+  const setFilter = (filter) => {
+    if (filter) {
+      navigate(`/orders?status=${filter}`);
+    } else {
+      navigate('/orders');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">الطلبات والمبيعات</h1>
-          <p className="text-slate-600">إدارة وتتبع جميع طلبات النفايات الصناعية</p>
-        </div>
+    <div className="orders-container" dir="rtl">
+      <div className="orders-header">
+        <h1>{pageTitle}</h1>
+        <p>إدارة وتتبع جميع طلبات النفايات الصناعية</p>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">إجمالي الطلبات</p>
-                <p className="text-2xl font-bold text-slate-900">{orders.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-emerald-600" />
-              </div>
+      <div className="filter-buttons">
+        <button
+          onClick={() => setFilter(null)}
+          className={`filter-btn ${!statusFilter ? 'active' : ''}`}
+        >
+          الكل
+        </button>
+        <button
+          onClick={() => setFilter('completed')}
+          className={`filter-btn ${statusFilter === 'completed' ? 'active' : ''}`}
+        >
+          المكتملة
+        </button>
+        <button
+          onClick={() => setFilter('delivered')}
+          className={`filter-btn ${statusFilter === 'delivered' ? 'active' : ''}`}
+        >
+          قيد التوصيل
+        </button>
+        <button
+          onClick={() => setFilter('pending')}
+          className={`filter-btn ${statusFilter === 'pending' ? 'active' : ''}`}
+        >
+          المعلقة
+        </button>
+        <button
+          onClick={() => setFilter('cancelled')}
+          className={`filter-btn ${statusFilter === 'cancelled' ? 'active' : ''}`}
+        >
+          الملغاة
+        </button>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>إجمالي الطلبات</p>
+              <div className="stat-number">{filteredOrders.length}</div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">مكتملة</p>
-                <p className="text-2xl font-bold text-emerald-600">
-                  {orders.filter(o => o.status === 'مكتمل').length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-emerald-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">إجمالي الإيرادات</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {orders.reduce((sum, order) => {
-                    if (order.status !== 'ملغى') {
-                      const price = parseInt(order.price);
-                      return sum + (isNaN(price) ? 0 : price);
-                    }
-                    return sum;
-                  }, 0)} جنيه
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-blue-500" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-600 text-sm mb-1">قيد التوصيل</p>
-                <p className="text-2xl font-bold text-amber-600">
-                  {orders.filter(o => o.status === 'قيد التوصيل').length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center">
-                <Truck className="w-6 h-6 text-amber-500" />
-              </div>
+            <div className="stat-icon">
+              <ShoppingBag />
             </div>
           </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">رقم الطلب</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">نوع النفايات</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">الكمية</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">السعر</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">المشتري</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">التاريخ</th>
-                  <th className="py-4 px-6 text-right font-semibold text-slate-700">الحالة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-4 px-6">
-                      <span className="font-medium text-slate-900">{order.id}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <Package className="w-4 h-4 ml-2 text-slate-500" />
-                        <span>{order.wasteType}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="font-medium">{order.amount}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <DollarSign className="w-4 h-4 ml-2 text-slate-500" />
-                        <span className="font-medium">{order.price}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span>{order.buyer}</span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 ml-2 text-slate-500" />
-                        <span>{order.date}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                        {getStatusIcon(order.status)}
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>مكتملة</p>
+              <div className="stat-number emerald">
+                {orders.filter(o => o.status === 'مكتمل').length}
+              </div>
+            </div>
+            <div className="stat-icon">
+              <CheckCircle />
+            </div>
           </div>
         </div>
+
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>إجمالي الإيرادات</p>
+              <div className="stat-number blue">
+                {filteredOrders.reduce((sum, order) => {
+                  if (order.status !== 'ملغى') {
+                    const price = parseInt(order.price);
+                    return sum + (isNaN(price) ? 0 : price);
+                  }
+                  return sum;
+                }, 0)} جنيه
+              </div>
+            </div>
+            <div className="stat-icon blue">
+              <DollarSign />
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-content">
+            <div className="stat-info">
+              <p>قيد التوصيل</p>
+              <div className="stat-number amber">
+                {orders.filter(o => o.status === 'قيد التوصيل').length}
+              </div>
+            </div>
+            <div className="stat-icon amber">
+              <Truck />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="table-wrapper">
+        <table className="orders-table">
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>نوع النفايات</th>
+              <th>الكمية</th>
+              <th>السعر</th>
+              <th>المشتري</th>
+              <th>التاريخ</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.map((order) => (
+              <tr key={order.id}>
+                <td className="font-medium">{order.id}</td>
+                <td>
+                  <div className="product-cell">
+                    <Package />
+                    <span>{order.wasteType}</span>
+                  </div>
+                </td>
+                <td>{order.amount}</td>
+                <td>
+                  <div className="product-cell">
+                    <DollarSign />
+                    <span>{order.price} جنيه</span>
+                  </div>
+                </td>
+                <td>{order.buyer}</td>
+                <td>
+                  <div className="product-cell">
+                    <Calendar />
+                    <span>{order.date}</span>
+                  </div>
+                </td>
+                <td>
+                  <span className={`status-badge ${getStatusColor(order.status)}`}>
+                    {getStatusIcon(order.status)}
+                    {order.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {filteredOrders.length === 0 && (
+              <tr>
+                <td colSpan="7" className="no-orders">
+                  <div className="empty-state-content">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M8 8 L16 16 M16 8 L8 16" />
+                    </svg>
+                    <p>لا توجد طلبات ملغاه</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
