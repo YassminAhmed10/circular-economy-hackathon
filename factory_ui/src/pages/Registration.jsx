@@ -1,41 +1,44 @@
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { 
-  Factory, Building2, MapPin, Phone, Mail, User, Package, Recycle, 
-  ArrowLeft, CheckCircle, ChevronRight, Upload, X, PartyPopper, 
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Factory, Building2, MapPin, Phone, Mail, User, Package, Recycle,
+  ArrowLeft, CheckCircle, ChevronRight, Upload, X, PartyPopper,
   Sparkles, Trophy, Star, ShoppingCart, TrendingUp, Leaf, Droplets,
   Sun, Shield, Award, BarChart3, Globe, Zap, Heart, Users,
-  Settings, HelpCircle, Bell, Menu, ChevronDown, Home, LogIn
-} from 'lucide-react'
-import './Registration.css'
-import logo from '../assets/ecovnew.png'
-import registrationBg from '../assets/ecovlogin.png'
+  Settings, HelpCircle, Bell, Menu, ChevronDown, Home, LogIn,
+  Eye, EyeOff, Lock
+} from 'lucide-react';
+import './Registration.css';
+import logo from '../assets/ecovnew.png';
+import registrationBg from '../assets/ecovlogin.png';
 
 function Registration({ onRegister, language: propLanguage, onLanguageChange }) {
-  const navigate = useNavigate()
-  
+  const navigate = useNavigate();
+
   // إدارة اللغة داخلياً
-  const [currentLanguage, setCurrentLanguage] = useState(propLanguage || 'en')
-  
+  const [currentLanguage, setCurrentLanguage] = useState(propLanguage || 'en');
+
   useEffect(() => {
     if (propLanguage) {
-      setCurrentLanguage(propLanguage)
+      setCurrentLanguage(propLanguage);
     }
-  }, [propLanguage])
+  }, [propLanguage]);
 
   const handleLanguageToggle = () => {
-    const newLang = currentLanguage === 'ar' ? 'en' : 'ar'
-    setCurrentLanguage(newLang)
+    const newLang = currentLanguage === 'ar' ? 'en' : 'ar';
+    setCurrentLanguage(newLang);
     if (onLanguageChange) {
-      onLanguageChange(newLang)
+      onLanguageChange(newLang);
     }
-    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr'
-  }
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+  };
 
-  const [currentStep, setCurrentStep] = useState(1)
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const fileInputRef = useRef(null)
+  const [currentStep, setCurrentStep] = useState(1);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Translations
   const translations = {
@@ -67,6 +70,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       email: 'البريد الإلكتروني',
       ownerName: 'اسم المالك/المدير',
       ownerPhone: 'هاتف المالك/المدير',
+      password: 'كلمة المرور',
+      confirmPassword: 'تأكيد كلمة المرور',
       factoryNamePlaceholder: 'مثال: مصنع النيل للصناعات',
       industryTypePlaceholder: 'اختر نوع الصناعة',
       locationPlaceholder: 'اختر المحافظة',
@@ -75,6 +80,16 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       emailPlaceholder: 'info@factory.com',
       ownerNamePlaceholder: 'أحمد محمد علي',
       ownerPhonePlaceholder: '0101234567',
+      passwordPlaceholder: 'أدخل كلمة المرور',
+      confirmPasswordPlaceholder: 'أعد إدخال كلمة المرور',
+      passwordRequirements: 'يجب أن تحتوي كلمة المرور على:',
+      requirementLength: '8 أحرف على الأقل',
+      requirementUppercase: 'حرف كبير واحد على الأقل',
+      requirementLowercase: 'حرف صغير واحد على الأقل',
+      requirementNumber: 'رقم واحد على الأقل',
+      requirementSpecial: 'رمز خاص واحد على الأقل (@$!%*?&)',
+      passwordMismatch: 'كلمة المرور غير متطابقة',
+      passwordWeak: 'كلمة المرور ضعيفة',
       legalInfo: 'المعلومات القانونية',
       taxNumber: 'الرقم الضريبي',
       registrationNumber: 'رقم السجل التجاري',
@@ -159,6 +174,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       email: 'EMAIL ADDRESS',
       ownerName: 'OWNER/MANAGER NAME',
       ownerPhone: 'OWNER/MANAGER PHONE',
+      password: 'PASSWORD',
+      confirmPassword: 'CONFIRM PASSWORD',
       factoryNamePlaceholder: 'e.g., Nile Industries Factory',
       industryTypePlaceholder: 'Select industry type',
       locationPlaceholder: 'Select governorate',
@@ -167,6 +184,16 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       emailPlaceholder: 'info@factory.com',
       ownerNamePlaceholder: 'Ahmed Mohamed Ali',
       ownerPhonePlaceholder: '0101234567',
+      passwordPlaceholder: 'Enter password',
+      confirmPasswordPlaceholder: 'Re-enter password',
+      passwordRequirements: 'Password must contain:',
+      requirementLength: 'At least 8 characters',
+      requirementUppercase: 'At least one uppercase letter',
+      requirementLowercase: 'At least one lowercase letter',
+      requirementNumber: 'At least one number',
+      requirementSpecial: 'At least one special character (@$!%*?&)',
+      passwordMismatch: 'Passwords do not match',
+      passwordWeak: 'Password is weak',
       legalInfo: 'LEGAL INFORMATION',
       taxNumber: 'TAX NUMBER',
       registrationNumber: 'COMMERCIAL REGISTRATION',
@@ -223,9 +250,22 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       enterQuantity: 'Please enter quantity',
       step4Required: 'You must be on step 4 to confirm registration',
     }
-  }
+  };
 
-  const t = translations[currentLanguage]
+  const t = translations[currentLanguage];
+
+  // قوة كلمة المرور
+  const checkPasswordStrength = (password) => {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[@$!%*?&]/.test(password),
+    };
+    const strength = Object.values(requirements).filter(Boolean).length;
+    return { requirements, strength };
+  };
 
   const [formData, setFormData] = useState({
     factoryName: '',
@@ -236,6 +276,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
     email: '',
     ownerName: '',
     ownerPhone: '',
+    password: '',
+    confirmPassword: '',
     taxNumber: '',
     registrationNumber: '',
     establishmentYear: new Date().getFullYear(),
@@ -255,13 +297,22 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
     buyingPurpose: '',
     factoryLogo: null,
     logoPreview: null,
-  })
+  });
+
+  const [passwordErrors, setPasswordErrors] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+    match: true,
+  });
 
   const industryTypes = [
     'Food Industries', 'Textile & Clothing', 'Chemicals', 'Metals & Manufacturing',
     'Plastics', 'Paper & Printing', 'Glass', 'Electronics', 'Cosmetics',
     'Pharmaceuticals', 'Building Materials', 'Leather', 'Furniture & Wood', 'Rubber', 'Other'
-  ]
+  ];
 
   const wasteTypeOptions = [
     { value: 'organic', label: { ar: 'نفايات عضوية', en: 'ORGANIC WASTE' }, icon: '🌿', color: 'green' },
@@ -276,7 +327,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
     { value: 'oil', label: { ar: 'زيوت مستعملة', en: 'USED OIL' }, icon: '🛢️', color: 'orange' },
     { value: 'rubber', label: { ar: 'مطاط', en: 'RUBBER' }, icon: '⚫', color: 'gray' },
     { value: 'construction', label: { ar: 'مخلفات بناء', en: 'CONSTRUCTION WASTE' }, icon: '🏗️', color: 'slate' }
-  ]
+  ];
 
   const locations = [
     'Cairo', 'Giza', 'Alexandria', 'Port Said', 'Suez', 'Damietta',
@@ -284,7 +335,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
     'Beheira', 'Ismailia', 'Luxor', 'Aswan', 'Asyut', 'Beni Suef',
     'Faiyum', 'Minya', 'New Valley', 'Red Sea', 'North Sinai',
     'South Sinai', 'Matrouh'
-  ]
+  ];
 
   const productionUnits = [
     { value: 'ton', label: { ar: 'طن', en: 'TON' } },
@@ -292,18 +343,41 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
     { value: 'unit', label: { ar: 'وحدة', en: 'UNIT' } },
     { value: 'liter', label: { ar: 'لتر', en: 'LITER' } },
     { value: 'm3', label: { ar: 'متر مكعب', en: 'M³' } }
-  ]
+  ];
 
   const frequencies = [
     { value: 'daily', label: { ar: 'يومي', en: 'DAILY' } },
     { value: 'weekly', label: { ar: 'أسبوعي', en: 'WEEKLY' } },
     { value: 'monthly', label: { ar: 'شهري', en: 'MONTHLY' } },
     { value: 'quarterly', label: { ar: 'ربع سنوي', en: 'QUARTERLY' } }
-  ]
+  ];
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // التحقق من كلمة المرور عند تغييرها
+    if (name === 'password' || name === 'confirmPassword') {
+      validatePassword(
+        name === 'password' ? value : formData.password,
+        name === 'confirmPassword' ? value : formData.confirmPassword
+      );
+    }
+  };
+
+  const validatePassword = (password, confirmPassword) => {
+    const reqs = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[@$!%*?&]/.test(password),
+    };
+    setPasswordErrors({
+      ...reqs,
+      match: password === confirmPassword,
+    });
+  };
 
   const handlePurposeChange = (purpose) => {
     setFormData(prev => ({
@@ -311,106 +385,137 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       registrationPurpose: prev.registrationPurpose.includes(purpose)
         ? prev.registrationPurpose.filter(p => p !== purpose)
         : [...prev.registrationPurpose, purpose]
-    }))
-  }
+    }));
+  };
 
   const handleWasteTypeChange = (wasteType, listType) => {
-    const fieldName = listType === 'sell' ? 'wasteTypesToSell' : 'wasteTypesToBuy'
+    const fieldName = listType === 'sell' ? 'wasteTypesToSell' : 'wasteTypesToBuy';
     setFormData(prev => ({
       ...prev,
       [fieldName]: prev[fieldName].includes(wasteType)
         ? prev[fieldName].filter(type => type !== wasteType)
         : [...prev[fieldName], wasteType]
-    }))
-  }
+    }));
+  };
 
   const handleLogoUpload = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
           ...prev,
           factoryLogo: file,
           logoPreview: reader.result
-        }))
-      }
-      reader.readAsDataURL(file)
+        }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleLogoRemove = () => {
     setFormData(prev => ({
       ...prev,
       factoryLogo: null,
       logoPreview: null
-    }))
+    }));
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = '';
     }
-  }
+  };
+
+  // التحقق من صحة الخطوة 1 (بما في ذلك كلمة المرور)
+  const validateStep1 = () => {
+    // التحقق من الملء
+    if (!formData.factoryName || !formData.industryType || !formData.location ||
+        !formData.address || !formData.phone || !formData.email || !formData.ownerName ||
+        !formData.password || !formData.confirmPassword) {
+      alert(t.passwordWeak); // استخدام نص مناسب لكن يمكن تغييره
+      return false;
+    }
+
+    // التحقق من قوة كلمة المرور
+    const { length, uppercase, lowercase, number, special } = passwordErrors;
+    if (!length || !uppercase || !lowercase || !number || !special) {
+      alert(t.passwordWeak);
+      return false;
+    }
+
+    // التحقق من تطابق كلمة المرور
+    if (formData.password !== formData.confirmPassword) {
+      alert(t.passwordMismatch);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleNext = () => {
+    if (currentStep === 1 && !validateStep1()) return;
+
     if (currentStep === 3 && formData.registrationPurpose.length === 0) {
-      alert(t.selectPurpose)
-      return
+      alert(t.selectPurpose);
+      return;
     }
     if (currentStep === 3 && formData.registrationPurpose.includes('sell')) {
       if (formData.wasteTypesToSell.length === 0) {
-        alert(t.selectWasteTypes)
-        return
+        alert(t.selectWasteTypes);
+        return;
       }
       if (!formData.wasteAmountToSell) {
-        alert(t.enterQuantity)
-        return
+        alert(t.enterQuantity);
+        return;
       }
     }
     if (currentStep === 3 && formData.registrationPurpose.includes('buy')) {
       if (formData.wasteTypesToBuy.length === 0) {
-        alert(t.selectWasteTypes)
-        return
+        alert(t.selectWasteTypes);
+        return;
       }
       if (!formData.wasteAmountToBuy) {
-        alert(t.enterQuantity)
-        return
+        alert(t.enterQuantity);
+        return;
       }
     }
-    setIsTransitioning(true)
+    setIsTransitioning(true);
     setTimeout(() => {
       if (currentStep < 4) {
-        setCurrentStep(prevStep => prevStep + 1)
+        setCurrentStep(prevStep => prevStep + 1);
       }
-      setIsTransitioning(false)
-    }, 50)
-  }
+      setIsTransitioning(false);
+    }, 50);
+  };
 
   const handleBack = () => {
-    setIsTransitioning(true)
+    setIsTransitioning(true);
     setTimeout(() => {
       if (currentStep > 1) {
-        setCurrentStep(prevStep => prevStep - 1)
+        setCurrentStep(prevStep => prevStep - 1);
       }
-      setIsTransitioning(false)
-    }, 50)
-  }
+      setIsTransitioning(false);
+    }, 50);
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (currentStep !== 4) {
-      alert(t.step4Required)
-      return
+      alert(t.step4Required);
+      return;
     }
+
+    // إنشاء كائن المستخدم
     const userData = {
       id: Date.now(),
       factoryName: formData.factoryName,
       email: formData.email,
+      password: formData.password, // في الواقع يجب عدم تخزينها هكذا
       ownerName: formData.ownerName,
       industryType: formData.industryType,
       location: formData.location,
       address: formData.address,
       phone: formData.phone,
       ownerPhone: formData.ownerPhone,
-      logo: formData.logoPreview,
+      logoPreview: formData.logoPreview, // الصورة كـ Data URL
       registrationNumber: formData.registrationNumber,
       taxNumber: formData.taxNumber,
       establishmentYear: formData.establishmentYear,
@@ -431,24 +536,26 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       verified: false,
       registrationDate: new Date().toISOString(),
       language: currentLanguage
-    }
+    };
+
     if (onRegister) {
-      onRegister(userData)
+      onRegister(userData);
     }
+
     setTimeout(() => {
-      setShowWelcomeModal(true)
-    }, 100)
-  }
+      setShowWelcomeModal(true);
+    }, 100);
+  };
 
   const handleContinueToDashboard = () => {
-    setShowWelcomeModal(false)
+    setShowWelcomeModal(false);
     setTimeout(() => {
-      navigate('/dashboard')
-    }, 300)
-  }
+      navigate('/dashboard');
+    }, 300);
+  };
 
   const WelcomeModal = () => {
-    if (!showWelcomeModal) return null
+    if (!showWelcomeModal) return null;
     return (
       <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4`} dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
         <div className="relative bg-white rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl animate-slideUp">
@@ -548,13 +655,13 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className={`min-h-screen bg-slate-50`} dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
       {showWelcomeModal && <WelcomeModal />}
-      
+
       {isTransitioning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
           <div className="bg-white p-6 rounded-2xl shadow-2xl flex items-center gap-4">
@@ -622,7 +729,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
       {/* Main Content */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Header with background */}
-        <div 
+        <div
           className="relative rounded-2xl overflow-hidden mb-6 bg-cover bg-center"
           style={{ backgroundImage: `url(${registrationBg})` }}
         >
@@ -649,8 +756,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                   <div className={`
                     w-10 h-10 rounded-xl flex items-center justify-center font-black text-base
                     transition-all duration-500 transform
-                    ${currentStep >= step 
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-110' 
+                    ${currentStep >= step
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-110'
                       : 'bg-slate-200 text-slate-500'
                     }
                   `}>
@@ -658,7 +765,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                   </div>
                   {step < 4 && (
                     <div className={`absolute top-1/2 -translate-y-1/2 ${currentLanguage === 'ar' ? 'right-full' : 'left-full'} w-full h-1 bg-slate-200 overflow-hidden`}>
-                      <div 
+                      <div
                         className={`h-full bg-gradient-to-l from-emerald-500 to-teal-600 transition-all duration-500`}
                         style={{ width: currentStep > step ? '100%' : '0%' }}
                       ></div>
@@ -682,7 +789,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         {/* Main Form */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="p-6">
-            {/* Step 1: Basic Info */}
+            {/* Step 1: Basic Info with Password */}
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -694,8 +801,9 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     <p className="text-sm text-slate-500 font-semibold">{t.step1Subtitle}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* الحقول الأساسية */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.factoryName} <span className="text-red-500">*</span>
@@ -713,7 +821,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.industryType} <span className="text-red-500">*</span>
@@ -734,7 +842,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       </select>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.location} <span className="text-red-500">*</span>
@@ -755,7 +863,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       </select>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.address} <span className="text-red-500">*</span>
@@ -770,7 +878,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.phone} <span className="text-red-500">*</span>
@@ -788,7 +896,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.email} <span className="text-red-500">*</span>
@@ -806,7 +914,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.ownerName} <span className="text-red-500">*</span>
@@ -824,7 +932,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-1.5">
                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                       {t.ownerPhone}
@@ -841,6 +949,95 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       />
                     </div>
                   </div>
+
+                  {/* حقل كلمة المرور */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
+                      {t.password} <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className={`absolute ${currentLanguage === 'ar' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400`} />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder={t.passwordPlaceholder}
+                        className={`w-full ${currentLanguage === 'ar' ? 'pr-9' : 'pl-9'} px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-sm font-semibold`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className={`absolute ${currentLanguage === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600`}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* تأكيد كلمة المرور */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
+                      {t.confirmPassword} <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className={`absolute ${currentLanguage === 'ar' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400`} />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder={t.confirmPasswordPlaceholder}
+                        className={`w-full ${currentLanguage === 'ar' ? 'pr-9' : 'pl-9'} px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-sm font-semibold`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className={`absolute ${currentLanguage === 'ar' ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600`}
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* متطلبات كلمة المرور */}
+                {formData.password && (
+                  <div className="mt-4 p-4 bg-slate-50 rounded-lg border-2 border-slate-200">
+                    <p className="text-sm font-bold text-slate-700 mb-2">{t.passwordRequirements}</p>
+                    <ul className="space-y-1">
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.length ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.requirementLength}
+                      </li>
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.uppercase ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.requirementUppercase}
+                      </li>
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.lowercase ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.requirementLowercase}
+                      </li>
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.number ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.requirementNumber}
+                      </li>
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.special ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.requirementSpecial}
+                      </li>
+                      <li className={`text-xs flex items-center gap-2 ${passwordErrors.match ? 'text-green-600' : 'text-red-600'}`}>
+                        <CheckCircle size={14} /> {t.passwordMismatch}
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all"
+                  >
+                    {t.next}
+                  </button>
                 </div>
               </div>
             )}
@@ -857,13 +1054,13 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     <p className="text-sm text-slate-500 font-semibold">{t.step2Subtitle}</p>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200/50">
                   <h3 className="text-lg font-black text-blue-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
                     <Shield className="w-5 h-5" />
                     {t.legalInfo}
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                       <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
@@ -879,7 +1076,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-1.5">
                       <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                         {t.registrationNumber} <span className="text-red-500">*</span>
@@ -894,7 +1091,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                         required
                       />
                     </div>
-                    
+
                     <div className="space-y-1.5">
                       <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                         {t.establishmentYear}
@@ -911,13 +1108,13 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border-2 border-emerald-200/50">
                   <h3 className="text-lg font-black text-emerald-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
                     <BarChart3 className="w-5 h-5" />
                     {t.productionInfo}
                   </h3>
-                  
+
                   <div className="space-y-5">
                     <div className="space-y-1.5">
                       <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
@@ -933,7 +1130,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                         required
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
@@ -963,6 +1160,23 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     </div>
                   </div>
                 </div>
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-6 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition-all"
+                  >
+                    {t.previous}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all"
+                  >
+                    {t.next}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -978,16 +1192,16 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     <p className="text-sm text-slate-500 font-semibold">{t.step3Subtitle}</p>
                   </div>
                 </div>
-                
+
                 {/* Registration Purpose */}
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-200/50">
                   <h3 className="text-lg font-black text-purple-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
                     <Zap className="w-5 h-5" />
                     {t.registrationPurpose} <span className="text-red-500">*</span>
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div 
+                    <div
                       className={`relative p-5 rounded-lg border-2 transition-all cursor-pointer ${
                         formData.registrationPurpose.includes('sell')
                           ? 'border-blue-500 bg-blue-50 shadow-md'
@@ -1010,8 +1224,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                         </div>
                       )}
                     </div>
-                    
-                    <div 
+
+                    <div
                       className={`relative p-5 rounded-lg border-2 transition-all cursor-pointer ${
                         formData.registrationPurpose.includes('buy')
                           ? 'border-purple-500 bg-purple-50 shadow-md'
@@ -1044,7 +1258,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       <Package className="w-5 h-5" />
                       {t.sellWaste}
                     </h3>
-                    
+
                     <div className="space-y-5">
                       <div>
                         <label className="block text-xs font-black text-slate-700 mb-2 uppercase tracking-wide">
@@ -1072,7 +1286,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                           ))}
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
@@ -1100,7 +1314,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                             </select>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-1.5">
                           <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                             {t.frequency} <span className="text-red-500">*</span>
@@ -1117,7 +1331,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                           </select>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-1.5">
                         <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                           {t.description}
@@ -1142,7 +1356,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       <ShoppingCart className="w-5 h-5" />
                       {t.buyWaste}
                     </h3>
-                    
+
                     <div className="space-y-5">
                       <div>
                         <label className="block text-xs font-black text-slate-700 mb-2 uppercase tracking-wide">
@@ -1170,7 +1384,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                           ))}
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
@@ -1198,7 +1412,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                             </select>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-1.5">
                           <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                             {t.frequency} <span className="text-red-500">*</span>
@@ -1215,7 +1429,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                           </select>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-1.5">
                         <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">
                           {t.purpose} <span className="text-red-500">*</span>
@@ -1232,6 +1446,23 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     </div>
                   </div>
                 )}
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-6 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition-all"
+                  >
+                    {t.previous}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all"
+                  >
+                    {t.next}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1247,20 +1478,20 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     <p className="text-sm text-slate-500 font-semibold">{t.step4Subtitle}</p>
                   </div>
                 </div>
-                
+
                 {/* Logo Upload */}
                 <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl p-5 border-2 border-slate-200">
                   <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
                     <Upload className="w-5 h-5" />
                     {t.uploadLogo}
                   </h3>
-                  
+
                   {formData.logoPreview ? (
                     <div className="flex flex-col items-center">
                       <div className="relative">
-                        <img 
-                          src={formData.logoPreview} 
-                          alt="Logo" 
+                        <img
+                          src={formData.logoPreview}
+                          alt="Logo"
                           className="w-40 h-40 object-contain rounded-xl border-4 border-white shadow-lg"
                         />
                         <button
@@ -1273,7 +1504,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       </div>
                     </div>
                   ) : (
-                    <div 
+                    <div
                       className="border-3 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/50 transition-all"
                       onClick={() => fileInputRef.current?.click()}
                     >
@@ -1290,7 +1521,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     </div>
                   )}
                 </div>
-                
+
                 {/* Review Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200/50">
@@ -1317,7 +1548,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-200/50">
                     <h4 className="font-black text-purple-900 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm">
                       <Award className="w-4 h-4" />
@@ -1338,7 +1569,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border-2 border-emerald-200/50 md:col-span-2">
                     <h4 className="font-black text-emerald-900 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm">
                       <Recycle className="w-4 h-4" />
@@ -1368,56 +1599,29 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                     </div>
                   </div>
                 </div>
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-6 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition-all"
+                  >
+                    {t.previous}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all"
+                  >
+                    {t.confirm}
+                  </button>
+                </div>
               </div>
             )}
-
-            {/* Navigation Buttons */}
-            <div className={`flex ${currentLanguage === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between mt-6 pt-5 border-t-2 border-slate-200`}>
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black rounded-lg transition-all flex items-center gap-2 group text-sm uppercase tracking-wide"
-                >
-                  <ArrowLeft className={`w-4 h-4 ${currentLanguage === 'ar' ? 'group-hover:-translate-x-1' : 'group-hover:translate-x-1'} transition-transform`} />
-                  {t.previous}
-                </button>
-              )}
-              
-              {currentStep < 4 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className={`${currentLanguage === 'ar' ? 'mr-auto' : 'ml-auto'} px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 group text-sm uppercase tracking-wide`}
-                  disabled={isTransitioning}
-                >
-                  {isTransitioning ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      {t.loading}
-                    </>
-                  ) : (
-                    <>
-                      {t.next}
-                      <ChevronRight className={`w-4 h-4 ${currentLanguage === 'ar' ? 'group-hover:translate-x-1' : 'group-hover:-translate-x-1'} transition-transform`} />
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  className={`${currentLanguage === 'ar' ? 'mr-auto' : 'ml-auto'} px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-lg transition-all shadow-md hover:shadow-lg flex items-center gap-2 group text-sm uppercase tracking-wide`}
-                >
-                  <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  {t.confirm}
-                </button>
-              )}
-            </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Registration
+export default Registration;

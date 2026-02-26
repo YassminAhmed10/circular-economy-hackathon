@@ -4,15 +4,21 @@ import { User, Building2, Mail, Phone, MapPin, FileText, Edit2, Save, Camera, Sh
 function Profile({ user, onUpdateUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    factoryName: user?.factoryName || 'مصنع الأمل للصناعات الغذائية',
-    ownerName: user?.ownerName || 'أحمد محمد',
-    email: user?.email || 'ahmed@al-amal.com',
-    phone: user?.phone || '01234567890',
-    location: user?.location || 'القاهرة',
-    address: user?.address || 'المنطقة الصناعية، القاهرة',
-    industryType: user?.industryType || 'صناعات غذائية',
-    taxNumber: user?.taxNumber || '123-456-789',
-    registrationDate: '2024-01-15',
+    factoryName: user?.factoryName || 'مصنع غير معروف',
+    ownerName: user?.ownerName || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    location: user?.location || '',
+    address: user?.address || '',
+    industryType: user?.industryType || '',
+    taxNumber: user?.taxNumber || '',
+    registrationNumber: user?.registrationNumber || '',
+    establishmentYear: user?.establishmentYear || new Date().getFullYear(),
+    productionCapacity: user?.productionCapacity || '',
+    productionUnit: user?.productionUnit || 'ton',
+    mainProducts: user?.mainProducts || '',
+    logoPreview: user?.logoPreview || null,
+    registrationDate: user?.registrationDate?.split('T')[0] || '2024-01-15',
     verified: user?.verified || false
   });
 
@@ -80,17 +86,27 @@ function Profile({ user, onUpdateUser }) {
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-24">
               <div className="text-center mb-6">
                 <div className="relative inline-block mb-4">
-                  <div className="w-32 h-32 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-                    <Building2 className="w-16 h-16 text-emerald-600" />
-                  </div>
-                  <button className="absolute bottom-2 right-2 bg-emerald-600 text-white p-2 rounded-full">
-                    <Camera className="w-4 h-4" />
-                  </button>
+                  {formData.logoPreview ? (
+                    <img
+                      src={formData.logoPreview}
+                      alt={formData.factoryName}
+                      className="w-32 h-32 rounded-full object-contain border-4 border-emerald-100"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                      <Building2 className="w-16 h-16 text-emerald-600" />
+                    </div>
+                  )}
+                  {isEditing && (
+                    <button className="absolute bottom-2 right-2 bg-emerald-600 text-white p-2 rounded-full">
+                      <Camera className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                
+
                 <h2 className="text-xl font-bold text-slate-900 mb-1">{formData.factoryName}</h2>
                 <p className="text-slate-600 mb-3">{formData.industryType}</p>
-                
+
                 <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                   formData.verified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                 }`}>
@@ -113,7 +129,31 @@ function Profile({ user, onUpdateUser }) {
                   <User className="w-5 h-5 text-slate-500" />
                   <div>
                     <p className="font-medium">المالك / المدير</p>
-                    <p className="text-sm text-slate-600">{formData.ownerName}</p>
+                    <p className="text-sm text-slate-600">{formData.ownerName || 'غير محدد'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 text-slate-700">
+                  <Mail className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="font-medium">البريد الإلكتروني</p>
+                    <p className="text-sm text-slate-600">{formData.email || 'غير محدد'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 text-slate-700">
+                  <Phone className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="font-medium">رقم الهاتف</p>
+                    <p className="text-sm text-slate-600">{formData.phone || 'غير محدد'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 text-slate-700">
+                  <MapPin className="w-5 h-5 text-slate-500" />
+                  <div>
+                    <p className="font-medium">الموقع</p>
+                    <p className="text-sm text-slate-600">{formData.location || 'غير محدد'}</p>
                   </div>
                 </div>
 
@@ -129,7 +169,7 @@ function Profile({ user, onUpdateUser }) {
                   <FileText className="w-5 h-5 text-slate-500" />
                   <div>
                     <p className="font-medium">الرقم الضريبي</p>
-                    <p className="text-sm text-slate-600">{formData.taxNumber}</p>
+                    <p className="text-sm text-slate-600">{formData.taxNumber || 'غير محدد'}</p>
                   </div>
                 </div>
               </div>
@@ -240,6 +280,7 @@ function Profile({ user, onUpdateUser }) {
                     className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-emerald-600 focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                     required
                   >
+                    <option value="">اختر المحافظة</option>
                     <option value="القاهرة">القاهرة</option>
                     <option value="الجيزة">الجيزة</option>
                     <option value="الإسكندرية">الإسكندرية</option>
@@ -261,6 +302,7 @@ function Profile({ user, onUpdateUser }) {
                     className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-emerald-600 focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                     required
                   >
+                    <option value="">اختر نوع الصناعة</option>
                     <option value="صناعات غذائية">صناعات غذائية</option>
                     <option value="نسيج وملابس">نسيج وملابس</option>
                     <option value="كيماويات">كيماويات</option>
@@ -285,7 +327,91 @@ function Profile({ user, onUpdateUser }) {
                   />
                 </div>
               </div>
+
+              {isEditing && (
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all"
+                  >
+                    حفظ التغييرات
+                  </button>
+                </div>
+              )}
             </form>
+
+            {/* Production Information */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-emerald-600" />
+                معلومات الإنتاج
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-slate-700 font-medium mb-2">
+                    رقم السجل التجاري
+                  </label>
+                  <input
+                    type="text"
+                    name="registrationNumber"
+                    value={formData.registrationNumber}
+                    disabled
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-medium mb-2">
+                    سنة التأسيس
+                  </label>
+                  <input
+                    type="text"
+                    name="establishmentYear"
+                    value={formData.establishmentYear}
+                    disabled
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-slate-700 font-medium mb-2">
+                    المنتجات الرئيسية
+                  </label>
+                  <textarea
+                    name="mainProducts"
+                    value={formData.mainProducts}
+                    disabled
+                    rows="3"
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-medium mb-2">
+                    الطاقة الإنتاجية الشهرية
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="productionCapacity"
+                      value={formData.productionCapacity}
+                      disabled
+                      className="flex-1 px-4 py-3 border-2 border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                    />
+                    <select
+                      name="productionUnit"
+                      value={formData.productionUnit}
+                      disabled
+                      className="w-24 px-4 py-3 border-2 border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                    >
+                      <option value="ton">طن</option>
+                      <option value="kg">كجم</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Change Password Form */}
             <form onSubmit={handlePasswordSubmit} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
