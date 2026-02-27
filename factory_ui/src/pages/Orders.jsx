@@ -1,255 +1,301 @@
-// Orders.jsx — ECOv Premium Redesign 2026
-// Aesthetic: Clean Depth × Warm Olive — Playfair Display numbers
-
+// Orders.jsx — ECOv · طلبات الشراء الواردة — Premium Redesign
 import React, { useState, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  ShoppingBag, CheckCircle, Clock, XCircle,
-  Package, DollarSign, Calendar, Truck,
-  Building2, Tag, LayoutList
+  ShoppingCart, CheckCircle2, X, MessageSquare,
+  Star, Search, MapPin, Sparkles
 } from 'lucide-react';
 import './Orders.css';
 
-// ─── Waste type accent colors ─────────────────────
-const TYPE_CFG = {
-  'بلاستيك': { color:'#2563eb', bg:'rgba(37,99,235,0.1)' },
-  'ورق':     { color:'#be185d', bg:'rgba(190,24,93,0.1)' },
-  'معادن':   { color:'#b8620a', bg:'rgba(184,98,10,0.1)' },
-  'زجاج':    { color:'#5b2fa0', bg:'rgba(91,47,160,0.1)' },
-  'خشب':     { color:'#3a7d20', bg:'rgba(58,125,32,0.1)' },
-}
+const PURCHASE_REQUESTS = [
+  {
+    id: 1,
+    factoryAr: 'مصنع إعادة التدوير الأخضر',
+    locAr: 'القاهرة',
+    productAr: 'بلاستيك PET',
+    qtyAr: '2 طن',
+    price: 5800,
+    timeAr: 'منذ 10 دقائق',
+    rating: 4.8,
+    deals: 24,
+    status: 'new',
+    msgAr: 'نحتاج 2 طن من بلاستيك PET أسبوعياً، يمكن توقيع عقد طويل الأمد.',
+    category: 'بلاستيك',
+  },
+  {
+    id: 2,
+    factoryAr: 'شركة الصلب المصرية',
+    locAr: 'الإسكندرية',
+    productAr: 'حديد خردة',
+    qtyAr: '5 طن',
+    price: 32000,
+    timeAr: 'منذ ساعة',
+    rating: 4.5,
+    deals: 61,
+    status: 'new',
+    msgAr: 'مهتمون بشراء حديد الخردة بشكل دوري كل شهر.',
+    category: 'معادن',
+  },
+  {
+    id: 3,
+    factoryAr: 'مصنع الورق المتحد',
+    locAr: 'الجيزة',
+    productAr: 'كرتون نظيف',
+    qtyAr: '10 طن',
+    price: 14000,
+    timeAr: 'منذ 3 ساعات',
+    rating: 4.2,
+    deals: 38,
+    status: 'accepted',
+    msgAr: 'لدينا خط إنتاج جديد يحتاج كرتون بصفة منتظمة.',
+    category: 'ورق',
+  },
+  {
+    id: 4,
+    factoryAr: 'مصنع الزجاج الحديث',
+    locAr: 'بورسعيد',
+    productAr: 'زجاج شفاف',
+    qtyAr: '3 طن',
+    price: 7200,
+    timeAr: 'أمس',
+    rating: 4.9,
+    deals: 82,
+    status: 'rejected',
+    msgAr: 'نريد زجاجاً بمواصفات محددة، يرجى التواصل لمعرفة التفاصيل.',
+    category: 'زجاج',
+  },
+  {
+    id: 5,
+    factoryAr: 'شركة الأخشاب المتحدة',
+    locAr: 'المنصورة',
+    productAr: 'خشب MDF',
+    qtyAr: '6 طن',
+    price: 9600,
+    timeAr: 'منذ يومين',
+    rating: 4.6,
+    deals: 45,
+    status: 'new',
+    msgAr: 'نحتاج خشب MDF بشكل منتظم لخط الإنتاج الجديد.',
+    category: 'خشب',
+  },
+];
 
-// ─── Status config ────────────────────────────────
+const CAT_COLOR = {
+  'بلاستيك': { color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  glow: 'rgba(59,130,246,0.3)',  emoji: '♻️' },
+  'معادن':   { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  glow: 'rgba(245,158,11,0.3)',  emoji: '⚙️' },
+  'ورق':     { color: '#ec4899', bg: 'rgba(236,72,153,0.1)',  glow: 'rgba(236,72,153,0.3)',  emoji: '📄' },
+  'زجاج':    { color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)',  glow: 'rgba(139,92,246,0.3)',  emoji: '🔮' },
+  'خشب':     { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  glow: 'rgba(16,185,129,0.3)',  emoji: '🌿' },
+};
+
 const STATUS_CFG = {
-  'مكتمل':       { cls:'completed', Icon:CheckCircle },
-  'قيد التوصيل': { cls:'delivered', Icon:Truck       },
-  'معلق':        { cls:'pending',   Icon:Clock        },
-  'ملغى':        { cls:'cancelled', Icon:XCircle      },
-}
+  new:      { label: 'جديد',   bg: '#dcfce7', color: '#15803d', border: 'rgba(22,163,74,0.25)' },
+  accepted: { label: 'مقبول',  bg: '#dcfce7', color: '#15803d', border: 'rgba(22,163,74,0.25)' },
+  rejected: { label: 'مرفوض', bg: '#fee2e2', color: '#dc2626', border: 'rgba(220,38,38,0.25)' },
+};
 
-function Orders() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const statusFilter = searchParams.get('status');
+export default function Orders() {
+  const [requests, setRequests] = useState(PURCHASE_REQUESTS);
+  const [search,   setSearch]   = useState('');
+  const [filter,   setFilter]   = useState('all');
 
-  const statusMap = {
-    completed: 'مكتمل',
-    pending:   'معلق',
-    cancelled: 'ملغى',
-    delivered: 'قيد التوصيل',
+  const filtered = useMemo(() => requests.filter(r => {
+    const q = search.trim();
+    const matchSearch = !q || r.factoryAr.includes(q) || r.productAr.includes(q) || r.locAr.includes(q);
+    const matchFilter = filter === 'all' || r.status === filter;
+    return matchSearch && matchFilter;
+  }), [requests, search, filter]);
+
+  const handleStatus = (id, status) =>
+    setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+
+  const counts = {
+    all:      requests.length,
+    new:      requests.filter(r => r.status === 'new').length,
+    accepted: requests.filter(r => r.status === 'accepted').length,
+    rejected: requests.filter(r => r.status === 'rejected').length,
   };
 
-  const [orders] = useState([
-    { id:'ORD-001', wasteType:'بلاستيك', amount:'2.5 طن',  price:'1500', buyer:'مصنع إعادة التدوير المتقدم', date:'2024-01-15', status:'مكتمل',       deliveryDate:'2024-01-20' },
-    { id:'ORD-002', wasteType:'ورق',     amount:'800 كجم', price:'800',  buyer:'شركة الأوراق الخضراء',       date:'2024-01-10', status:'قيد التوصيل', deliveryDate:'2024-01-25' },
-    { id:'ORD-003', wasteType:'معادن',   amount:'5 طن',    price:'3500', buyer:'مصنع المعادن الجديد',         date:'2023-12-20', status:'ملغى',         deliveryDate:'-'          },
-    { id:'ORD-004', wasteType:'زجاج',    amount:'1.2 طن',  price:'1200', buyer:'مصنع الزجاج الحديث',          date:'2024-01-05', status:'معلق',         deliveryDate:'-'          },
-    { id:'ORD-005', wasteType:'خشب',     amount:'3 طن',    price:'2100', buyer:'شركة الأخشاب المتحدة',        date:'2024-01-18', status:'مكتمل',        deliveryDate:'2024-01-22' },
-  ]);
-
-  const filteredOrders = useMemo(() => {
-    if (!statusFilter) return orders;
-    const ar = statusMap[statusFilter];
-    return ar ? orders.filter(o => o.status === ar) : orders;
-  }, [orders, statusFilter]);
-
-  const setFilter = (f) => f ? navigate(`/orders?status=${f}`) : navigate('/orders');
-
-  const totalRevenue = filteredOrders.reduce((s, o) => {
-    if (o.status !== 'ملغى') {
-      const p = parseInt(o.price);
-      return s + (isNaN(p) ? 0 : p);
-    }
-    return s;
-  }, 0);
-
-  const pageTitle = statusFilter === 'completed' ? 'الطلبات المكتملة' : 'الطلبات والمبيعات';
-
   const FILTERS = [
-    { key: null,        label: 'الكل' },
-    { key: 'completed', label: 'المكتملة' },
-    { key: 'delivered', label: 'قيد التوصيل' },
-    { key: 'pending',   label: 'المعلقة' },
-    { key: 'cancelled', label: 'الملغاة' },
+    { key: 'all',      label: 'الكل'   },
+    { key: 'new',      label: 'جديد'   },
+    { key: 'accepted', label: 'مقبول'  },
+    { key: 'rejected', label: 'مرفوض' },
   ];
 
   return (
-    <div className="orders-container" dir="rtl">
+    <div className="orders-page" dir="rtl">
 
-      {/* ─── Header ─────────────────────────────── */}
-      <div className="orders-header">
-        <div className="orders-header-inner">
-          <div className="orders-header-icon">
-            <LayoutList />
+      {/* ── Header ── */}
+      <header className="op-header">
+        <div className="op-header-left">
+          <div className="op-header-text">
+            <div className="op-eyebrow">
+              <Sparkles size={10}/> لوحة الطلبات
+            </div>
+            <h1>طلبات الشراء <em>الواردة</em></h1>
+            <p>مصانع طلبت شراء منتجاتك — راجع وتصرف بسرعة</p>
           </div>
-          <h1>{pageTitle}</h1>
         </div>
-        <p>إدارة وتتبع جميع طلبات النفايات الصناعية</p>
-      </div>
 
-      {/* ─── Filter Pills ────────────────────────── */}
-      <div className="filter-buttons">
-        {FILTERS.map(({ key, label }) => (
-          <button
-            key={label}
-            onClick={() => setFilter(key)}
-            className={`filter-btn ${statusFilter === key ? 'active' : ''}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* ─── Stats Grid ─────────────────────────── */}
-      <div className="stats-grid">
-        {[
-          {
-            label: 'إجمالي الطلبات',
-            value: filteredOrders.length,
-            cls: '',
-            Icon: ShoppingBag,
-            icCls: '',
-            delay: '0s',
-          },
-          {
-            label: 'مكتملة',
-            value: orders.filter(o => o.status === 'مكتمل').length,
-            cls: 'emerald',
-            Icon: CheckCircle,
-            icCls: '',
-            delay: '.07s',
-          },
-          {
-            label: 'إجمالي الإيرادات',
-            value: <>{totalRevenue.toLocaleString()}<span className="stat-unit">جنيه</span></>,
-            cls: 'blue',
-            Icon: DollarSign,
-            icCls: 'blue',
-            delay: '.14s',
-          },
-          {
-            label: 'قيد التوصيل',
-            value: orders.filter(o => o.status === 'قيد التوصيل').length,
-            cls: 'amber',
-            Icon: Truck,
-            icCls: 'amber',
-            delay: '.21s',
-          },
-        ].map(({ label, value, cls, Icon, icCls, delay }, i) => (
-          <div className="stat-card" key={i} style={{ animationDelay: delay }}>
-            <div className="stat-card-content">
-              <div className="stat-info">
-                <p>{label}</p>
-                <div className={`stat-number ${cls}`}>{value}</div>
-              </div>
-              <div className={`stat-icon ${icCls}`}>
-                <Icon />
-              </div>
+        <div style={{display:'flex', alignItems:'center', gap:16}}>
+          {/* Stats bar */}
+          <div className="op-stats-bar">
+            <div className="op-stat-item">
+              <span className="op-stat-num" style={{color:'#dc2626'}}>{counts.new}</span>
+              <span className="op-stat-lbl">جديد</span>
+            </div>
+            <div className="op-stat-divider"/>
+            <div className="op-stat-item">
+              <span className="op-stat-num" style={{color:'#16a34a'}}>{counts.accepted}</span>
+              <span className="op-stat-lbl">مقبول</span>
+            </div>
+            <div className="op-stat-divider"/>
+            <div className="op-stat-item">
+              <span className="op-stat-num" style={{color:'#6b7280'}}>{counts.rejected}</span>
+              <span className="op-stat-lbl">مرفوض</span>
             </div>
           </div>
-        ))}
+
+          {/* Orb */}
+          <div className="op-header-orb">
+            <div className="op-orb-glow"/>
+            <div className="op-orb-core"><ShoppingCart size={24} color="white"/></div>
+            <div className="op-orb-ring r1"/>
+            <div className="op-orb-ring r2"/>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Toolbar ── */}
+      <div className="op-toolbar">
+        <div className="op-search-wrap">
+          <Search size={15} className="op-search-icon"/>
+          <input
+            className="op-search"
+            placeholder="ابحث باسم المصنع، المنتج أو الموقع..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="op-filters">
+          {FILTERS.map(f => (
+            <button key={f.key} className={`op-filter-btn${filter===f.key?' active':''}`}
+              onClick={() => setFilter(f.key)}>
+              {f.label}
+              <span className="op-filter-count">{counts[f.key]}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* ─── Table ──────────────────────────────── */}
-      <div className="table-wrapper">
-        <table className="orders-table">
-          <thead>
-            <tr>
-              <th>رقم الطلب</th>
-              <th>نوع النفايات</th>
-              <th>الكمية</th>
-              <th>السعر</th>
-              <th>المشتري</th>
-              <th>التاريخ</th>
-              <th>الحالة</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.map((order) => {
-              const typeCfg  = TYPE_CFG[order.wasteType] || TYPE_CFG['خشب'];
-              const stCfg    = STATUS_CFG[order.status]  || STATUS_CFG['معلق'];
-              const StIcon   = stCfg.Icon;
-
-              return (
-                <tr key={order.id}>
-
-                  {/* Order ID */}
-                  <td>
-                    <span className="order-id">{order.id}</span>
-                  </td>
-
-                  {/* Waste Type */}
-                  <td>
-                    <div className="product-cell">
-                      <div className="product-icon-wrap"
-                        style={{ background: typeCfg.bg, borderColor: `${typeCfg.color}20` }}>
-                        <Package style={{ color: typeCfg.color }} />
-                      </div>
-                      <span style={{ fontWeight:600, color: typeCfg.color }}>{order.wasteType}</span>
-                    </div>
-                  </td>
-
-                  {/* Amount */}
-                  <td>
-                    <span className="amount-val">{order.amount}</span>
-                  </td>
-
-                  {/* Price */}
-                  <td>
-                    <div className="price-val">
-                      <DollarSign />
-                      {parseInt(order.price).toLocaleString()} جنيه
-                    </div>
-                  </td>
-
-                  {/* Buyer */}
-                  <td>
-                    <span className="buyer-name">{order.buyer}</span>
-                    <span className="buyer-sub">
-                      <Building2 />
-                      {order.deliveryDate !== '-' ? `توصيل: ${order.deliveryDate}` : 'لم يُحدد موعد'}
-                    </span>
-                  </td>
-
-                  {/* Date */}
-                  <td>
-                    <div className="date-cell">
-                      <Calendar />
-                      {order.date}
-                    </div>
-                  </td>
-
-                  {/* Status */}
-                  <td>
-                    <span className={`status-badge ${stCfg.cls}`}>
-                      <StIcon />
-                      {order.status}
-                    </span>
-                  </td>
-
-                </tr>
-              );
-            })}
-
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td colSpan="7" className="no-orders">
-                  <div className="empty-state-content">
-                    <div className="empty-icon-wrap">
-                      <ShoppingBag />
-                    </div>
-                    <h3>لا توجد طلبات</h3>
-                    <p>لا توجد طلبات مطابقة للفلتر المحدد</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
+      {/* ── Grid ── */}
+      {filtered.length === 0 ? (
+        <div className="op-empty">
+          <div className="op-empty-icon"><ShoppingCart size={32} opacity={.4}/></div>
+          <p>لا توجد طلبات مطابقة</p>
+        </div>
+      ) : (
+        <div className="op-grid">
+          {filtered.map((req, i) => (
+            <RequestCard
+              key={req.id}
+              req={req}
+              cat={CAT_COLOR[req.category] || CAT_COLOR['خشب']}
+              delay={i * 0.07}
+              onAccept={() => handleStatus(req.id, 'accepted')}
+              onReject={() => handleStatus(req.id, 'rejected')}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-export default Orders;
+function RequestCard({ req, cat, delay, onAccept, onReject }) {
+  const st = STATUS_CFG[req.status] || STATUS_CFG.new;
+
+  return (
+    <div className={`op-card${req.status === 'new' ? ' is-new' : ''}`}
+      style={{animationDelay:`${delay}s`}}>
+
+      {/* Top: badge يسار | اسم + meta يمين | صورة أقصى اليمين */}
+      <div className="op-card-top">
+        <span className="op-status-badge"
+          style={{background:st.bg, color:st.color, border:`1px solid ${st.border}`}}>
+          {st.label}
+        </span>
+        <div className="op-factory-info">
+          <div>
+            <div className="op-factory-name">{req.factoryAr}</div>
+            <div className="op-factory-meta">
+              <MapPin size={10}/>
+              {req.locAr}
+              <span className="op-meta-dot">·</span>
+              <Star size={10} color="#d97706" fill="#d97706"/>
+              <strong>{req.rating}</strong>
+              <span className="op-meta-dot">·</span>
+              {req.deals} صفقة
+            </div>
+          </div>
+          <div className="op-factory-avatar">
+            <img
+              src={`https://picsum.photos/seed/${req.id + 30}/50/50`}
+              alt={req.factoryAr}
+              onError={e => { e.target.src = `https://picsum.photos/50/50?random=${req.id}`; }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Message */}
+      <div className="op-msg" style={{borderRight: `3px solid ${cat.color}`}}>
+        <span className="op-msg-quote" style={{color: cat.color}}>"</span>
+        <div style={{paddingRight: 4}}>{req.msgAr}</div>
+      </div>
+
+      {/* Chips */}
+      <div className="op-chips">
+        <div className="op-chip">
+          <div className="op-chip-lbl">المنتج المطلوب</div>
+          <div className="op-chip-val" style={{color: cat.color}}>
+            <div className="op-chip-dot" style={{background: cat.color, boxShadow:`0 0 6px ${cat.glow}`}}/>
+            {req.productAr}
+          </div>
+        </div>
+        <div className="op-chip">
+          <div className="op-chip-lbl">الكمية</div>
+          <div className="op-chip-val" style={{color:'#16a34a'}}>{req.qtyAr}</div>
+        </div>
+        <div className="op-chip">
+          <div className="op-chip-lbl">السعر المعروض</div>
+          <div className="op-chip-val" style={{color:'#d97706'}}>
+            <span style={{fontSize:11,opacity:.7}}>ج </span>
+            {req.price.toLocaleString()}
+          </div>
+        </div>
+        <div className="op-chip">
+          <div className="op-chip-lbl">وقت الطلب</div>
+          <div className="op-chip-val" style={{color:'#8b5cf6', fontSize:13}}>{req.timeAr}</div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="op-actions">
+        {req.status === 'new' && (
+          <>
+            <button className="op-btn-accept" onClick={onAccept}>
+              <CheckCircle2 size={14}/> قبول
+            </button>
+            <button className="op-btn-reject" onClick={onReject}>
+              <X size={14}/> رفض
+            </button>
+          </>
+        )}
+        <button className="op-btn-contact">
+          <MessageSquare size={13}/> تواصل
+        </button>
+      </div>
+    </div>
+  );
+}

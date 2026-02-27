@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
 import ErrorBoundary from './components/ErrorBoundary'
+import Checkout from './pages/Checkout'
 import './App.css'
 
 const Home         = lazy(() => import('./pages/Home'))
@@ -18,6 +19,7 @@ const Profile      = lazy(() => import('./pages/Profile'))
 const Partners     = lazy(() => import('./pages/Partners'))
 const MyListings   = lazy(() => import('./pages/MyListings'))
 const Orders       = lazy(() => import('./pages/Orders'))
+const Sales        = lazy(() => import('./pages/Sales'))
 const Messages     = lazy(() => import('./pages/Messages'))
 const Analytics    = lazy(() => import('./pages/Analytics'))
 
@@ -29,25 +31,14 @@ function HomeLayout({ children, user, onLogout, lang, setLang, dark, setDark }) 
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
       style={{ background: dark ? '#0f1a12' : '#fff', minHeight: '100vh', transition: 'background .3s' }}
     >
-      {user ? (
-        <HomeNavbar
-          user={user}
-          onLogout={onLogout}
-          lang={lang}
-          setLang={setLang}
-          dark={dark}
-          setDark={setDark}
-        />
-      ) : (
-        <HomeNavbar
-          user={user}
-          onLogout={onLogout}
-          lang={lang}
-          setLang={setLang}
-          dark={dark}
-          setDark={setDark}
-        />
-      )}
+      <HomeNavbar
+        user={user}
+        onLogout={onLogout}
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+      />
       <main className="main-content">
         {children}
       </main>
@@ -80,7 +71,7 @@ function MarketLayout({ children, user, onLogout, lang, setLang, dark, setDark }
   )
 }
 
-// ── DashboardLayout — HomeNavbar الأبيض لكل الصفحات المحمية ──────────────────
+// ── DashboardLayout ───────────────────────────────────────────────────────────
 function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDark }) {
   return (
     <div
@@ -103,7 +94,30 @@ function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDar
   )
 }
 
-// ── MainLayout (للصفحات التانية اللي مش dashboard) ───────────────────────────
+// ── CheckoutLayout — بدون footer، نظيف ───────────────────────────────────────
+function CheckoutLayout({ children, user, onLogout, lang, setLang, dark, setDark }) {
+  return (
+    <div
+      className="app-container"
+      dir="rtl"
+      style={{ background: '#f0f5f1', minHeight: '100vh' }}
+    >
+      <HomeNavbar
+        user={user}
+        onLogout={onLogout}
+        lang={lang}
+        setLang={setLang}
+        dark={dark}
+        setDark={setDark}
+      />
+      <main className="main-content">
+        {children}
+      </main>
+    </div>
+  )
+}
+
+// ── MainLayout ────────────────────────────────────────────────────────────────
 function MainLayout({ children, user, onLogout }) {
   return (
     <div className="app-container" dir="rtl">
@@ -142,9 +156,8 @@ function AppContent() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError]         = useState(null)
-
-  const [lang, setLang] = useState('ar')
-  const [dark, setDark] = useState(false)
+  const [lang, setLang]           = useState('ar')
+  const [dark, setDark]           = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -162,23 +175,41 @@ function AppContent() {
 
   const handleRegistrationSuccess = (userData) => {
     try {
-      const newUser = { ...userData, isLoggedIn: true, joinedDate: new Date().toISOString(), level: 'مبتدئ', rating: 4.5 }
+      const newUser = {
+        ...userData,
+        isLoggedIn: true,
+        joinedDate: new Date().toISOString(),
+        level: 'مبتدئ',
+        rating: 4.5,
+      }
       setUser(newUser)
       localStorage.setItem('ecov_user', JSON.stringify(newUser))
-    } catch { setError('حدث خطأ أثناء حفظ بيانات المستخدم') }
+    } catch {
+      setError('حدث خطأ أثناء حفظ بيانات المستخدم')
+    }
   }
 
   const handleLoginSuccess = (userData) => {
     try {
-      const loggedInUser = { ...userData, isLoggedIn: true, lastLogin: new Date().toISOString() }
+      const loggedInUser = {
+        ...userData,
+        isLoggedIn: true,
+        lastLogin: new Date().toISOString(),
+      }
       setUser(loggedInUser)
       localStorage.setItem('ecov_user', JSON.stringify(loggedInUser))
-    } catch { setError('حدث خطأ أثناء تسجيل الدخول') }
+    } catch {
+      setError('حدث خطأ أثناء تسجيل الدخول')
+    }
   }
 
   const handleLogout = () => {
-    try { setUser(null); localStorage.removeItem('ecov_user') }
-    catch { setError('حدث خطأ أثناء تسجيل الخروج') }
+    try {
+      setUser(null)
+      localStorage.removeItem('ecov_user')
+    } catch {
+      setError('حدث خطأ أثناء تسجيل الخروج')
+    }
   }
 
   if (isLoading) return <LoadingScreen message="جاري تحميل التطبيق..." />
@@ -187,13 +218,16 @@ function AppContent() {
     <div className="error-page">
       <h1>خطأ</h1>
       <p className="text-red-600 mb-4">{error}</p>
-      <button onClick={() => setError(null)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-all">
+      <button
+        onClick={() => setError(null)}
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-all"
+      >
         إعادة المحاولة
       </button>
     </div>
   )
 
-  // Props مشتركة للـ layouts
+  // Props مشتركة
   const navProps = { user, onLogout: handleLogout, lang, setLang, dark, setDark }
 
   return (
@@ -230,6 +264,15 @@ function AppContent() {
             </MarketLayout>
           } />
 
+          {/* ══ CHECKOUT ══ */}
+          <Route path="/checkout" element={
+            <ProtectedRoute user={user}>
+              <CheckoutLayout {...navProps}>
+                <Checkout lang={lang} dark={dark} />
+              </CheckoutLayout>
+            </ProtectedRoute>
+          } />
+
           {/* ══ AUTH ══ */}
           <Route path="/login" element={
             <div className="app-container" dir="rtl">
@@ -251,7 +294,7 @@ function AppContent() {
             </div>
           } />
 
-          {/* ══ DASHBOARD — HomeNavbar الأبيض ══ */}
+          {/* ══ DASHBOARD ══ */}
           <Route path="/dashboard" element={
             <ProtectedRoute user={user}>
               <DashboardLayout {...navProps}>
@@ -262,15 +305,16 @@ function AppContent() {
             </ProtectedRoute>
           } />
 
-          {/* ══ PROTECTED ROUTES — بـ HomeNavbar الأبيض ══ */}
+          {/* ══ PROTECTED ROUTES ══ */}
           {[
-            { path:'/list-waste',  Component:ListWaste,  props:{ user } },
-            { path:'/profile',     Component:Profile,    props:{ user, onUpdateUser:setUser } },
-            { path:'/partners',    Component:Partners,   props:{ user } },
-            { path:'/my-listings', Component:MyListings, props:{ user } },
-            { path:'/orders',      Component:Orders,     props:{ user } },
-            { path:'/messages',    Component:Messages,   props:{ user } },
-            { path:'/analytics',   Component:Analytics,  props:{ user } },
+            { path: '/list-waste',  Component: ListWaste,  props: { user } },
+            { path: '/profile',     Component: Profile,    props: { user, onUpdateUser: setUser } },
+            { path: '/partners',    Component: Partners,   props: { user } },
+            { path: '/my-listings', Component: MyListings, props: { user } },
+            { path: '/orders',      Component: Orders,     props: { user } },
+            { path: '/sales',       Component: Sales,      props: { user } },
+            { path: '/messages',    Component: Messages,   props: { user } },
+            { path: '/analytics',   Component: Analytics,  props: { user } },
           ].map(({ path, Component, props }) => (
             <Route key={path} path={path} element={
               <ProtectedRoute user={user}>
@@ -297,6 +341,7 @@ function AppContent() {
           } />
 
           <Route path="*" element={<Navigate to="/404" replace />} />
+
         </Routes>
       </Router>
     </ErrorBoundary>

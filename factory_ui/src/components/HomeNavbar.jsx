@@ -18,19 +18,20 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
   const ar = lang === 'ar';
   const D  = dark;
 
-  // روابط الصفحات
+  // روابط الصفحات — أضفنا مبيعاتي بعد طلباتي ✅
   const NAV_LINKS = user ? [
-    { ar: 'الرئيسية',      en: 'Home',        path: '/',            Icon: Home        },
-    { ar: 'السوق',         en: 'Market',      path: '/market',      Icon: ShoppingBag },
-    { ar: 'لوحة التحكم',   en: 'Dashboard',   path: '/dashboard',   Icon: BarChart2   },
-    { ar: 'إعلاناتي',      en: 'My Listings', path: '/my-listings', Icon: List        },
-    { ar: 'طلباتي',        en: 'Orders',      path: '/orders',      Icon: Package     },
-    { ar: 'الرسائل',       en: 'Messages',    path: '/messages',    Icon: MessageSquare },
-    { ar: 'التقارير',      en: 'Analytics',   path: '/analytics',   Icon: TrendingUp  },
-    { ar: 'الشركاء',       en: 'Partners',    path: '/partners',    Icon: Users       },
+    { ar: 'الرئيسية',    en: 'Home',        path: '/',            Icon: Home          },
+    { ar: 'السوق',       en: 'Market',      path: '/market',      Icon: ShoppingBag   },
+    { ar: 'لوحة التحكم', en: 'Dashboard',   path: '/dashboard',   Icon: BarChart2     },
+    { ar: 'إعلاناتي',    en: 'My Listings', path: '/my-listings', Icon: List          },
+    { ar: 'طلباتي',      en: 'Orders',      path: '/orders',      Icon: Package       },
+    { ar: 'المبيعات',     en: 'My Sales',    path: '/sales',       Icon: TrendingUp    }, // ✅ جديد
+    { ar: 'الرسائل',     en: 'Messages',    path: '/messages',    Icon: MessageSquare },
+    { ar: 'التقارير',    en: 'Analytics',   path: '/analytics',   Icon: TrendingUp    },
+    { ar: 'الشركاء',     en: 'Partners',    path: '/partners',    Icon: Users         },
   ] : [
-    { ar: 'الرئيسية',  en: 'Home',    path: '/',       Icon: Home        },
-    { ar: 'السوق',     en: 'Market',  path: '/market', Icon: ShoppingBag },
+    { ar: 'الرئيسية', en: 'Home',   path: '/',       Icon: Home        },
+    { ar: 'السوق',    en: 'Market', path: '/market', Icon: ShoppingBag },
   ];
 
   useEffect(() => {
@@ -211,6 +212,8 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
                         <Link to="/my-listings" className="hn-ddi" onClick={() => setShowProfile(false)}><Eye size={14}/>{ar?'إعلاناتي':'My Listings'}</Link>
                         <Link to="/list-waste"  className="hn-ddi" onClick={() => setShowProfile(false)}><Plus size={14}/>{ar?'إضافة إعلان':'Add Listing'}</Link>
                         <Link to="/orders"      className="hn-ddi" onClick={() => setShowProfile(false)}><Package size={14}/>{ar?'طلباتي':'My Orders'}</Link>
+                        {/* ✅ مبيعاتي في الـ dropdown */}
+                        <Link to="/sales"       className="hn-ddi" onClick={() => setShowProfile(false)}><TrendingUp size={14}/>{ar?'مبيعاتي':'My Sales'}</Link>
                         <Link to="/profile"     className="hn-ddi" onClick={() => setShowProfile(false)}><Settings size={14}/>{ar?'الإعدادات':'Settings'}</Link>
                         <hr className="hn-sep"/>
                         <button className="hn-ddi red" onClick={onLogout}><LogOut size={14}/>{ar?'تسجيل الخروج':'Logout'}</button>
