@@ -1,0 +1,92 @@
+/* Error Page Styles in App.css */
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  text-align: center;
+  padding: 2rem;
+  color: white;
+  font-family: 'Cairo', sans-serif;
+}
+
+.error-page h1 {
+  font-size: 8rem;
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+  font-weight: 800;
+  text-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+  line-height: 1;
+}
+
+.error-page p {
+  font-size: 1.5rem;
+  color: #cbd5e1;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.error-page .btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  font-family: 'Cairo', sans-serif;
+}
+
+.error-page .btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(16, 185, 129, 0.3);
+}
+
+/* Animation for 404 page */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.error-page h1 {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .error-page h1 {
+    font-size: 5rem;
+  }
+  
+  .error-page p {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-page h1 {
+    font-size: 4rem;
+  }
+  
+  .error-page p {
+    font-size: 1rem;
+  }
+  
+  .error-page .btn-primary {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
+}

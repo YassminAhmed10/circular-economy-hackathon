@@ -1,0 +1,311 @@
+/* Registration.css - Modern Design with RTL/LTR Support */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@layer components {
+  /* RTL/LTR Support */
+  [dir="rtl"] .step-line {
+    right: 100%;
+    left: auto;
+  }
+
+  [dir="ltr"] .step-line {
+    left: 100%;
+    right: auto;
+  }
+
+  [dir="rtl"] .icon-left {
+    right: 0.75rem;
+    left: auto;
+  }
+
+  [dir="ltr"] .icon-left {
+    left: 0.75rem;
+    right: auto;
+  }
+
+  [dir="rtl"] .ml-auto {
+    margin-right: auto;
+    margin-left: 0;
+  }
+
+  [dir="ltr"] .mr-auto {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  [dir="rtl"] .flex-row-reverse {
+    flex-direction: row-reverse;
+  }
+
+  /* تنسيقات النصوص العريضة */
+  .label-bold {
+    @apply text-xs font-black text-slate-700 uppercase tracking-wide;
+  }
+
+  .input-bold {
+    @apply text-sm font-semibold;
+  }
+
+  .title-bold {
+    @apply font-black uppercase tracking-tight;
+  }
+
+  /* Modern Form Elements */
+  .form-input-modern {
+    @apply w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg 
+           focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-100
+           transition-all duration-300 bg-white text-sm font-semibold;
+  }
+
+  .form-label-modern {
+    @apply block text-xs font-black text-slate-700 mb-1.5 uppercase tracking-wide;
+  }
+
+  /* Gradient Cards */
+  .gradient-card {
+    @apply relative overflow-hidden rounded-xl p-5 border-2;
+  }
+
+  /* Modern Buttons */
+  .btn-primary {
+    @apply px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 
+           hover:from-emerald-700 hover:to-teal-700 text-white font-black 
+           rounded-lg transition-all shadow-md hover:shadow-lg 
+           flex items-center justify-center gap-2 transform hover:scale-105 
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+           uppercase tracking-wide text-sm;
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2.5 bg-white border-2 border-slate-300 
+           hover:border-emerald-500 hover:bg-emerald-50 text-slate-700 
+           font-black rounded-lg transition-all shadow-sm hover:shadow-md 
+           flex items-center justify-center gap-2 uppercase tracking-wide text-sm;
+  }
+
+  /* Progress Steps */
+  .step-circle-modern {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center 
+           font-black text-base transition-all duration-500 shadow-md;
+  }
+
+  /* Simple Header */
+  .simple-header {
+    @apply bg-white shadow-sm sticky top-0 z-40;
+  }
+
+  .header-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .header-content {
+    @apply flex items-center justify-between h-16;
+  }
+
+  .logo-container {
+    @apply flex items-center gap-2;
+  }
+
+  .logo-text {
+    @apply text-lg font-black bg-gradient-to-l from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase tracking-tight;
+  }
+
+  .logo-subtext {
+    @apply text-[10px] text-slate-500 font-semibold uppercase tracking-wider;
+  }
+
+  .actions-container {
+    @apply flex items-center gap-2;
+  }
+
+  .action-button {
+    @apply px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 
+           font-black rounded-lg transition-all flex items-center gap-1.5 
+           text-sm uppercase tracking-wide;
+  }
+
+  .login-button {
+    @apply px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 
+           hover:from-emerald-700 hover:to-teal-700 text-white 
+           font-black rounded-lg transition-all shadow-md hover:shadow-lg 
+           flex items-center gap-1.5 text-sm uppercase tracking-wide;
+  }
+
+  /* Header with background */
+  .hero-header {
+    @apply relative rounded-xl overflow-hidden mb-6 bg-cover bg-center;
+  }
+
+  .hero-overlay {
+    @apply absolute inset-0 bg-gradient-to-l from-emerald-900/90 via-emerald-800/85 to-teal-900/90;
+  }
+
+  .hero-content {
+    @apply relative px-6 py-10 text-center text-white;
+  }
+
+  .hero-title {
+    @apply text-3xl md:text-4xl font-black mb-2 uppercase tracking-tight;
+  }
+
+  .hero-subtitle {
+    @apply text-base text-emerald-100 max-w-2xl mx-auto font-semibold;
+  }
+
+  /* Section Headers */
+  .section-header {
+    @apply flex items-center gap-2 mb-4;
+  }
+
+  .section-icon {
+    @apply w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 
+           rounded-xl flex items-center justify-center shadow-md;
+  }
+
+  .section-title {
+    @apply text-xl font-black text-slate-900 uppercase tracking-tight;
+  }
+
+  .section-subtitle {
+    @apply text-sm text-slate-500 font-semibold;
+  }
+
+  /* Info Cards */
+  .info-card-blue {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 
+           border-2 border-blue-200/50;
+  }
+
+  .info-card-emerald {
+    @apply bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 
+           border-2 border-emerald-200/50;
+  }
+
+  .info-card-purple {
+    @apply bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 
+           border-2 border-purple-200/50;
+  }
+
+  /* Form Grid */
+  .form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-5;
+  }
+
+  .form-group {
+    @apply space-y-1.5;
+  }
+
+  /* Navigation Buttons */
+  .nav-buttons-container {
+    @apply flex justify-between mt-6 pt-5 border-t-2 border-slate-200;
+  }
+
+  .nav-button-prev {
+    @apply px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 
+           font-black rounded-lg transition-all flex items-center gap-2 
+           group text-sm uppercase tracking-wide;
+  }
+
+  .nav-button-next {
+    @apply px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 
+           hover:from-emerald-700 hover:to-teal-700 text-white 
+           font-black rounded-lg transition-all shadow-md hover:shadow-lg 
+           flex items-center gap-2 group text-sm uppercase tracking-wide;
+  }
+
+  /* Welcome Modal */
+  .modal-title {
+    @apply text-4xl font-black text-center mb-4 tracking-tight;
+  }
+
+  .modal-badge {
+    @apply px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 uppercase tracking-wide;
+  }
+
+  .modal-grid-item {
+    @apply bg-gradient-to-br p-4 rounded-xl border;
+  }
+
+  .modal-grid-item-title {
+    @apply font-bold text-sm uppercase tracking-wide;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .step-circle-modern {
+      @apply w-8 h-8 text-sm;
+    }
+
+    .hero-title {
+      @apply text-2xl;
+    }
+
+    .hero-subtitle {
+      @apply text-sm;
+    }
+
+    .section-title {
+      @apply text-lg;
+    }
+  }
+
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 0.875rem;
+    }
+
+    .btn-primary, .btn-secondary {
+      @apply px-4 py-2 text-xs;
+    }
+  }
+}
+
+/* Custom Utilities */
+@layer utilities {
+  .border-3 {
+    border-width: 3px;
+  }
+
+  .font-black {
+    font-weight: 900;
+  }
+
+  .font-extrabold {
+    font-weight: 800;
+  }
+
+  .font-bold {
+    font-weight: 700;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+  }
+
+  .tracking-tight {
+    letter-spacing: -0.025em;
+  }
+
+  .tracking-wide {
+    letter-spacing: 0.025em;
+  }
+
+  .tracking-wider {
+    letter-spacing: 0.05em;
+  }
+}

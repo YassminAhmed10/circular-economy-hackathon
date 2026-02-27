@@ -1,0 +1,265 @@
+/* Home Page Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .hero-section {
+        @apply relative h-[500px] bg-cover bg-center;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 600%22%3E%3Crect fill=%22%2315803d%22 width=%221200%22 height=%22600%22/%3E%3C/svg%3E');
+    }
+
+    .hero-overlay {
+        @apply absolute inset-0 bg-gradient-to-r from-slate-900/80 to-emerald-900/60;
+    }
+
+    .hero-content {
+        @apply relative max-w-7xl mx-auto px-6 h-full flex flex-col items-center justify-center text-center;
+    }
+
+    .hero-title-arabic {
+        @apply text-5xl font-bold text-white mb-4;
+        font-family: system-ui, sans-serif;
+    }
+
+    .hero-title-english {
+        @apply text-5xl font-bold text-white mb-8;
+    }
+
+    .hero-button {
+        @apply px-8 py-4 text-white font-semibold rounded-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1;
+    }
+
+    .hero-button-primary {
+        @apply bg-gradient-to-r from-emerald-500 to-emerald-600;
+    }
+
+    .hero-button-secondary {
+        @apply bg-gradient-to-r from-blue-500 to-blue-600;
+    }
+
+    .stat-card {
+        @apply bg-gradient-to-br from-slate-50 to-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-100;
+    }
+
+    .stat-icon {
+        @apply w-16 h-16 rounded-xl flex items-center justify-center mb-4 text-white;
+    }
+
+    .stat-value {
+        @apply text-3xl font-bold text-slate-800 mb-2;
+    }
+
+    .stat-label {
+        @apply text-slate-600;
+    }
+
+    .nav-container {
+        @apply bg-white border-b border-slate-200 sticky top-0 z-50;
+    }
+
+    .nav-logo {
+        @apply w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center transition-transform hover:scale-105;
+    }
+
+    .nav-link {
+        @apply font-medium transition-colors text-slate-600 hover:text-emerald-600;
+    }
+
+    .nav-link-active {
+        @apply text-emerald-600;
+    }
+
+    .section-heading {
+        @apply text-3xl font-bold text-center text-slate-800 mb-12;
+    }
+
+    .success-section {
+        @apply bg-gradient-to-br from-slate-50 to-slate-100 py-16;
+    }
+
+    .story-card {
+        @apply bg-white rounded-2xl shadow-xl overflow-hidden;
+    }
+
+    .story-icon-container {
+        @apply w-full h-64 bg-gradient-to-br from-amber-100 to-blue-100 rounded-xl flex items-center justify-center;
+    }
+
+    .story-icon {
+        @apply w-24 h-24 text-amber-600;
+    }
+
+    .story-title {
+        @apply text-2xl font-bold text-slate-800 mb-4;
+    }
+
+    .story-savings {
+        @apply text-emerald-600 font-bold text-lg mb-4;
+    }
+
+    .action-button {
+        @apply px-6 py-3 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200;
+    }
+
+    .footer-section {
+        @apply bg-white border-t border-slate-200 py-8;
+    }
+
+    .social-icon {
+        @apply w-8 h-8 rounded-full;
+    }
+
+    /* Video Modal Styles */
+    .video-modal-overlay {
+        @apply fixed inset-0 bg-black bg-opacity-75 z-[9999] flex items-center justify-center p-4 transition-opacity duration-300;
+    }
+
+    .video-modal-container {
+        @apply bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all duration-300 scale-100;
+    }
+
+    .video-modal-header {
+        @apply bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 flex justify-between items-center;
+    }
+
+    .video-modal-title {
+        @apply text-xl font-bold;
+    }
+
+    .video-modal-close {
+        @apply p-2 hover:bg-white/20 rounded-full transition-colors cursor-pointer;
+    }
+
+    .video-player-container {
+        @apply relative aspect-video bg-black rounded-lg overflow-hidden;
+    }
+
+    .video-description {
+        @apply p-6 space-y-4;
+    }
+}
+
+/* Footer styling */
+.footer-column h5 {
+    @apply font-bold text-slate-800 mb-3;
+}
+
+.footer-column p {
+    @apply text-sm text-slate-600;
+}
+
+/* Success story gradient */
+.story-gradient {
+    background: linear-gradient(135deg, #fef3c7 0%, #dbeafe 100%);
+}
+
+/* Language switcher */
+.lang-switcher {
+    @apply text-slate-600 hover:text-emerald-600 transition-colors;
+}
+
+/* Video modal animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.video-modal-container {
+    animation: modalFadeIn 0.3s ease-out;
+}
+/* Home.css إضافي لـ Dark Mode */
+
+/* تنسيقات عامة للوضع الداكن */
+.dark {
+  color-scheme: dark;
+}
+
+/* تحسينات للخطوط في الوضع الداكن */
+.dark body {
+  @apply bg-slate-900 text-slate-100;
+}
+
+/* تحسينات للأزرار في الوضع الداكن */
+.dark .btn-primary {
+  @apply bg-emerald-600 hover:bg-emerald-700 text-white;
+}
+
+.dark .btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-600 text-white;
+}
+
+/* تحسينات للكروت في الوضع الداكن */
+.dark .card {
+  @apply bg-slate-800 border-slate-700;
+}
+
+.dark .card-title {
+  @apply text-white;
+}
+
+.dark .card-description {
+  @apply text-slate-300;
+}
+
+/* تحسينات للعناوين في الوضع الداكن */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  @apply text-white;
+}
+
+/* تحسينات للنصوص في الوضع الداكن */
+.dark p, .dark span, .dark li {
+  @apply text-slate-300;
+}
+
+/* تحسينات للروابط في الوضع الداكن */
+.dark a {
+  @apply text-emerald-400 hover:text-emerald-300;
+}
+
+/* تحسينات للأشكال في الوضع الداكن */
+.dark input, .dark textarea, .dark select {
+  @apply bg-slate-800 border-slate-600 text-white placeholder-slate-400;
+}
+
+/* تحسينات للجداول في الوضع الداكن */
+.dark table {
+  @apply border-slate-700;
+}
+
+.dark th {
+  @apply bg-slate-800 text-slate-200;
+}
+
+.dark td {
+  @apply border-slate-700 text-slate-300;
+}
+
+/* تحسينات للأيقونات في الوضع الداكن */
+.dark .icon-primary {
+  @apply text-emerald-400;
+}
+
+.dark .icon-secondary {
+  @apply text-slate-400;
+}
+
+/* تحسينات للـ shadows في الوضع الداكن */
+.dark .shadow-lg {
+  @apply shadow-slate-900/50;
+}
+
+/* تحسينات للـ gradients في الوضع الداكن */
+.dark .gradient-primary {
+  @apply from-emerald-900 to-teal-900;
+}
+
+.dark .gradient-secondary {
+  @apply from-slate-800 to-slate-900;
+}
