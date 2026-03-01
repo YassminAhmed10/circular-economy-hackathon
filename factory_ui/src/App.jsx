@@ -210,6 +210,7 @@ function AppContent() {
             </MarketLayout>
           } />
 
+
           <Route path="/marketplace" element={<Navigate to="/market" replace />} />
 
           {/* ══ WASTE DETAILS ══ */}

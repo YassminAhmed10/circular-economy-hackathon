@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shadowfactory.Data;
@@ -985,6 +985,232 @@ namespace shadowfactory.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { Error = ex.Message, Inner = ex.InnerException?.Message });
+            }
+        }
+        [HttpPost("waste-listings")]
+        [Authorize]
+        public async Task<IActionResult> CreateWasteListing([FromBody] WasteListingCreateRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                _logger.LogInformation("Starting CreateWasteListing");
+                _logger.LogInformation($"Request data: {System.Text.Json.JsonSerializer.Serialize(request)}");
+
+                if (request == null)
+                {
+                    _logger.LogWarning("Request is null");
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "البيانات مطلوبة",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Get user ID from claims
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                {
+                    _logger.LogWarning("User ID not found in claims");
+                    return Unauthorized(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "غير مصرح به",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                _logger.LogInformation($"User ID from token: {userId}");
+
+                // Get user with factory
+                var user = await _context.Users
+                    .Include(u => u.Factory)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user?.Factory == null)
+                {
+                    _logger.LogWarning($"Factory not found for user {userId}");
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "ليس لديك مصنع مسجل",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                _logger.LogInformation($"Found factory: {user.Factory.Id}, Verified: {user.Factory.IsVerified}, Status: {user.Factory.Status}");
+
+                // Validate factory is verified
+                if (!user.Factory.IsVerified || user.Factory.Status != "approved")
+                {
+                    _logger.LogWarning($"Factory {user.Factory.Id} is not verified");
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "يجب أن يكون المصنع موثقا قبل نشر الإعلان",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Validate request data
+                var validationErrors = new List<string>();
+
+                if (string.IsNullOrWhiteSpace(request.Type))
+                    validationErrors.Add("نوع المخلفات مطلوب");
+
+                if (string.IsNullOrWhiteSpace(request.Unit))
+                    validationErrors.Add("وحدة القياس مطلوبة");
+
+                if (string.IsNullOrWhiteSpace(request.Category))
+                    validationErrors.Add("الفئة مطلوبة");
+
+                if (request.Amount <= 0)
+                    validationErrors.Add("الكمية يجب أن تكون أكبر من صفر");
+
+                if (request.Price <= 0)
+                    validationErrors.Add("السعر يجب أن يكون أكبر من صفر");
+
+                if (validationErrors.Any())
+                {
+                    _logger.LogWarning($"Validation errors: {string.Join(", ", validationErrors)}");
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "تحقق من البيانات المدخلة",
+                        Errors = validationErrors,
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Create the listing
+                var listing = new WasteListing
+                {
+                    Type = request.Type.Trim(),
+                    TypeEn = request.TypeEn?.Trim() ?? request.Type.Trim(),
+                    Amount = request.Amount,
+                    Unit = request.Unit.Trim(),
+                    Price = request.Price,
+                    FactoryId = user.Factory.Id,
+                    FactoryName = user.Factory.FactoryName,
+                    Location = user.Factory.Location ?? "",
+                    Description = request.Description?.Trim() ?? "",
+                    Category = request.Category.Trim(),
+                    ImageUrl = request.ImageUrl?.Trim(),
+                    Status = "Active",
+                    Views = 0,
+                    Offers = 0,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddDays(30),
+
+                    // New multilingual fields
+                    TitleAr = request.TitleAr ?? request.Type,
+                    TitleEn = request.TitleEn ?? request.TypeEn,
+                    DescriptionAr = request.DescriptionAr ?? request.Description,
+                    DescriptionEn = request.DescriptionEn ?? request.Description,
+                    CompanyNameAr = request.CompanyNameAr ?? user.Factory.FactoryName,
+                    CompanyNameEn = request.CompanyNameEn ?? user.Factory.FactoryNameEn,
+                    LocationAr = request.LocationAr ?? user.Factory.Location,
+                    LocationEn = request.LocationEn ?? user.Factory.Location,
+                    WeightAr = request.WeightAr ?? $"{request.Amount} {request.Unit}",
+                    WeightEn = request.WeightEn ?? $"{request.Amount} {request.Unit}",
+                    Rating = request.Rating ?? 0,
+                    Reviews = request.Reviews ?? 0,
+                    Badge = request.Badge,
+                    Specifications = request.Specifications,
+                    SellerRating = request.SellerRating ?? user.Factory.Rating ?? 0,
+                    SellerTotalSales = request.SellerTotalSales ?? 0,
+                    SellerJoined = request.SellerJoined ?? DateTime.UtcNow.Year.ToString(),
+                    SellerWhatsapp = request.SellerWhatsapp ?? user.Factory.Phone,
+                    Latitude = request.Latitude ?? user.Factory.Latitude,
+                    Longitude = request.Longitude ?? user.Factory.Longitude,
+                    LocationLink = request.LocationLink
+                };
+
+                _logger.LogInformation("Adding listing to database");
+                await _context.WasteListings.AddAsync(listing);
+
+                _logger.LogInformation("Saving changes to database");
+                var saveResult = await _context.SaveChangesAsync();
+
+                if (saveResult <= 0)
+                {
+                    throw new Exception("فشل في حفظ البيانات في قاعدة البيانات");
+                }
+
+                await transaction.CommitAsync();
+
+                _logger.LogInformation($"Successfully created waste listing with ID: {listing.Id}");
+
+                var result = new WasteListingDto
+                {
+                    Id = listing.Id,
+                    Type = listing.Type,
+                    TypeEn = listing.TypeEn,
+                    Amount = listing.Amount,
+                    Unit = listing.Unit,
+                    Price = listing.Price,
+                    Description = listing.Description,
+                    Category = listing.Category,
+                    ImageUrl = listing.ImageUrl,
+                    Status = listing.Status,
+                    FactoryId = listing.FactoryId,
+                    FactoryName = listing.FactoryName,
+                    CreatedAt = listing.CreatedAt,
+                    UpdatedAt = listing.UpdatedAt,
+                    ExpiresAt = listing.ExpiresAt,
+
+                    TitleAr = listing.TitleAr,
+                    TitleEn = listing.TitleEn,
+                    DescriptionAr = listing.DescriptionAr,
+                    DescriptionEn = listing.DescriptionEn,
+                    CompanyNameAr = listing.CompanyNameAr,
+                    CompanyNameEn = listing.CompanyNameEn,
+                    LocationAr = listing.LocationAr,
+                    LocationEn = listing.LocationEn,
+                    WeightAr = listing.WeightAr,
+                    WeightEn = listing.WeightEn,
+                    Rating = listing.Rating,
+                    Reviews = listing.Reviews,
+                    Badge = listing.Badge,
+                    Specifications = listing.Specifications,
+                    SellerRating = listing.SellerRating,
+                    SellerTotalSales = listing.SellerTotalSales,
+                    SellerJoined = listing.SellerJoined,
+                    SellerWhatsapp = listing.SellerWhatsapp,
+                    Latitude = listing.Latitude,
+                    Longitude = listing.Longitude,
+                    LocationLink = listing.LocationLink
+                };
+
+                return Ok(new ApiResponse<WasteListingDto>
+                {
+                    Success = true,
+                    Message = "تم نشر الإعلان بنجاح",
+                    Data = result,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error in CreateWasteListing");
+                _logger.LogError($"Exception message: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner exception: {ex.InnerException.Message}");
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+                {
+                    Success = false,
+                    Message = "حدث خطأ داخلي في الخادم",
+                    Errors = new List<string> { ex.Message, ex.InnerException?.Message },
+                    Timestamp = DateTime.UtcNow
+                });
             }
         }
 
