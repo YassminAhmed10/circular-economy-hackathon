@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using shadowfactory.Data;
+using shadowfactory.Models;
 using shadowfactory.Services;
 using shadowfactory.Services.Interfaces;
+using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -135,8 +137,16 @@ builder.Services.AddCors(options =>
 // Add other services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
+
+// Ensure admin account exists and is usable for verification approvals.
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ECoVDbContext>();
+    await EnsureAdminAccountAsync(dbContext);
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
@@ -154,10 +164,13 @@ if (app.Environment.IsDevelopment())
 // 1. CORS must come before other middleware
 app.UseCors("AllowAll"); // Use AllowAll for development
 
-// 2. Optional HTTPS redirection (comment out if causing issues)
+// 2. Serve static files (uploads, logos, etc.)
+app.UseStaticFiles();
+
+// 3. Optional HTTPS redirection (comment out if causing issues)
 // app.UseHttpsRedirection();
 
-// 3. Routing
+// 4. Routing
 app.UseRouting();
 
 // 4. Authentication & Authorization
@@ -310,3 +323,59 @@ Console.WriteLine($"🌐 CORS: AllowAll policy enabled");
 Console.WriteLine($"📍 Listening on: {string.Join(", ", app.Urls)}");
 
 app.Run();
+
+static async Task EnsureAdminAccountAsync(ECoVDbContext dbContext)
+{
+    const string adminEmail = "yadmin@ecov.com";
+    const string adminPassword = "2392005";
+
+    var now = DateTime.UtcNow;
+    var existing = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
+    var (salt, hash) = CreatePasswordHash(adminPassword);
+
+    if (existing == null)
+    {
+        await dbContext.Users.AddAsync(new User
+        {
+            Email = adminEmail,
+            FullName = "ECOv Admin",
+            Salt = salt,
+            PasswordHash = hash,
+            Role = "Admin",
+            IsActive = true,
+            CreatedAt = now,
+            UpdatedAt = now,
+            RegistrationDate = now,
+            EmailNotifications = true,
+            AppNotifications = true,
+            PublicProfile = false
+        });
+
+        await dbContext.SaveChangesAsync();
+        Console.WriteLine($"✅ Admin account created: {adminEmail}");
+        return;
+    }
+
+    existing.Role = "Admin";
+    existing.IsActive = true;
+    existing.PasswordHash = hash;
+    existing.Salt = salt;
+    existing.UpdatedAt = now;
+
+    await dbContext.SaveChangesAsync();
+    Console.WriteLine($"✅ Admin account updated: {adminEmail}");
+}
+
+static (string salt, string hash) CreatePasswordHash(string password)
+{
+    byte[] saltBytes = new byte[16];
+    using (var rng = RandomNumberGenerator.Create())
+    {
+        rng.GetBytes(saltBytes);
+    }
+
+    string salt = Convert.ToBase64String(saltBytes);
+    using var deriveBytes = new Rfc2898DeriveBytes(password, saltBytes, 69, HashAlgorithmName.SHA256);
+    byte[] hashBytes = deriveBytes.GetBytes(24);
+    return (salt, Convert.ToBase64String(hashBytes));
+}

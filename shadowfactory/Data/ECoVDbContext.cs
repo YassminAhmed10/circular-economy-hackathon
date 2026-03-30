@@ -26,6 +26,9 @@ namespace shadowfactory.Data
         public DbSet<WasteListing> WasteListings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Partner> Partners { get; set; }
+        public DbSet<WasteType> WasteTypes { get; set; }
+        public DbSet<FactoryWaste> FactoryWastes { get; set; }
+        public DbSet<FactoryPurchase> FactoryPurchases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,7 +55,7 @@ namespace shadowfactory.Data
                 entity.Property(e => e.Location).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Address).IsRequired().HasMaxLength(500);
 
-                // Contact info
+                // Contact info                                 
                 entity.Property(e => e.Phone).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.Fax).HasMaxLength(20);
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
@@ -85,7 +88,9 @@ namespace shadowfactory.Data
                     .HasColumnType("decimal(18,2)")
                     .HasPrecision(18, 2);
 
-                entity.Property(e => e.LogoUrl).HasMaxLength(500);
+                // ✅ Allow LogoUrl to store large Base64 images (up to MAX)
+                entity.Property(e => e.LogoUrl)
+                    .HasColumnType("nvarchar(max)");
 
                 // Status - using IsVerified (not Verified)
                 entity.Property(e => e.IsVerified)

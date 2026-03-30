@@ -4,294 +4,290 @@ using Microsoft.EntityFrameworkCore;
 using shadowfactory.Data;
 using shadowfactory.Models;
 using shadowfactory.Models.DTOs;
+using shadowfactory.Models.Entities;
 using shadowfactory.Services.Interfaces;
 using System.Security.Claims;
 
 namespace shadowfactory.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     [Authorize]
     public class ProfileController : ControllerBase
     {
         private readonly ECoVDbContext _context;
         private readonly ILogger<ProfileController> _logger;
-        private readonly IAuditService _auditService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public ProfileController(
             ECoVDbContext context,
             ILogger<ProfileController> logger,
-            IAuditService auditService)
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
-            _auditService = auditService;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
-        /// <summary>
-        /// Get user profile with factory details
-        /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetProfile()
+        // GET: api/profile/me
+        [HttpGet("me")]
+        public async Task<ActionResult<FactoryProfileDto>> GetMyProfile()
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
-                    return Unauthorized(new ApiResponse { Success = false, Message = "??? ???? ??" });
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out long userId))
+                    return Unauthorized(new { message = "Invalid token" });
 
-                var user = await _context.Users
-                    .Include(u => u.Factory)
-                    .FirstOrDefaultAsync(u => u.Id == userId);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user?.FactoryId == null)
+                    return BadRequest(new { message = "No factory linked to this account" });
 
-                if (user == null)
-                    return NotFound(new ApiResponse { Success = false, Message = "???????? ??? ?????" });
+                long factoryId = user.FactoryId.Value;
 
-                var profile = new ProfileDto
-                {
-                    Id = user.Id,
-                    FullName = user.FullName,
-                    Email = user.Email,
-                    Phone = user.Phone ?? "",
-                    Role = user.Role,
-                    FactoryId = user.FactoryId,
-                    EmailNotifications = user.EmailNotifications,
-                    AppNotifications = user.AppNotifications,
-                    PublicProfile = user.PublicProfile,
-                    RegistrationDate = user.RegistrationDate ?? user.CreatedAt,
-                    LastLogin = user.LastLogin,
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt,
-                    Factory = user.Factory != null ? new FactoryDto
-                    {
-                        Id = user.Factory.Id,
-                        FactoryName = user.Factory.FactoryName,
-                        FactoryNameEn = user.Factory.FactoryNameEn,
-                        IndustryType = user.Factory.IndustryType,
-                        Location = user.Factory.Location,
-                        Address = user.Factory.Address,
-                        Phone = user.Factory.Phone,
-                        Fax = user.Factory.Fax,
-                        Email = user.Factory.Email,
-                        Website = user.Factory.Website,
-                        OwnerName = user.Factory.OwnerName,
-                        OwnerPhone = user.Factory.OwnerPhone,
-                        OwnerEmail = user.Factory.OwnerEmail,
-                        TaxNumber = user.Factory.TaxNumber,
-                        RegistrationNumber = user.Factory.RegistrationNumber,
-                        EstablishmentYear = user.Factory.EstablishmentYear,
-                        EmployeeCount = user.Factory.EmployeeCount,
-                        FactorySize = user.Factory.FactorySize ?? 0,
-                        ProductionCapacity = user.Factory.ProductionCapacity,
-                        LogoUrl = user.Factory.LogoUrl,
-                        IsVerified = user.Factory.IsVerified,
-                        Status = user.Factory.Status,
-                        RegistrationDate = user.Factory.CreatedAt,
-                        CreatedAt = user.Factory.CreatedAt,
-                        UpdatedAt = user.Factory.UpdatedAt,
-                        DescriptionAr = user.Factory.DescriptionAr,
-                        DescriptionEn = user.Factory.DescriptionEn,
-                        Rating = user.Factory.Rating,
-                        TotalReviews = user.Factory.TotalReviews,
-                        Latitude = user.Factory.Latitude,
-                        Longitude = user.Factory.Longitude
-                    } : null
-                };
+                // جلب المصنع مع تضمين المخلفات
+                var factory = await _context.Factories
+                    .Include(f => f.WastesForSale)
+                        .ThenInclude(w => w.WasteType)
+                    .Include(f => f.PurchaseRequests)
+                        .ThenInclude(p => p.WasteType)
+                    .FirstOrDefaultAsync(f => f.Id == factoryId);
 
-                return Ok(new ApiResponse<ProfileDto>
+                if (factory == null)
+                    return NotFound(new { message = "Factory not found" });
+
+                // إحصائيات افتراضية
+                int activeListings = 0, completedOrders = 0;
+
+                var profile = MapToProfileDto(factory, activeListings, completedOrders);
+                return Ok(new ApiResponse<FactoryProfileDto>
                 {
                     Success = true,
-                    Message = "?? ??? ?????? ????? ??????",
+                    Message = "Profile retrieved successfully",
                     Data = profile
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting profile");
-                return StatusCode(500, new ApiResponse
-                {
-                    Success = false,
-                    Message = "??? ??? ????? ??? ????????",
-                    Errors = new List<string> { ex.Message }
-                });
+                _logger.LogError(ex, "Error fetching profile");
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
-        /// <summary>
-        /// Update user profile
-        /// </summary>
-        [HttpPut]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+        // PUT: api/profile/me
+        [HttpPut("me")]
+        public async Task<IActionResult> UpdateProfile([FromBody] FactoryProfileDto updateDto)
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
-                    return Unauthorized(new ApiResponse { Success = false, Message = "??? ???? ??" });
-
-                var user = await _context.Users
-                    .Include(u => u.Factory)
-                    .FirstOrDefaultAsync(u => u.Id == userId);
-
-                if (user == null)
-                    return NotFound(new ApiResponse { Success = false, Message = "???????? ??? ?????" });
-
-                // Update user fields
-                if (!string.IsNullOrEmpty(request.FullName))
-                    user.FullName = request.FullName;
-
-                if (!string.IsNullOrEmpty(request.Phone))
-                    user.Phone = request.Phone;
-
-                user.EmailNotifications = request.EmailNotifications;
-                user.AppNotifications = request.AppNotifications;
-                user.PublicProfile = request.PublicProfile;
-
-                // Update factory info if user has a factory
-                if (user.FactoryId.HasValue && user.Factory != null)
+                var factoryIdClaim = User.FindFirst("FactoryId")?.Value
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(factoryIdClaim) || !long.TryParse(factoryIdClaim, out long factoryId))
                 {
-                    if (!string.IsNullOrEmpty(request.FactoryName))
-                        user.Factory.FactoryName = request.FactoryName;
-
-                    if (!string.IsNullOrEmpty(request.IndustryType))
-                        user.Factory.IndustryType = request.IndustryType;
-
-                    if (!string.IsNullOrEmpty(request.Location))
-                        user.Factory.Location = request.Location;
-
-                    if (!string.IsNullOrEmpty(request.Address))
-                        user.Factory.Address = request.Address;
-
-                    if (!string.IsNullOrEmpty(request.OwnerName))
-                        user.Factory.OwnerName = request.OwnerName;
-
-                    if (!string.IsNullOrEmpty(request.TaxNumber))
-                        user.Factory.TaxNumber = request.TaxNumber;
-
-                    user.Factory.UpdatedAt = DateTime.UtcNow;
+                    return Unauthorized(new { message = "Invalid token" });
                 }
 
-                user.UpdatedAt = DateTime.UtcNow;
+                if (factoryId != updateDto.FactoryId)
+                    return BadRequest(new { message = "Factory ID mismatch" });
+
+                var factory = await _context.Factories
+                    .Include(f => f.WastesForSale)
+                    .Include(f => f.PurchaseRequests)
+                    .FirstOrDefaultAsync(f => f.Id == factoryId);
+
+                if (factory == null)
+                    return NotFound(new { message = "Factory not found" });
+
+                // تحديث البيانات الأساسية
+                factory.FactoryName = updateDto.FactoryName;
+                factory.IndustryType = updateDto.IndustryType;
+                factory.Location = updateDto.Location;
+                factory.Address = updateDto.Address;
+                factory.Phone = updateDto.Phone;
+                factory.Email = updateDto.Email;
+                factory.OwnerName = updateDto.OwnerName;
+                factory.OwnerPhone = updateDto.OwnerPhone;
+                factory.TaxNumber = updateDto.TaxNumber;
+                factory.RegistrationNumber = updateDto.RegistrationNumber;
+                factory.EstablishmentYear = updateDto.EstablishmentYear;
+                factory.ProductionCapacity = updateDto.ProductionCapacity ?? 0;
+                factory.DescriptionAr = updateDto.MainProducts;
+                factory.UpdatedAt = DateTime.UtcNow;
+
+                // تحديث المخلفات المعروضة للبيع
+                if (updateDto.WastesForSale != null)
+                {
+                    _context.FactoryWastes.RemoveRange(factory.WastesForSale);
+                    factory.WastesForSale.Clear();
+                    foreach (var wasteDto in updateDto.WastesForSale)
+                    {
+                        factory.WastesForSale.Add(new FactoryWaste
+                        {
+                            WasteTypeId = wasteDto.WasteTypeId,
+                            Quantity = wasteDto.Quantity,
+                            Unit = wasteDto.Unit,
+                            Frequency = wasteDto.Frequency,
+                            Description = wasteDto.Description,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+
+                // تحديث طلبات الشراء
+                if (updateDto.PurchaseRequests != null)
+                {
+                    _context.FactoryPurchases.RemoveRange(factory.PurchaseRequests);
+                    factory.PurchaseRequests.Clear();
+                    foreach (var purchaseDto in updateDto.PurchaseRequests)
+                    {
+                        factory.PurchaseRequests.Add(new FactoryPurchase
+                        {
+                            WasteTypeId = purchaseDto.WasteTypeId,
+                            Quantity = purchaseDto.Quantity,
+                            Unit = purchaseDto.Unit,
+                            Frequency = purchaseDto.Frequency,
+                            Purpose = purchaseDto.Purpose,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
-                // Return updated profile
-                return await GetProfile();
+                return Ok(new { message = "Profile updated successfully" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating profile");
-                return StatusCode(500, new ApiResponse
-                {
-                    Success = false,
-                    Message = "??? ??? ????? ????? ????????",
-                    Errors = new List<string> { ex.Message }
-                });
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
-        /// <summary>
-        /// Verify factory
-        /// </summary>
-        [HttpPut("verify-factory/{factoryId}")]
-        [Authorize]
-        public async Task<IActionResult> VerifyFactory(long factoryId)
-        {
-            var factory = await _context.Factories
-                .FirstOrDefaultAsync(f => f.Id == factoryId);
-
-            if (factory == null)
-                return NotFound(new ApiResponse
-                {
-                    Success = false,
-                    Message = "?????? ??? ?????"
-                });
-
-            factory.IsVerified = true;
-            factory.Status = "approved";
-            factory.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new ApiResponse
-            {
-                Success = true,
-                Message = "?? ????? ?????? ?????"
-            });
-        }
-
-        /// <summary>
-        /// Get profile statistics
-        /// </summary>
-        [HttpGet("stats")]
-        public async Task<IActionResult> GetProfileStats()
+        // POST: api/profile/request-verification
+        [HttpPost("request-verification")]
+        public async Task<IActionResult> RequestVerification()
         {
             try
             {
-                var userId = GetUserId();
-                if (userId == null)
-                    return Unauthorized(new ApiResponse { Success = false, Message = "??? ???? ??" });
+                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out long userId))
+                    return Unauthorized(new ApiResponse { Success = false, Message = "Invalid token" });
 
                 var user = await _context.Users
                     .Include(u => u.Factory)
                     .FirstOrDefaultAsync(u => u.Id == userId);
 
-                if (user == null || !user.FactoryId.HasValue)
-                    return Ok(new ApiResponse<ProfileStatsDto>
+                if (user?.Factory == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "No factory linked to this account"
+                    });
+                }
+
+                var factory = user.Factory;
+
+                if (factory.IsVerified)
+                {
+                    return Ok(new ApiResponse
                     {
                         Success = true,
-                        Message = "???????? ?????",
-                        Data = new ProfileStatsDto()
+                        Message = "Factory is already verified"
                     });
+                }
 
-                var factoryId = user.FactoryId.Value;
+                factory.Status = "VerificationRequested";
+                factory.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
 
-                // Get active listings count
-                var activeListings = await _context.WasteListings
-                    .CountAsync(w => w.FactoryId == factoryId && w.Status == "Active");
+                var adminEmail = _configuration["Application:SupportEmail"]
+                    ?? _configuration["Email:SenderEmail"]
+                    ?? "admin@ecov.local";
 
-                // Get completed transactions count
-                var completedOrders = await _context.Orders
-                    .CountAsync(o => o.SellerFactoryId == factoryId && o.Status == "?????");
+                var details =
+                    $"FactoryId={factory.Id}, Name={factory.FactoryName}, Industry={factory.IndustryType}, " +
+                    $"Location={factory.Location}, Email={factory.Email}, Phone={factory.Phone}, " +
+                    $"Owner={factory.OwnerName}, Tax={factory.TaxNumber}, Reg={factory.RegistrationNumber}";
 
-                var stats = new ProfileStatsDto
-                {
-                    ActiveListings = activeListings,
-                    CompletedOrders = completedOrders,
-                    Rating = user.Factory?.Rating ?? 0,
-                    CustomerSatisfaction = user.Factory?.Rating.HasValue == true ? (int)(user.Factory.Rating * 20) : 98
-                };
+                await _emailService.SendAdminVerificationRequestEmailAsync(adminEmail, factory.FactoryName, details);
+                await _emailService.SendVerificationRequestReceivedEmailAsync(factory.Email, factory.FactoryName);
 
-                return Ok(new ApiResponse<ProfileStatsDto>
+                return Ok(new ApiResponse
                 {
                     Success = true,
-                    Message = "???????? ?????",
-                    Data = stats
+                    Message = "Verification request sent to admin successfully"
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting profile stats");
+                _logger.LogError(ex, "Error requesting factory verification");
                 return StatusCode(500, new ApiResponse
                 {
                     Success = false,
-                    Message = "??? ??? ????? ??? ??????????",
-                    Errors = new List<string> { ex.Message }
+                    Message = "Failed to send verification request"
                 });
             }
         }
 
-        #region Helper Methods
-
-        private long? GetUserId()
+        private FactoryProfileDto MapToProfileDto(Factory factory, int activeListings, int completedOrders)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out long userId))
-                return null;
+            var purposes = new List<string>();
+            if (factory.WastesForSale != null && factory.WastesForSale.Any())
+                purposes.Add("sell");
+            if (factory.PurchaseRequests != null && factory.PurchaseRequests.Any())
+                purposes.Add("buy");
 
-            return userId;
+            return new FactoryProfileDto
+            {
+                FactoryId = factory.Id,
+                FactoryName = factory.FactoryName,
+                IndustryType = factory.IndustryType,
+                Location = factory.Location,
+                Address = factory.Address,
+                Phone = factory.Phone,
+                Email = factory.Email,
+                OwnerName = factory.OwnerName,
+                OwnerPhone = factory.OwnerPhone,
+                TaxNumber = factory.TaxNumber,
+                RegistrationNumber = factory.RegistrationNumber,
+                EstablishmentYear = factory.EstablishmentYear,
+                ProductionCapacity = factory.ProductionCapacity,
+                ProductionUnit = "ton",
+                MainProducts = factory.DescriptionAr,
+                Status = factory.Status,
+                JoinedDate = factory.CreatedAt,
+                Rating = factory.Rating ?? 4.5m,
+                TotalReviews = factory.TotalReviews ?? 0,
+                ActiveListings = activeListings,
+                CompletedOrders = completedOrders,
+                LogoUrl = factory.LogoUrl,
+                IsVerified = factory.IsVerified,
+                RegistrationPurpose = purposes,
+                WastesForSale = factory.WastesForSale?.Select(w => new WasteItemDto
+                {
+                    WasteTypeId = w.WasteTypeId,
+                    WasteTypeName = w.WasteType?.NameAr ?? "Unknown",
+                    Quantity = w.Quantity,
+                    Unit = w.Unit,
+                    Frequency = w.Frequency,
+                    Description = w.Description
+                }).ToList() ?? new(),
+                PurchaseRequests = factory.PurchaseRequests?.Select(p => new PurchaseItemDto
+                {
+                    WasteTypeId = p.WasteTypeId,
+                    WasteTypeName = p.WasteType?.NameAr ?? "Unknown",
+                    Quantity = p.Quantity,
+                    Unit = p.Unit,
+                    Frequency = p.Frequency,
+                    Purpose = p.Purpose
+                }).ToList() ?? new()
+            };
         }
-
-        #endregion
     }
 }
-

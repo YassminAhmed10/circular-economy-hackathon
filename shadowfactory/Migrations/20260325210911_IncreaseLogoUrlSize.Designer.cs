@@ -12,8 +12,8 @@ using shadowfactory.Data;
 namespace shadowfactory.Migrations
 {
     [DbContext(typeof(ECoVDbContext))]
-    [Migration("20260227172047_AddMissingColumns")]
-    partial class AddMissingColumns
+    [Migration("20260325210911_IncreaseLogoUrlSize")]
+    partial class IncreaseLogoUrlSize
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,6 +88,98 @@ namespace shadowfactory.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("shadowfactory.Models.Entities.FactoryPurchase", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("FactoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WasteTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FactoryId");
+
+                    b.HasIndex("WasteTypeId");
+
+                    b.ToTable("FactoryPurchases");
+                });
+
+            modelBuilder.Entity("shadowfactory.Models.Entities.FactoryWaste", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("FactoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WasteTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FactoryId");
+
+                    b.HasIndex("WasteTypeId");
+
+                    b.ToTable("FactoryWastes");
+                });
+
             modelBuilder.Entity("shadowfactory.Models.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
@@ -150,7 +242,7 @@ namespace shadowfactory.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("معلق");
+                        .HasDefaultValue("????");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -292,12 +384,6 @@ namespace shadowfactory.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<long?>("FactoryId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("FactoryId1")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -339,10 +425,6 @@ namespace shadowfactory.Migrations
                     b.HasIndex("BuyerFactoryId");
 
                     b.HasIndex("CreatedAt");
-
-                    b.HasIndex("FactoryId");
-
-                    b.HasIndex("FactoryId1");
 
                     b.HasIndex("SellerFactoryId");
 
@@ -572,6 +654,33 @@ namespace shadowfactory.Migrations
                     b.ToTable("WasteListings", "dbo");
                 });
 
+            modelBuilder.Entity("shadowfactory.Models.Entities.WasteType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WasteTypes");
+                });
+
             modelBuilder.Entity("shadowfactory.Models.Factory", b =>
                 {
                     b.Property<long>("Id")
@@ -588,23 +697,31 @@ namespace shadowfactory.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt")
                         .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DescriptionAr")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("DescriptionAr");
 
                     b.Property<string>("DescriptionEn")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("DescriptionEn");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<int?>("EmployeeCount")
+                        .HasColumnType("int")
+                        .HasColumnName("EmployeeCount");
+
                     b.Property<int?>("EstablishmentYear")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("EstablishmentYear");
 
                     b.Property<string>("FactoryName")
                         .IsRequired()
@@ -618,7 +735,8 @@ namespace shadowfactory.Migrations
 
                     b.Property<decimal?>("FactorySize")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("FactorySize");
 
                     b.Property<string>("Fax")
                         .HasMaxLength(20)
@@ -629,8 +747,15 @@ namespace shadowfactory.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsVerified");
+
                     b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(10,8)");
+                        .HasColumnType("decimal(10,8)")
+                        .HasColumnName("Latitude");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -639,10 +764,11 @@ namespace shadowfactory.Migrations
 
                     b.Property<string>("LogoUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(11,8)");
+                        .HasColumnType("decimal(11,8)")
+                        .HasColumnName("Longitude");
 
                     b.Property<int?>("NumberOfEmployees")
                         .HasColumnType("int");
@@ -668,10 +794,12 @@ namespace shadowfactory.Migrations
 
                     b.Property<decimal>("ProductionCapacity")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("ProductionCapacity");
 
                     b.Property<decimal?>("Rating")
-                        .HasColumnType("decimal(3,2)");
+                        .HasColumnType("decimal(3,2)")
+                        .HasColumnName("Rating");
 
                     b.Property<string>("RegistrationNumber")
                         .IsRequired()
@@ -691,15 +819,14 @@ namespace shadowfactory.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<int?>("TotalReviews")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("TotalReviews");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedAt")
                         .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<bool>("Verified")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Website")
                         .HasMaxLength(500)
@@ -707,20 +834,17 @@ namespace shadowfactory.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasIndex("Email");
 
                     b.HasIndex("FactoryName");
 
                     b.HasIndex("Location");
 
-                    b.HasIndex("RegistrationNumber")
-                        .IsUnique();
+                    b.HasIndex("RegistrationNumber");
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("TaxNumber")
-                        .IsUnique();
+                    b.HasIndex("TaxNumber");
 
                     b.ToTable("Factories", (string)null);
                 });
@@ -802,6 +926,12 @@ namespace shadowfactory.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("AppNotifications")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("AppNotifications");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -811,6 +941,12 @@ namespace shadowfactory.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("EmailNotifications")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("EmailNotifications");
 
                     b.Property<long?>("FactoryId")
                         .HasColumnType("bigint");
@@ -830,6 +966,23 @@ namespace shadowfactory.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Phone");
+
+                    b.Property<bool>("PublicProfile")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("PublicProfile");
+
+                    b.Property<DateTime?>("RegistrationDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("RegistrationDate")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -900,7 +1053,10 @@ namespace shadowfactory.Migrations
                         .HasDefaultValue("email_verification");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedAt")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.HasKey("Id");
 
@@ -926,6 +1082,44 @@ namespace shadowfactory.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Factory");
+                });
+
+            modelBuilder.Entity("shadowfactory.Models.Entities.FactoryPurchase", b =>
+                {
+                    b.HasOne("shadowfactory.Models.Factory", "Factory")
+                        .WithMany("PurchaseRequests")
+                        .HasForeignKey("FactoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("shadowfactory.Models.Entities.WasteType", "WasteType")
+                        .WithMany()
+                        .HasForeignKey("WasteTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Factory");
+
+                    b.Navigation("WasteType");
+                });
+
+            modelBuilder.Entity("shadowfactory.Models.Entities.FactoryWaste", b =>
+                {
+                    b.HasOne("shadowfactory.Models.Factory", "Factory")
+                        .WithMany("WastesForSale")
+                        .HasForeignKey("FactoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("shadowfactory.Models.Entities.WasteType", "WasteType")
+                        .WithMany()
+                        .HasForeignKey("WasteTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Factory");
+
+                    b.Navigation("WasteType");
                 });
 
             modelBuilder.Entity("shadowfactory.Models.Entities.Order", b =>
@@ -962,14 +1156,6 @@ namespace shadowfactory.Migrations
                         .HasForeignKey("BuyerFactoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("shadowfactory.Models.Factory", null)
-                        .WithMany("BuyerTransactions")
-                        .HasForeignKey("FactoryId");
-
-                    b.HasOne("shadowfactory.Models.Factory", null)
-                        .WithMany("SellerTransactions")
-                        .HasForeignKey("FactoryId1");
 
                     b.HasOne("shadowfactory.Models.Factory", "SellerFactory")
                         .WithMany()
@@ -1036,15 +1222,15 @@ namespace shadowfactory.Migrations
                 {
                     b.Navigation("AuditLogs");
 
-                    b.Navigation("BuyerTransactions");
-
                     b.Navigation("FactoryWasteTypes");
 
-                    b.Navigation("SellerTransactions");
+                    b.Navigation("PurchaseRequests");
 
                     b.Navigation("Users");
 
                     b.Navigation("VerificationToken");
+
+                    b.Navigation("WastesForSale");
                 });
 #pragma warning restore 612, 618
         }

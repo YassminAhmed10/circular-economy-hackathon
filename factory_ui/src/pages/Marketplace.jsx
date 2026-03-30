@@ -8,7 +8,7 @@ import { BsFileText, BsBoxSeam } from 'react-icons/bs';
 import { FaIndustry, FaWeightHanging } from 'react-icons/fa';
 import { RiTShirtLine } from 'react-icons/ri';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useJsApiLoader, GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
+import { LoadScript, GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
 
 import paperWasteImage from '../assets/مخلفات الورق.png';
 import plasticWasteImage from '../assets/مخلفات البلاستيك.png';
@@ -43,6 +43,8 @@ const T = {
         nearbyTitle: 'مصانع قريبة منك',
         nearbyEmpty: 'حدد موقعك لعرض المصانع القريبة',
         mapLoading: 'جاري تحميل الخريطة...',
+        mapKeyMissing: 'مفتاح Google Maps غير مضبوط. أضف VITE_GOOGLE_MAPS_API_KEY لعرض الخريطة.',
+        mapLoadError: 'تعذر تحميل Google Maps. تحقق من تفعيل Maps JavaScript API وربط المفتاح بالمشروع.',
         contact: 'تواصل',
         viewDetails: 'عرض التفاصيل',
         egp: 'جنيه',
@@ -77,6 +79,8 @@ const T = {
         nearbyTitle: 'Nearby Factories',
         nearbyEmpty: 'Set your location to see nearby factories',
         mapLoading: 'Loading map...',
+        mapKeyMissing: 'Google Maps key is missing. Add VITE_GOOGLE_MAPS_API_KEY to enable the map.',
+        mapLoadError: 'Failed to load Google Maps. Check Maps JavaScript API enablement and key project binding.',
         contact: 'Contact',
         viewDetails: 'View Details',
         egp: 'EGP',
@@ -276,11 +280,9 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
     ];
 
     const t = T[lang];
-
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    });
+    const googleMapsApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '').trim();
+    const hasGoogleMapsKey = googleMapsApiKey.length > 0;
+    const [mapLoadError, setMapLoadError] = useState(false);
 
     useEffect(() => {
         if (externalLang) {
@@ -639,58 +641,70 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                             {t.detectBtn}
                         </button>
                         <div className="map-container">
-                            {isLoaded ? (
-                                <GoogleMap
-                                    mapContainerStyle={MAP_STYLE}
-                                    center={mapCenter}
-                                    zoom={10}
-                                    onLoad={onMapLoad}
-                                    options={{
-                                        disableDefaultUI: false,
-                                        zoomControl: true,
-                                        streetViewControl: false,
-                                        mapTypeControl: false,
-                                        fullscreenControl: false
-                                    }}
-                                >
-                                    {userLocation && (
-                                        <Marker
-                                            position={userLocation}
-                                            icon={{ url: USER_ICON, scaledSize: { width: 24, height: 24 } }}
-                                        />
-                                    )}
-                                    {FACTORIES.map((f, i) => (
-                                        <Marker
-                                            key={i}
-                                            position={{ lat: f.lat, lng: f.lng }}
-                                            icon={{ url: FACTORY_ICON, scaledSize: { width: 36, height: 36 } }}
-                                            onClick={() => setSelectedMarker(f)}
-                                        />
-                                    ))}
-                                    {selectedMarker && (
-                                        <InfoWindow
-                                            position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-                                            onCloseClick={() => setSelectedMarker(null)}
-                                        >
-                                            <div className="map-infowindow">
-                                                <strong>
-                                                    {lang === 'ar' ? selectedMarker.nameAr : selectedMarker.nameEn}
-                                                </strong>
-                                                <span>
-                                                    {lang === 'ar' ? selectedMarker.typeAr : selectedMarker.typeEn}
-                                                </span>
-                                                <span className="iw-count">
-                                                    {selectedMarker.items} {lang === 'ar' ? 'إعلان' : 'listings'}
-                                                </span>
-                                            </div>
-                                        </InfoWindow>
-                                    )}
-                                </GoogleMap>
-                            ) : (
+                            {!hasGoogleMapsKey ? (
                                 <div className="map-loading">
                                     <MdRecycling size={30} className="map-loading-icon" />
-                                    <span>{t.mapLoading}</span>
+                                    <span>{t.mapKeyMissing}</span>
                                 </div>
+                            ) : mapLoadError ? (
+                                <div className="map-loading">
+                                    <MdRecycling size={30} className="map-loading-icon" />
+                                    <span>{t.mapLoadError}</span>
+                                </div>
+                            ) : (
+                                <LoadScript
+                                    id="google-map-script"
+                                    googleMapsApiKey={googleMapsApiKey}
+                                    libraries={['marker']}
+                                    onError={() => setMapLoadError(true)}
+                                >
+                                    <GoogleMap
+                                        mapContainerStyle={MAP_STYLE}
+                                        center={mapCenter}
+                                        zoom={10}
+                                        onLoad={onMapLoad}
+                                        options={{
+                                            disableDefaultUI: false,
+                                            zoomControl: true,
+                                            streetViewControl: false,
+                                            mapTypeControl: false,
+                                            fullscreenControl: false
+                                        }}
+                                    >
+                                        {userLocation && (
+                                            <Marker
+                                                position={userLocation}
+                                                icon={{ url: USER_ICON, scaledSize: { width: 24, height: 24 } }}
+                                            />
+                                        )}
+                                        {FACTORIES.map((f, i) => (
+                                            <Marker
+                                                key={i}
+                                                position={{ lat: f.lat, lng: f.lng }}
+                                                icon={{ url: FACTORY_ICON, scaledSize: { width: 36, height: 36 } }}
+                                                onClick={() => setSelectedMarker(f)}
+                                            />
+                                        ))}
+                                        {selectedMarker && (
+                                            <InfoWindow
+                                                position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+                                                onCloseClick={() => setSelectedMarker(null)}
+                                            >
+                                                <div className="map-infowindow">
+                                                    <strong>
+                                                        {lang === 'ar' ? selectedMarker.nameAr : selectedMarker.nameEn}
+                                                    </strong>
+                                                    <span>
+                                                        {lang === 'ar' ? selectedMarker.typeAr : selectedMarker.typeEn}
+                                                    </span>
+                                                    <span className="iw-count">
+                                                        {selectedMarker.items} {lang === 'ar' ? 'إعلان' : 'listings'}
+                                                    </span>
+                                                </div>
+                                            </InfoWindow>
+                                        )}
+                                    </GoogleMap>
+                                </LoadScript>
                             )}
                         </div>
                         <div className="nearby-factories">

@@ -4,7 +4,7 @@ import {
   Play, ChevronLeft, ChevronRight,
   Recycle, Handshake, Factory, Package,
   MessageCircle, TrendingUp, Leaf, Boxes,
-  Users, Trophy, CheckCircle2
+  Users, Trophy, CheckCircle2, X   // <-- أضفنا X هنا
 } from 'lucide-react';
 
 // ── استيراد الصور المحلية ──
@@ -57,6 +57,10 @@ export default function Home({ user, lang, dark }) {
   const navigate = useNavigate();
   const [slide, setSlide]         = useState(0);
   const [showVideo, setShowVideo] = useState(false);
+  // حالات الـ modal الجديدة
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const timerRef = useRef(null);
   const ar = lang === 'ar';
   const D  = dark;
@@ -73,7 +77,12 @@ export default function Home({ user, lang, dark }) {
 
   // ── الانتقال إلى Marketplace مع تحديد الفئة ──
   const goToMarket = (categoryParam) => {
-    navigate(`/market?category=${encodeURIComponent(categoryParam)}`);
+    if (user) {
+      navigate(`/market?category=${encodeURIComponent(categoryParam)}`);
+    } else {
+      setSelectedCategory(categoryParam);
+      setShowAuthModal(true);
+    }
   };
 
   return (
@@ -206,6 +215,12 @@ export default function Home({ user, lang, dark }) {
         @media(max-width:600px){
           .hp-catg,.hp-fg,.hp-sg { grid-template-columns:1fr; }
         }
+        
+        /* أنيميشن للـ modal */
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
       `}</style>
 
       {/* ══ CAROUSEL ══ */}
@@ -237,7 +252,22 @@ export default function Home({ user, lang, dark }) {
               onClick={() => { clearInterval(timerRef.current); setSlide(i); startTimer(); }}/>
           ))}
         </div>
-      </div>
+          </div>
+          {user && (
+              <div style={{
+                  background: dark ? '#1a2a1f' : '#f0fdf4',
+                  borderBottom: `1px solid ${dark ? '#2a3a2f' : '#bbf7d0'}`,
+                  padding: '16px 24px',
+                  textAlign: 'center'
+              }}>
+                  <h2 style={{ fontSize: '24px', fontWeight: 700, color: dark ? '#a7f3d0' : '#065f46' }}>
+                      {lang === 'ar' ? `مرحباً، ${user.factoryName || 'مصنع'}!` : `Welcome, ${user.factoryName || 'Factory'}!`}
+                  </h2>
+                  <p style={{ color: dark ? '#6ee7b7' : '#047857' }}>
+                      {lang === 'ar' ? 'نحن سعداء بعودتك إلى منصة الاقتصاد الدائري' : 'We\'re glad to have you back on the circular economy platform'}
+                  </p>
+              </div>
+          )}
 
       {/* ══ POPULAR CATEGORIES — كروت مع صور محلية + ربط بالـ Marketplace ══ */}
       <div style={{ borderBottom:`1px solid ${bdr}`, background:bgS, transition:'background .3s' }}>
@@ -397,6 +427,189 @@ export default function Home({ user, lang, dark }) {
               <button className="hp-mf2" onClick={() => setShowVideo(false)}>
                 {ar?'إغلاق':'Close'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ AUTH MODAL ══ */}
+      {showAuthModal && (
+        <div 
+          className="auth-modal-overlay" 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            animation: 'fadeIn 0.2s ease',
+            direction: ar ? 'rtl' : 'ltr'
+          }}
+        >
+          <div 
+            className="auth-modal"
+            style={{
+              background: dark ? '#1a2a1f' : '#ffffff',
+              borderRadius: '20px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: dark 
+                ? '0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px #2a3a2f' 
+                : '0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px #e5e7eb',
+              overflow: 'hidden',
+              transform: 'translateY(0)',
+              transition: 'all 0.3s'
+            }}
+          >
+            {/* رأس modal */}
+            <div 
+              className="modal-header"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '18px 24px',
+                borderBottom: dark ? '1px solid #2a3a2f' : '1px solid #e9edf0',
+                background: dark ? '#0f1f15' : '#f8fafc'
+              }}
+            >
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '18px', 
+                fontWeight: 700,
+                color: dark ? '#e2f0e5' : '#1e293b'
+              }}>
+                {ar ? 'تسجيل الدخول مطلوب' : 'Login Required'}
+              </h3>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: dark ? '#9ecfaa' : '#64748b',
+                  padding: '4px',
+                  display: 'flex',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = dark ? '#2a3a2f' : '#e2e8f0'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* جسم modal */}
+            <div style={{ padding: '28px 24px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  margin: '0 auto 16px',
+                  background: dark ? 'rgba(5,150,105,0.2)' : '#e6f7f0',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#10b981'
+                }}>
+                  <Recycle size={32} />
+                </div>
+                <p style={{
+                  fontSize: '16px',
+                  lineHeight: 1.6,
+                  color: dark ? '#d1e0d5' : '#334155',
+                  marginBottom: '8px'
+                }}>
+                  {ar 
+                    ? 'للوصول إلى سوق النفايات وعرض التفاصيل، يرجى تسجيل الدخول أو إنشاء حساب جديد.'
+                    : 'To access the waste marketplace and view details, please log in or create a new account.'}
+                </p>
+                {selectedCategory && (
+                  <p style={{
+                    fontSize: '14px',
+                    color: dark ? '#9ecfaa' : '#059669',
+                    background: dark ? 'rgba(5,150,105,0.15)' : '#f0fdf4',
+                    padding: '8px 12px',
+                    borderRadius: '30px',
+                    display: 'inline-block'
+                  }}>
+                    {ar ? `الفئة المحددة: ${selectedCategory}` : `Category: ${selectedCategory}`}
+                  </p>
+                )}
+              </div>
+
+              {/* الأزرار */}
+              <div style={{ display: 'flex', gap: '12px', flexDirection: ar ? 'row-reverse' : 'row' }}>
+                <button
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    navigate('/registration');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    background: '#059669',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#047857'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#059669'}
+                >
+                  {ar ? 'إنشاء حساب جديد' : 'Create Account'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAuthModal(false);
+                    navigate('/login');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    background: 'transparent',
+                    color: dark ? '#e2f0e5' : '#1e293b',
+                    border: dark ? '1.5px solid #3a4a3f' : '1.5px solid #cbd5e1',
+                    borderRadius: '12px',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = dark ? '#2a3a2f' : '#f1f5f9';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  {ar ? 'تسجيل دخول' : 'Log In'}
+                </button>
+              </div>
+            </div>
+
+            {/* تذييل اختياري */}
+            <div style={{
+              padding: '14px 24px',
+              borderTop: dark ? '1px solid #2a3a2f' : '1px solid #e9edf0',
+              background: dark ? '#0f1f15' : '#f8fafc',
+              textAlign: 'center',
+              fontSize: '13px',
+              color: dark ? '#8fbf9a' : '#64748b'
+            }}>
+              {ar ? 'الانضمام مجاني ويستغرق دقيقة واحدة' : 'Joining is free and takes one minute'}
             </div>
           </div>
         </div>

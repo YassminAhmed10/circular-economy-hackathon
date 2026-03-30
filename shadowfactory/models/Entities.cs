@@ -10,6 +10,9 @@ namespace shadowfactory.Models
     [Table("Factories")]
     public class Factory
     {
+
+        public virtual ICollection<FactoryWaste>? WastesForSale { get; set; }
+        public virtual ICollection<FactoryPurchase>? PurchaseRequests { get; set; }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
@@ -72,7 +75,6 @@ namespace shadowfactory.Models
         [Range(1900, 2100)]
         public int? EstablishmentYear { get; set; }
 
-        // Keep both for backward compatibility
         public int? NumberOfEmployees { get; set; }
         public int? EmployeeCount { get; set; }
 
@@ -109,7 +111,6 @@ namespace shadowfactory.Models
         public decimal? Longitude { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
@@ -125,10 +126,13 @@ namespace shadowfactory.Models
         [JsonIgnore]
         public virtual VerificationToken? VerificationToken { get; set; }
 
+        // ✅ NotMapped — relationships are configured in OnModelCreating instead
         [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<Transaction>? SellerTransactions { get; set; }
 
         [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<Transaction>? BuyerTransactions { get; set; }
     }
 }

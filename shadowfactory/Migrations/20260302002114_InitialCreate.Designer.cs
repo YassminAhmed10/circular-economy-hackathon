@@ -12,8 +12,8 @@ using shadowfactory.Data;
 namespace shadowfactory.Migrations
 {
     [DbContext(typeof(ECoVDbContext))]
-    [Migration("20260227180913_FinalSchemaSync")]
-    partial class FinalSchemaSync
+    [Migration("20260302002114_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

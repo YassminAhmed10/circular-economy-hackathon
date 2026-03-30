@@ -6,6 +6,7 @@ import {
   AlertCircle, Link as LinkIcon, Settings, Shield, Loader
 } from 'lucide-react';
 import { T } from './translations';
+import { profileAPI } from '../services/api';
 import addNewWasteImg from '../assets/addnewWasteLight.png';
 import addNewWasteDarkImg from '../assets/addNewWastedark.png';
 
@@ -228,16 +229,18 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/profile`, {
+        const response = await fetch(`${API_BASE_URL}/profile/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
         const data = await response.json();
-        if (data.success && data.data?.factory) {
-          setIsVerified(data.data.factory.isVerified || false);
-          if (!data.data.factory.isVerified) {
+        // response is ApiResponse<FactoryProfileDto>: { success, data: FactoryProfileDto }
+        if (data.success && data.data) {
+          const verified = data.data.isVerified || false;
+          setIsVerified(verified);
+          if (!verified) {
             setApiError(u.verificationRequired);
           }
         } else {
@@ -522,8 +525,20 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
     }
   };
 
-  const handleRequestVerification = () => {
-    navigate('/request-verification');
+  const handleRequestVerification = async () => {
+    try {
+      setApiError('');
+      const response = await profileAPI.requestVerification();
+      const msg = response?.data?.message || (isRTL
+        ? 'تم إرسال طلب التوثيق للإدارة بنجاح'
+        : 'Verification request sent to admin successfully');
+      setApiSuccess(msg);
+    } catch (err) {
+      const msg = err?.response?.data?.message || (isRTL
+        ? 'تعذر إرسال طلب التوثيق، حاولي مرة أخرى'
+        : 'Failed to send verification request. Please try again.');
+      setApiError(msg);
+    }
   };
 
   // ── Theme ─────────────────────────────────────────────────────────────────

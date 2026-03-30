@@ -1,6 +1,6 @@
-﻿using ECoV.API.Services.Interfaces;
+﻿using shadowfactory.Services.Interfaces;
 
-namespace ECoV.API.Services
+namespace shadowfactory.Services
 {
     public class EmailService : IEmailService
     {
@@ -19,6 +19,18 @@ namespace ECoV.API.Services
         public Task<bool> SendRejectionEmailAsync(string email, string factoryName, string reason)
         {
             Console.WriteLine($"Rejection email to {email}, reason: {reason}");
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> SendAdminVerificationRequestEmailAsync(string adminEmail, string factoryName, string details)
+        {
+            Console.WriteLine($"Admin verification request email to {adminEmail} for factory {factoryName}. Details: {details}");
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> SendVerificationRequestReceivedEmailAsync(string email, string factoryName)
+        {
+            Console.WriteLine($"Verification request received email to {email} for factory {factoryName}");
             return Task.FromResult(true);
         }
     }

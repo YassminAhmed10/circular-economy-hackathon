@@ -1,10 +1,10 @@
-// Registration.js
+// Registration.jsx
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Factory, Building2, MapPin, Phone, Mail, User, Package, Recycle,
-    ArrowLeft, CheckCircle, Upload, X, Sparkles, Trophy, BarChart3,
-    ShoppingCart, TrendingUp, Globe, Zap, Home, LogIn,
+    CheckCircle, Upload, X, BarChart3,
+    ShoppingCart, Globe, Zap, Home, LogIn,
     Eye, EyeOff, Lock, Shield, Award, AlertCircle
 } from 'lucide-react';
 import './Registration.css';
@@ -83,9 +83,6 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
             welcomeTitle: 'أهلاً وسهلاً بك في ECOv!',
             welcomeSubtitle: 'تم تسجيل مصنعك بنجاح في المنصة',
             seller: 'بائع مخلفات', buyer: 'مشتري مخلفات',
-            addWaste: 'إضافة مخلفات للبيع', exploreMarket: 'استكشاف السوق',
-            connectPartners: 'التواصل مع الشركاء', analyzeData: 'تحليل البيانات',
-            improveRating: 'تحسين التقييم', network: 'شبكة الاقتصاد الدائري',
             goToDashboard: 'الانتقال إلى لوحة التحكم', stayHere: 'البقاء هنا',
             selectPurpose: 'يرجى تحديد هدف التسجيل',
             selectWasteTypes: 'يرجى تحديد أنواع المخلفات',
@@ -93,6 +90,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
             step4Required: 'يجب أن تكون في الخطوة الرابعة لتأكيد التسجيل',
             registrationSuccess: 'تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول',
             pendingNote: 'حسابك قيد المراجعة. سيتم إشعارك عند الموافقة.',
+            establishmentYearError: 'سنة التأسيس لا يمكن أن تكون في المستقبل',
         },
         en: {
             home: 'HOME', login: 'LOGIN', haveAccount: 'Already have an account?',
@@ -140,9 +138,6 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
             welcomeTitle: 'WELCOME TO ECOV!',
             welcomeSubtitle: 'Your factory has been successfully registered',
             seller: 'WASTE SELLER', buyer: 'WASTE BUYER',
-            addWaste: 'ADD WASTE FOR SALE', exploreMarket: 'EXPLORE MARKET',
-            connectPartners: 'CONNECT WITH PARTNERS', analyzeData: 'ANALYZE DATA',
-            improveRating: 'IMPROVE RATING', network: 'CIRCULAR ECONOMY NETWORK',
             goToDashboard: 'GO TO DASHBOARD', stayHere: 'STAY HERE',
             selectPurpose: 'Please select registration purpose',
             selectWasteTypes: 'Please select waste types',
@@ -150,6 +145,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
             step4Required: 'You must be on step 4 to confirm registration',
             registrationSuccess: 'Registration successful! You can now log in.',
             pendingNote: 'Your account is pending review. You will be notified upon approval.',
+            establishmentYearError: 'Establishment year cannot be in the future',
         }
     };
 
@@ -193,6 +189,8 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         buyingPurpose: '',
         factoryLogo: null,
         logoPreview: null,
+        // ✅ حقل جديد لحفظ Base64 الخالص بدون prefix
+        logoBase64: null,
     });
 
     const [passwordErrors, setPasswordErrors] = useState({
@@ -269,19 +267,35 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         }));
     };
 
+    // ✅ محدّث: يحفظ الصورة كـ Base64 كامل (مع prefix) للعرض، وبدون prefix للإرسال
     const handleLogoUpload = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData(prev => ({ ...prev, factoryLogo: file, logoPreview: reader.result }));
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        // التحقق من الحجم (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert(currentLanguage === 'ar' ? 'حجم الصورة يجب أن يكون أقل من 5MB' : 'Image size must be less than 5MB');
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const fullBase64 = reader.result; // data:image/png;base64,xxxx
+            // ✅ نقطع الـ prefix ونبعت الـ Base64 الخالص للـ API
+            const pureBase64 = fullBase64.split(',')[1];
+
+            setFormData(prev => ({
+                ...prev,
+                factoryLogo: file,
+                logoPreview: fullBase64,   // للعرض في الصفحة
+                logoBase64: pureBase64,    // للإرسال للـ API
+            }));
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleLogoRemove = () => {
-        setFormData(prev => ({ ...prev, factoryLogo: null, logoPreview: null }));
+        setFormData(prev => ({ ...prev, factoryLogo: null, logoPreview: null, logoBase64: null }));
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -316,8 +330,19 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         return true;
     };
 
+    // ✅ محدّث: validate سنة التأسيس
+    const validateStep2 = () => {
+        const currentYear = new Date().getFullYear();
+        if (formData.establishmentYear > currentYear) {
+            alert(t.establishmentYearError);
+            return false;
+        }
+        return true;
+    };
+
     const handleNext = () => {
         if (currentStep === 1 && !validateStep1()) return;
+        if (currentStep === 2 && !validateStep2()) return;
         if (currentStep === 3) {
             if (formData.registrationPurpose.length === 0) { alert(t.selectPurpose); return; }
             if (formData.registrationPurpose.includes('sell') && formData.wasteTypesToSell.length === 0) { alert(t.selectWasteTypes); return; }
@@ -340,7 +365,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         }, 50);
     };
 
-    // ── SUBMIT → API ──────────────────────────────────────────────────────────
+    // ✅ SUBMIT محدّث بالكامل - يبعت كل البيانات + الصورة
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (currentStep !== 4) { alert(t.step4Required); return; }
@@ -351,40 +376,70 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
         setValidationErrors({});
 
         try {
-            // Prepare the data exactly as your backend expects
+            const currentYear = new Date().getFullYear();
+
             const requestData = {
-                factoryName: formData.factoryName,
-                factoryNameEn: formData.factoryName,
-                industryType: formData.industryType,
-                location: formData.location,
-                address: formData.address,
-                phone: formData.phone,
-                email: formData.email,
-                ownerName: formData.ownerName,
-                ownerPhone: formData.ownerPhone || formData.phone,
-                taxNumber: formData.taxNumber || "000000000",
-                registrationNumber: formData.registrationNumber || "000000000",
-                establishmentYear: parseInt(formData.establishmentYear) || new Date().getFullYear(),
-                factorySize: 1000,
-                productionCapacity: parseFloat(formData.productionCapacity) || 100,
-                password: formData.password,
-                fax: "",
-                // IMPORTANT: Send null instead of empty string for website
+                // ── معلومات المصنع الأساسية ──
+                factoryName: formData.factoryName.trim(),
+                factoryNameEn: formData.factoryName.trim(),
+                industryType: formData.industryType.trim(),
+                location: formData.location.trim(),
+                address: formData.address.trim(),
+                phone: formData.phone.trim(),
+                email: formData.email.trim().toLowerCase(),
+                ownerName: formData.ownerName.trim(),
+                // ✅ ownerPhone: إذا فارغ استخدم phone المصنع (وهو رقم مش email)
+                ownerPhone: formData.ownerPhone?.trim() || formData.phone.trim(),
+                ownerEmail: formData.email.trim().toLowerCase(),
+
+                // ── المعلومات القانونية ──
+                taxNumber: formData.taxNumber?.trim() || '',
+                registrationNumber: formData.registrationNumber?.trim() || '',
+                // ✅ التأكد إن السنة مش في المستقبل
+                establishmentYear: Math.min(
+                    parseInt(formData.establishmentYear) || currentYear,
+                    currentYear
+                ),
+
+                // ── معلومات الإنتاج ──
+                factorySize: parseFloat(formData.factorySize) || 1000,
+                productionCapacity: parseFloat(formData.productionCapacity) || 0,
+                numberOfEmployees: parseInt(formData.numberOfEmployees) || null,
+                descriptionAr: formData.mainProducts?.trim() || '',
+                descriptionEn: formData.mainProducts?.trim() || '',
+
+                // ── بيانات اختيارية ──
+                fax: null,
                 website: null,
-                ownerEmail: formData.email,
-                numberOfEmployees: 50,
-                descriptionAr: formData.mainProducts || "Factory description",
-                descriptionEn: formData.mainProducts || "Factory description"
+
+                // ── كلمة المرور ──
+                password: formData.password,
+
+                // ✅ الصورة - Base64 خالص بدون prefix
+                logoBase64: formData.logoBase64 || null,
+
+                // ── بيانات المخلفات ──
+                registrationPurpose: formData.registrationPurpose,
+                wasteTypesToSell: formData.wasteTypesToSell,
+                wasteAmountToSell: parseFloat(formData.wasteAmountToSell) || 0,
+                wasteUnitToSell: formData.wasteUnitToSell || 'ton',
+                sellFrequency: formData.sellFrequency || 'monthly',
+                wasteDescription: formData.wasteDescription?.trim() || null,
+                wasteTypesToBuy: formData.wasteTypesToBuy,
+                wasteAmountToBuy: parseFloat(formData.wasteAmountToBuy) || 0,
+                wasteUnitToBuy: formData.wasteUnitToBuy || 'ton',
+                buyFrequency: formData.buyFrequency || 'monthly',
+                buyingPurpose: formData.buyingPurpose?.trim() || null,
             };
 
-            // Log the data being sent
-            console.log("📤 Sending registration data:", JSON.stringify(requestData, null, 2));
+            console.log("📤 Sending registration data:", JSON.stringify({
+                ...requestData,
+                logoBase64: requestData.logoBase64 ? `[BASE64 - ${requestData.logoBase64.length} chars]` : null
+            }, null, 2));
 
             const response = await fetch('https://localhost:54464/api/register/factory', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
             });
 
@@ -392,23 +447,57 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
             console.log("📥 Registration response:", data);
 
             if (!response.ok) {
-                // Handle validation errors from backend
-                if (data.errors) {
-                    const errorMessages = [];
-                    if (Array.isArray(data.errors)) {
-                        errorMessages.push(...data.errors);
-                    } else if (typeof data.errors === 'object') {
-                        Object.entries(data.errors).forEach(([key, value]) => {
-                            errorMessages.push(`${key}: ${Array.isArray(value) ? value.join(', ') : value}`);
-                        });
+                let errorMessage = 'Registration failed';
+                if (data) {
+                    if (data.Message) errorMessage = data.Message;
+                    else if (data.message) errorMessage = data.message;
+                    else if (data.title) errorMessage = data.title;
+                    else if (data.errors) {
+                        if (Array.isArray(data.errors)) {
+                            errorMessage = data.errors.join('\n');
+                        } else if (typeof data.errors === 'object') {
+                            errorMessage = Object.values(data.errors).flat().join('\n');
+                        }
                     }
-                    setValidationErrors(data.errors || {});
-                    throw new Error(errorMessages.join('\n') || data.title || 'Registration failed');
                 }
-                throw new Error(data.message || data.title || 'Registration failed');
+                if (response.status === 409) {
+                    errorMessage = errorMessage || (currentLanguage === 'ar'
+                        ? 'البريد الإلكتروني أو الرقم الضريبي مسجل مسبقاً'
+                        : 'Email, tax number, or registration number already exists');
+                }
+                throw new Error(errorMessage);
             }
 
             if (data.success) {
+                // ✅ حفظ بيانات المصنع كاملة في localStorage للـ Profile
+                const factoryData = {
+                    id: data.data?.factoryId,
+                    factoryId: data.data?.factoryId,
+                    factoryName: formData.factoryName,
+                    factoryNameEn: formData.factoryName,
+                    industryType: formData.industryType,
+                    location: formData.location,
+                    address: formData.address,
+                    phone: formData.phone,
+                    email: formData.email,
+                    ownerName: formData.ownerName,
+                    ownerPhone: formData.ownerPhone || formData.phone,
+                    ownerEmail: formData.email,
+                    taxNumber: formData.taxNumber,
+                    registrationNumber: formData.registrationNumber,
+                    establishmentYear: formData.establishmentYear,
+                    productionCapacity: formData.productionCapacity,
+                    productionUnit: formData.productionUnit,
+                    mainProducts: formData.mainProducts,
+                    registrationPurpose: formData.registrationPurpose,
+                    // ✅ الصورة: نحفظ الـ preview (مع prefix) في localStorage للعرض
+                    logoUrl: formData.logoPreview || null,
+                    status: data.data?.status || 'Pending',
+                    joinedDate: new Date().toISOString(),
+                };
+
+                localStorage.setItem('factory', JSON.stringify(factoryData));
+
                 const userData = {
                     id: data.data?.userId,
                     factoryId: data.data?.factoryId,
@@ -422,10 +511,12 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
 
                 if (onRegister) onRegister(userData);
                 setShowWelcomeModal(true);
+            } else {
+                throw new Error(data.Message || data.message || 'Registration failed');
             }
         } catch (err) {
             console.error('❌ Registration error:', err);
-            setError(err.message || (currentLanguage === 'ar' ? 'حدث خطأ أثناء التسجيل' : 'Registration error'));
+            setError(err.message);
         } finally {
             setIsLoading(false);
         }
@@ -594,7 +685,10 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                 {/* Main Form */}
                 <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     <form onSubmit={handleSubmit} className="p-6">
-                        {/* Step 1 - Factory Info */}
+
+                        {/* ══════════════════════════════════════════
+                            STEP 1 - Factory Info
+                        ══════════════════════════════════════════ */}
                         {currentStep === 1 && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4">
@@ -669,12 +763,20 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                         </div>
                                     </div>
 
-                                    {/* Owner Phone */}
+                                    {/* Owner Phone - ✅ type="tel" فقط، مش email */}
                                     <div className="space-y-1.5">
                                         <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.ownerPhone}</label>
                                         <div className="relative">
                                             <Phone className={`absolute ${currentLanguage === 'ar' ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400`} />
-                                            <input type="tel" name="ownerPhone" value={formData.ownerPhone} onChange={handleChange} placeholder={t.ownerPhonePlaceholder} className={`w-full ${currentLanguage === 'ar' ? 'pr-9' : 'pl-9'} px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-sm font-semibold`} />
+                                            <input
+                                                type="tel"
+                                                name="ownerPhone"
+                                                value={formData.ownerPhone}
+                                                onChange={handleChange}
+                                                placeholder={t.ownerPhonePlaceholder}
+                                                pattern="[0-9+\-\s]+"
+                                                className={`w-full ${currentLanguage === 'ar' ? 'pr-9' : 'pl-9'} px-3 py-2.5 border-2 border-slate-200 rounded-lg focus:border-emerald-500 focus:outline-none text-sm font-semibold`}
+                                            />
                                         </div>
                                     </div>
 
@@ -730,7 +832,9 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                             </div>
                         )}
 
-                        {/* Step 2 - Legal & Production */}
+                        {/* ══════════════════════════════════════════
+                            STEP 2 - Legal & Production
+                        ══════════════════════════════════════════ */}
                         {currentStep === 2 && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4">
@@ -749,9 +853,21 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                             <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.registrationNumber} <span className="text-red-500">*</span></label>
                                             <input type="text" name="registrationNumber" value={formData.registrationNumber} onChange={handleChange} placeholder="98765" className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none text-sm font-semibold" required />
                                         </div>
+                                        {/* ✅ max = current year */}
                                         <div className="space-y-1.5">
                                             <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.establishmentYear}</label>
-                                            <input type="number" name="establishmentYear" value={formData.establishmentYear} onChange={handleChange} min="1900" max={new Date().getFullYear()} className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none text-sm font-semibold" />
+                                            <input
+                                                type="number"
+                                                name="establishmentYear"
+                                                value={formData.establishmentYear}
+                                                onChange={handleChange}
+                                                min="1900"
+                                                max={new Date().getFullYear()}
+                                                className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none text-sm font-semibold"
+                                            />
+                                            {parseInt(formData.establishmentYear) > new Date().getFullYear() && (
+                                                <p className="text-red-500 text-xs">{t.establishmentYearError}</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -767,7 +883,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                             <div className="space-y-1.5">
                                                 <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.monthlyCapacity}</label>
                                                 <div className="flex gap-2">
-                                                    <input type="number" name="productionCapacity" value={formData.productionCapacity} onChange={handleChange} placeholder="500" className="flex-1 px-3 py-2.5 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none text-sm font-semibold" />
+                                                    <input type="number" name="productionCapacity" value={formData.productionCapacity} onChange={handleChange} placeholder="500" min="0" className="flex-1 px-3 py-2.5 border-2 border-emerald-200 rounded-lg focus:border-emerald-600 focus:outline-none text-sm font-semibold" />
                                                 </div>
                                             </div>
                                         </div>
@@ -781,7 +897,9 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                             </div>
                         )}
 
-                        {/* Step 3 - Waste Management */}
+                        {/* ══════════════════════════════════════════
+                            STEP 3 - Waste Management
+                        ══════════════════════════════════════════ */}
                         {currentStep === 3 && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4">
@@ -802,7 +920,6 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                                 <div className={`absolute top-3 ${currentLanguage === 'ar' ? 'left-3' : 'right-3'}`}><CheckCircle className="w-5 h-5 text-blue-600" /></div>
                                             )}
                                         </div>
-
                                         <div className={`relative p-5 rounded-lg border-2 transition-all cursor-pointer ${formData.registrationPurpose.includes('buy') ? 'border-purple-500 bg-purple-50 shadow-md' : 'border-slate-200 hover:border-purple-300 hover:bg-purple-50/50'}`} onClick={() => handlePurposeChange('buy')}>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md"><ShoppingCart className="w-6 h-6" /></div>
@@ -835,7 +952,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                                 <div className="space-y-1.5">
                                                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.availableQuantity} <span className="text-red-500">*</span></label>
                                                     <div className="flex gap-2">
-                                                        <input type="number" name="wasteAmountToSell" value={formData.wasteAmountToSell} onChange={handleChange} placeholder="50" className="flex-1 px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none text-sm font-semibold" />
+                                                        <input type="number" name="wasteAmountToSell" value={formData.wasteAmountToSell} onChange={handleChange} placeholder="50" min="0" className="flex-1 px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none text-sm font-semibold" />
                                                         <select name="wasteUnitToSell" value={formData.wasteUnitToSell} onChange={handleChange} className="w-24 px-3 py-2.5 border-2 border-blue-200 rounded-lg focus:border-blue-600 focus:outline-none bg-white text-sm font-semibold">
                                                             <option value="kg">KG</option>
                                                             <option value="ton">TON</option>
@@ -877,7 +994,7 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                                 <div className="space-y-1.5">
                                                     <label className="block text-xs font-black text-slate-700 uppercase tracking-wide">{t.requiredQuantity} <span className="text-red-500">*</span></label>
                                                     <div className="flex gap-2">
-                                                        <input type="number" name="wasteAmountToBuy" value={formData.wasteAmountToBuy} onChange={handleChange} placeholder="100" className="flex-1 px-3 py-2.5 border-2 border-purple-200 rounded-lg focus:border-purple-600 focus:outline-none text-sm font-semibold" />
+                                                        <input type="number" name="wasteAmountToBuy" value={formData.wasteAmountToBuy} onChange={handleChange} placeholder="100" min="0" className="flex-1 px-3 py-2.5 border-2 border-purple-200 rounded-lg focus:border-purple-600 focus:outline-none text-sm font-semibold" />
                                                         <select name="wasteUnitToBuy" value={formData.wasteUnitToBuy} onChange={handleChange} className="w-24 px-3 py-2.5 border-2 border-purple-200 rounded-lg focus:border-purple-600 focus:outline-none bg-white text-sm font-semibold">
                                                             <option value="kg">KG</option>
                                                             <option value="ton">TON</option>
@@ -906,7 +1023,9 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                             </div>
                         )}
 
-                        {/* Step 4 - Review & Submit */}
+                        {/* ══════════════════════════════════════════
+                            STEP 4 - Review & Submit
+                        ══════════════════════════════════════════ */}
                         {currentStep === 4 && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-2 mb-4">
@@ -923,6 +1042,9 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                                 <img src={formData.logoPreview} alt="Logo" className="w-40 h-40 object-contain rounded-xl border-4 border-white shadow-lg" />
                                                 <button type="button" onClick={handleLogoRemove} className={`absolute -top-2 ${currentLanguage === 'ar' ? '-right-2' : '-left-2'} w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-all`}><X className="w-4 h-4" /></button>
                                             </div>
+                                            <p className="text-xs text-emerald-600 font-semibold mt-2">
+                                                ✅ {currentLanguage === 'ar' ? 'الصورة جاهزة للرفع' : 'Image ready to upload'}
+                                            </p>
                                         </div>
                                     ) : (
                                         <div className="border-3 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/50 transition-all" onClick={() => fileInputRef.current?.click()}>
@@ -939,44 +1061,42 @@ function Registration({ onRegister, language: propLanguage, onLanguageChange }) 
                                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200/50">
                                         <h4 className="font-black text-blue-900 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm"><Building2 className="w-4 h-4" />{t.reviewFactory}</h4>
                                         <div className="space-y-2 text-xs">
-                                            <div className="flex justify-between py-1.5 border-b border-blue-200">
-                                                <span className="text-slate-600 font-bold">{t.factoryName}:</span>
-                                                <span className="font-black text-slate-900">{formData.factoryName || '---'}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1.5 border-b border-blue-200">
-                                                <span className="text-slate-600 font-bold">{t.industryType}:</span>
-                                                <span className="font-black text-slate-900">{formData.industryType || '---'}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1.5 border-b border-blue-200">
-                                                <span className="text-slate-600 font-bold">{t.location}:</span>
-                                                <span className="font-black text-slate-900">{formData.location || '---'}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1.5">
-                                                <span className="text-slate-600 font-bold">{t.phone}:</span>
-                                                <span className="font-black text-slate-900">{formData.phone || '---'}</span>
-                                            </div>
+                                            {[
+                                                [t.factoryName, formData.factoryName],
+                                                [t.industryType, formData.industryType],
+                                                [t.location, formData.location],
+                                                [t.phone, formData.phone],
+                                                [t.email, formData.email],
+                                                [t.ownerName, formData.ownerName],
+                                                [t.ownerPhone, formData.ownerPhone || formData.phone],
+                                            ].map(([label, val], i) => (
+                                                <div key={i} className="flex justify-between py-1.5 border-b border-blue-200 last:border-0">
+                                                    <span className="text-slate-600 font-bold">{label}:</span>
+                                                    <span className="font-black text-slate-900">{val || '---'}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
 
                                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-200/50">
                                         <h4 className="font-black text-purple-900 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm"><Award className="w-4 h-4" />{t.reviewLegal}</h4>
                                         <div className="space-y-2 text-xs">
-                                            <div className="flex justify-between py-1.5 border-b border-purple-200">
-                                                <span className="text-slate-600 font-bold">{t.registrationNumber}:</span>
-                                                <span className="font-black text-slate-900">{formData.registrationNumber || '---'}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1.5 border-b border-purple-200">
-                                                <span className="text-slate-600 font-bold">{t.taxNumber}:</span>
-                                                <span className="font-black text-slate-900">{formData.taxNumber || '---'}</span>
-                                            </div>
-                                            <div className="flex justify-between py-1.5">
-                                                <span className="text-slate-600 font-bold">{t.establishmentYear}:</span>
-                                                <span className="font-black text-slate-900">{formData.establishmentYear || '---'}</span>
-                                            </div>
+                                            {[
+                                                [t.registrationNumber, formData.registrationNumber],
+                                                [t.taxNumber, formData.taxNumber],
+                                                [t.establishmentYear, formData.establishmentYear],
+                                                [t.monthlyCapacity, formData.productionCapacity ? `${formData.productionCapacity} ${formData.productionUnit}` : '---'],
+                                            ].map(([label, val], i) => (
+                                                <div key={i} className="flex justify-between py-1.5 border-b border-purple-200 last:border-0">
+                                                    <span className="text-slate-600 font-bold">{label}:</span>
+                                                    <span className="font-black text-slate-900">{val || '---'}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
 
+                                {/* Waste Summary */}
                                 <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-5 border-2 border-emerald-200/50">
                                     <h4 className="font-black text-emerald-900 mb-3 flex items-center gap-2 uppercase tracking-wide text-sm"><Recycle className="w-4 h-4" />{t.reviewWaste}</h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

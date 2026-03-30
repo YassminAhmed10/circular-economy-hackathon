@@ -45,14 +45,17 @@ namespace shadowfactory.Models.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
 
-        // Navigation properties with explicit foreign keys
+        // Navigation properties — InverseProperty tells EF which collection
+        // on Factory each of these maps to (empty collections = no nav on Factory side)
         [ForeignKey("WasteListingId")]
         public virtual WasteListing? WasteListing { get; set; }
 
         [ForeignKey("BuyerFactoryId")]
+        [InverseProperty("BuyerTransactions")]
         public virtual Factory? BuyerFactory { get; set; }
 
         [ForeignKey("SellerFactoryId")]
+        [InverseProperty("SellerTransactions")]
         public virtual Factory? SellerFactory { get; set; }
     }
 }
