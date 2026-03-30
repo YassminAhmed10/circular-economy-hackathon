@@ -117,7 +117,11 @@ namespace shadowfactory.Controllers
                 return Ok(new ApiResponse<List<WasteListingDto>>
                 {
                     Success = true,
+<<<<<<< HEAD
                     Message = "تم جلب قائمة الإعلانات",
+=======
+                    Message = "تم جلب قائمة المخلفات بنجاح",
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     Data = result,
                     Timestamp = DateTime.UtcNow
                 });
@@ -128,7 +132,11 @@ namespace shadowfactory.Controllers
                 return StatusCode(500, new ApiResponse<List<WasteListingDto>>
                 {
                     Success = false,
+<<<<<<< HEAD
                     Message = "حدث خطأ أثناء جلب قائمة الإعلانات",
+=======
+                    Message = "حدث خطأ أثناء جلب قائمة المخلفات",
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -154,7 +162,11 @@ namespace shadowfactory.Controllers
                     return NotFound(new ApiResponse
                     {
                         Success = false,
+<<<<<<< HEAD
                         Message = "الإعلان غير موجود أو غير نشط",
+=======
+                        Message = "المنتج المطلوب غير موجود",
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                         Timestamp = DateTime.UtcNow
                     });
 
@@ -165,8 +177,13 @@ namespace shadowfactory.Controllers
                 return Ok(new ApiResponse<WasteListingDto>
                 {
                     Success = true,
+<<<<<<< HEAD
                     Message = "تم جلب تفاصيل الإعلان",
                     Data = MapToDto(listing),
+=======
+                    Message = "تم جلب بيانات المنتج بنجاح",
+                    Data = result,
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     Timestamp = DateTime.UtcNow
                 });
             }
@@ -176,7 +193,11 @@ namespace shadowfactory.Controllers
                 return StatusCode(500, new ApiResponse<WasteListingDto>
                 {
                     Success = false,
+<<<<<<< HEAD
                     Message = "حدث خطأ أثناء جلب تفاصيل الإعلان",
+=======
+                    Message = "حدث خطأ أثناء جلب بيانات المنتج",
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -386,13 +407,25 @@ namespace shadowfactory.Controllers
                     })
                     .ToListAsync();
 
+<<<<<<< HEAD
                 if (!categoryGroups.Any())
                     categoryGroups = GetDefaultCategories();
+=======
+                // If no categories found, return default list
+                if (!categoryGroups.Any())
+                {
+                    categoryGroups = GetDefaultCategories();
+                }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
                 return Ok(new ApiResponse<List<CategoryDto>>
                 {
                     Success = true,
+<<<<<<< HEAD
                     Message = "تم جلب الفئات",
+=======
+                    Message = "تم جلب الفئات بنجاح",
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     Data = categoryGroups,
                     Timestamp = DateTime.UtcNow
                 });
@@ -400,6 +433,11 @@ namespace shadowfactory.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting categories");
+<<<<<<< HEAD
+=======
+
+                // Return default categories on error
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                 return Ok(new ApiResponse<List<CategoryDto>>
                 {
                     Success = true,
@@ -417,6 +455,7 @@ namespace shadowfactory.Controllers
         [Authorize]
         [ProducesResponseType(typeof(ApiResponse<List<WasteListingDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMyListings()
+<<<<<<< HEAD
         {
             try
             {
@@ -546,29 +585,384 @@ namespace shadowfactory.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteWasteListing(long id)
+=======
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
         {
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+<<<<<<< HEAD
                     return Unauthorized(new ApiResponse { Success = false, Message = "غير مصرح به", Timestamp = DateTime.UtcNow });
+=======
+                {
+                    return Unauthorized(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "غير مصرح به",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                var user = await _context.Users
+                    .Include(u => u.Factory)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user?.FactoryId == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "ليس لديك مصنع مسجل",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                var listings = await _context.WasteListings
+                    .Where(w => w.FactoryId == user.FactoryId)
+                    .OrderByDescending(w => w.CreatedAt)
+                    .ToListAsync();
+
+                var result = listings.Select(w => new WasteListingDto
+                {
+                    Id = w.Id,
+                    Type = w.Type,
+                    TypeEn = w.TypeEn,
+                    Amount = w.Amount,
+                    Unit = w.Unit,
+                    Price = w.Price,
+                    Description = w.Description,
+                    Category = w.Category,
+                    ImageUrl = w.ImageUrl,
+                    Status = w.Status,
+                    FactoryId = w.FactoryId,
+                    FactoryName = w.FactoryName,
+                    CreatedAt = w.CreatedAt,
+                    UpdatedAt = w.UpdatedAt,
+                    ExpiresAt = w.ExpiresAt,
+
+                    // New multilingual fields
+                    TitleAr = w.TitleAr,
+                    TitleEn = w.TitleEn,
+                    DescriptionAr = w.DescriptionAr,
+                    DescriptionEn = w.DescriptionEn,
+                    CompanyNameAr = w.CompanyNameAr,
+                    CompanyNameEn = w.CompanyNameEn,
+                    LocationAr = w.LocationAr,
+                    LocationEn = w.LocationEn,
+                    WeightAr = w.WeightAr,
+                    WeightEn = w.WeightEn,
+                    Rating = w.Rating,
+                    Reviews = w.Reviews,
+                    Badge = w.Badge,
+                    Specifications = w.Specifications,
+                    SellerRating = w.SellerRating,
+                    SellerTotalSales = w.SellerTotalSales,
+                    SellerJoined = w.SellerJoined,
+                    SellerWhatsapp = w.SellerWhatsapp,
+                    Latitude = w.Latitude,
+                    Longitude = w.Longitude,
+                    LocationLink = w.LocationLink
+                }).ToList();
+
+                return Ok(new ApiResponse<List<WasteListingDto>>
+                {
+                    Success = true,
+                    Message = "تم جلب إعلاناتك بنجاح",
+                    Data = result,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting my listings");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<List<WasteListingDto>>
+                {
+                    Success = false,
+                    Message = "حدث خطأ أثناء جلب إعلاناتك",
+                    Errors = new List<string> { ex.Message },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Update waste listing
+        /// </summary>
+        [HttpPut("waste-listings/{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<WasteListingDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateWasteListing(long id, [FromBody] WasteListingUpdateRequest request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "غير مصرح به",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
                 if (user?.FactoryId == null)
+<<<<<<< HEAD
                     return BadRequest(new ApiResponse { Success = false, Message = "ليس لديك مصنع مسجل", Timestamp = DateTime.UtcNow });
+=======
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "ليس لديك مصنع مسجل",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
                 var listing = await _context.WasteListings
                     .FirstOrDefaultAsync(w => w.Id == id && w.FactoryId == user.FactoryId);
 
                 if (listing == null)
+<<<<<<< HEAD
                     return NotFound(new ApiResponse { Success = false, Message = "الإعلان غير موجود أو لا تملك صلاحية حذفه", Timestamp = DateTime.UtcNow });
+=======
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "المنتج المطلوب غير موجود أو لا تملك صلاحية تعديله",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Update fields if provided
+                if (!string.IsNullOrEmpty(request.Type))
+                    listing.Type = request.Type.Trim();
+
+                if (!string.IsNullOrEmpty(request.TypeEn))
+                    listing.TypeEn = request.TypeEn.Trim();
+
+                if (request.Amount.HasValue && request.Amount.Value > 0)
+                    listing.Amount = request.Amount.Value;
+
+                if (!string.IsNullOrEmpty(request.Unit))
+                    listing.Unit = request.Unit.Trim();
+
+                if (request.Price.HasValue && request.Price.Value > 0)
+                    listing.Price = request.Price.Value;
+
+                if (request.Description != null)
+                    listing.Description = request.Description.Trim();
+
+                if (!string.IsNullOrEmpty(request.Category))
+                    listing.Category = request.Category.Trim();
+
+                if (request.ImageUrl != null)
+                    listing.ImageUrl = request.ImageUrl?.Trim();
+
+                if (!string.IsNullOrEmpty(request.Status))
+                    listing.Status = request.Status;
+
+                // Update new multilingual fields
+                if (!string.IsNullOrEmpty(request.TitleAr))
+                    listing.TitleAr = request.TitleAr.Trim();
+
+                if (!string.IsNullOrEmpty(request.TitleEn))
+                    listing.TitleEn = request.TitleEn.Trim();
+
+                if (!string.IsNullOrEmpty(request.DescriptionAr))
+                    listing.DescriptionAr = request.DescriptionAr.Trim();
+
+                if (!string.IsNullOrEmpty(request.DescriptionEn))
+                    listing.DescriptionEn = request.DescriptionEn.Trim();
+
+                if (!string.IsNullOrEmpty(request.CompanyNameAr))
+                    listing.CompanyNameAr = request.CompanyNameAr.Trim();
+
+                if (!string.IsNullOrEmpty(request.CompanyNameEn))
+                    listing.CompanyNameEn = request.CompanyNameEn.Trim();
+
+                if (!string.IsNullOrEmpty(request.LocationAr))
+                    listing.LocationAr = request.LocationAr.Trim();
+
+                if (!string.IsNullOrEmpty(request.LocationEn))
+                    listing.LocationEn = request.LocationEn.Trim();
+
+                if (!string.IsNullOrEmpty(request.WeightAr))
+                    listing.WeightAr = request.WeightAr.Trim();
+
+                if (!string.IsNullOrEmpty(request.WeightEn))
+                    listing.WeightEn = request.WeightEn.Trim();
+
+                if (request.Rating.HasValue)
+                    listing.Rating = request.Rating.Value;
+
+                if (request.Reviews.HasValue)
+                    listing.Reviews = request.Reviews.Value;
+
+                if (!string.IsNullOrEmpty(request.Badge))
+                    listing.Badge = request.Badge.Trim();
+
+                if (!string.IsNullOrEmpty(request.Specifications))
+                    listing.Specifications = request.Specifications;
+
+                if (request.SellerRating.HasValue)
+                    listing.SellerRating = request.SellerRating.Value;
+
+                if (request.SellerTotalSales.HasValue)
+                    listing.SellerTotalSales = request.SellerTotalSales.Value;
+
+                if (!string.IsNullOrEmpty(request.SellerJoined))
+                    listing.SellerJoined = request.SellerJoined.Trim();
+
+                if (!string.IsNullOrEmpty(request.SellerWhatsapp))
+                    listing.SellerWhatsapp = request.SellerWhatsapp.Trim();
+
+                if (request.Latitude.HasValue)
+                    listing.Latitude = request.Latitude.Value;
+
+                if (request.Longitude.HasValue)
+                    listing.Longitude = request.Longitude.Value;
+
+                if (!string.IsNullOrEmpty(request.LocationLink))
+                    listing.LocationLink = request.LocationLink.Trim();
+
+                listing.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                var result = new WasteListingDto
+                {
+                    Id = listing.Id,
+                    Type = listing.Type,
+                    TypeEn = listing.TypeEn,
+                    Amount = listing.Amount,
+                    Unit = listing.Unit,
+                    Price = listing.Price,
+                    Description = listing.Description,
+                    Category = listing.Category,
+                    ImageUrl = listing.ImageUrl,
+                    Status = listing.Status,
+                    FactoryId = listing.FactoryId,
+                    FactoryName = listing.FactoryName,
+                    CreatedAt = listing.CreatedAt,
+                    UpdatedAt = listing.UpdatedAt,
+                    ExpiresAt = listing.ExpiresAt,
+
+                    // New multilingual fields
+                    TitleAr = listing.TitleAr,
+                    TitleEn = listing.TitleEn,
+                    DescriptionAr = listing.DescriptionAr,
+                    DescriptionEn = listing.DescriptionEn,
+                    CompanyNameAr = listing.CompanyNameAr,
+                    CompanyNameEn = listing.CompanyNameEn,
+                    LocationAr = listing.LocationAr,
+                    LocationEn = listing.LocationEn,
+                    WeightAr = listing.WeightAr,
+                    WeightEn = listing.WeightEn,
+                    Rating = listing.Rating,
+                    Reviews = listing.Reviews,
+                    Badge = listing.Badge,
+                    Specifications = listing.Specifications,
+                    SellerRating = listing.SellerRating,
+                    SellerTotalSales = listing.SellerTotalSales,
+                    SellerJoined = listing.SellerJoined,
+                    SellerWhatsapp = listing.SellerWhatsapp,
+                    Latitude = listing.Latitude,
+                    Longitude = listing.Longitude,
+                    LocationLink = listing.LocationLink
+                };
+
+                return Ok(new ApiResponse<WasteListingDto>
+                {
+                    Success = true,
+                    Message = "تم تحديث الإعلان بنجاح",
+                    Data = result,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating waste listing {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<WasteListingDto>
+                {
+                    Success = false,
+                    Message = "حدث خطأ أثناء تحديث الإعلان",
+                    Errors = new List<string> { ex.Message },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Delete waste listing
+        /// </summary>
+        [HttpDelete("waste-listings/{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteWasteListing(long id)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+                {
+                    return Unauthorized(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "غير مصرح به",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user?.FactoryId == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "ليس لديك مصنع مسجل",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                var listing = await _context.WasteListings
+                    .FirstOrDefaultAsync(w => w.Id == id && w.FactoryId == user.FactoryId);
+
+                if (listing == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "المنتج المطلوب غير موجود أو لا تملك صلاحية حذفه",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
                 listing.Status = "Deleted";
                 listing.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
+<<<<<<< HEAD
                 return Ok(new ApiResponse { Success = true, Message = "تم حذف الإعلان بنجاح", Timestamp = DateTime.UtcNow });
+=======
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "تم حذف الإعلان بنجاح",
+                    Timestamp = DateTime.UtcNow
+                });
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
             }
             catch (Exception ex)
             {
@@ -588,11 +982,22 @@ namespace shadowfactory.Controllers
         public async Task<IActionResult> DebugTable()
         {
             var results = new Dictionary<string, object>();
+<<<<<<< HEAD
             try
             {
                 results["DbContext Type"] = _context.GetType().Name;
                 results["DbSet exists"] = _context.WasteListings != null;
 
+=======
+
+            try
+            {
+                // Test 1: Check if DbSet is configured
+                results["DbContext Type"] = _context.GetType().Name;
+                results["DbSet exists"] = _context.WasteListings != null;
+
+                // Test 2: Try raw SQL to check table
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                 var connectionString = _context.Database.GetConnectionString();
                 results["Connection String"] = connectionString?.Replace("Password=", "Password=***");
 
@@ -601,6 +1006,10 @@ namespace shadowfactory.Controllers
                     await connection.OpenAsync();
                     results["Database Connection"] = "Success";
 
+<<<<<<< HEAD
+=======
+                    // Check if table exists
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     var cmd = connection.CreateCommand();
                     cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WasteListings'";
                     var tableExists = (int)await cmd.ExecuteScalarAsync();
@@ -608,6 +1017,7 @@ namespace shadowfactory.Controllers
 
                     if (tableExists > 0)
                     {
+<<<<<<< HEAD
                         cmd.CommandText = @"SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'WasteListings' ORDER BY ORDINAL_POSITION";
                         var columns = new List<string>();
                         using (var reader = await cmd.ExecuteReaderAsync())
@@ -623,6 +1033,37 @@ namespace shadowfactory.Controllers
                 try
                 {
                     results["EF Count"] = await _context.WasteListings.CountAsync();
+=======
+                        // Get table schema
+                        cmd.CommandText = @"
+                    SELECT COLUMN_NAME, DATA_TYPE 
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                    WHERE TABLE_NAME = 'WasteListings'
+                    ORDER BY ORDINAL_POSITION";
+
+                        var columns = new List<string>();
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                columns.Add($"{reader.GetString(0)} ({reader.GetString(1)})");
+                            }
+                        }
+                        results["Table Columns"] = columns;
+
+                        // Try to count records
+                        cmd.CommandText = "SELECT COUNT(*) FROM WasteListings";
+                        var recordCount = (int)await cmd.ExecuteScalarAsync();
+                        results["Record Count (Raw SQL)"] = recordCount;
+                    }
+                }
+
+                // Test 3: Try EF query
+                try
+                {
+                    var efCount = await _context.WasteListings.CountAsync();
+                    results["EF Count"] = efCount;
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     results["EF Working"] = true;
                 }
                 catch (Exception efEx)
@@ -649,19 +1090,32 @@ namespace shadowfactory.Controllers
                 var connectionString = _context.Database.GetConnectionString();
                 results["Connection String"] = connectionString?.Replace("Password=", "Password=***");
 
+<<<<<<< HEAD
+=======
+                // Get the actual connection details
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                 using (var connection = new SqlConnection(connectionString))
                 {
                     await connection.OpenAsync();
 
+<<<<<<< HEAD
                     var cmd = connection.CreateCommand();
                     cmd.CommandText = "SELECT @@SERVERNAME AS ServerName, DB_NAME() AS DatabaseName, @@VERSION AS Version";
                     using (var reader = await cmd.ExecuteReaderAsync())
+=======
+                    // Get server name
+                    var cmd = connection.CreateCommand();
+                    cmd.CommandText = "SELECT @@SERVERNAME AS ServerName, DB_NAME() AS DatabaseName, @@VERSION AS Version";
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                         if (await reader.ReadAsync())
                         {
                             results["Connected Server"] = reader["ServerName"].ToString();
                             results["Connected Database"] = reader["DatabaseName"].ToString();
                             results["SQL Version"] = reader["Version"].ToString()?.Split('\n')[0];
                         }
+<<<<<<< HEAD
 
                     cmd.CommandText = "SELECT name FROM sys.databases";
                     var databases = new List<string>();
@@ -670,13 +1124,39 @@ namespace shadowfactory.Controllers
                             databases.Add(reader.GetString(0));
                     results["Available Databases"] = databases;
 
+=======
+                    }
+
+                    // List all databases on this server
+                    cmd.CommandText = "SELECT name FROM sys.databases";
+                    var databases = new List<string>();
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            databases.Add(reader.GetString(0));
+                        }
+                    }
+                    results["Available Databases"] = databases;
+
+                    // Check if WasteListings exists in current database
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                     cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WasteListings'";
                     var tableExists = (int)await cmd.ExecuteScalarAsync();
                     results["WasteListings in current DB"] = tableExists > 0;
 
+<<<<<<< HEAD
                     if (!(tableExists > 0))
                     {
                         var foundIn = new List<string>();
+=======
+                    // If not in current DB, search all databases
+                    if (!(tableExists > 0))
+                    {
+                        results["Searching other databases..."] = true;
+                        var foundIn = new List<string>();
+
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                         foreach (var db in databases)
                         {
                             if (db != results["Connected Database"].ToString())
@@ -684,20 +1164,36 @@ namespace shadowfactory.Controllers
                                 try
                                 {
                                     cmd.CommandText = $"USE [{db}]; SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'WasteListings'";
+<<<<<<< HEAD
                                     if ((int)await cmd.ExecuteScalarAsync() > 0)
                                         foundIn.Add(db);
                                 }
                                 catch { }
+=======
+                                    var count = (int)await cmd.ExecuteScalarAsync();
+                                    if (count > 0)
+                                    {
+                                        foundIn.Add(db);
+                                    }
+                                }
+                                catch { /* Skip databases we can't access */ }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                             }
                         }
 
                         if (foundIn.Any())
                         {
                             results["WasteListings found in"] = foundIn;
+<<<<<<< HEAD
+=======
+
+                            // Get sample from that database
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                             var firstDb = foundIn.First();
                             cmd.CommandText = $"USE [{firstDb}]; SELECT TOP 3 * FROM WasteListings";
                             try
                             {
+<<<<<<< HEAD
                                 var samples = new List<object>();
                                 using (var reader = await cmd.ExecuteReaderAsync())
                                     while (await reader.ReadAsync())
@@ -705,6 +1201,27 @@ namespace shadowfactory.Controllers
                                 results[$"Sample from {firstDb}"] = samples;
                             }
                             catch (Exception ex) { results[$"Error reading from {firstDb}"] = ex.Message; }
+=======
+                                using (var reader = await cmd.ExecuteReaderAsync())
+                                {
+                                    var samples = new List<object>();
+                                    while (await reader.ReadAsync())
+                                    {
+                                        samples.Add(new
+                                        {
+                                            Id = reader["Id"],
+                                            Type = reader["Type"],
+                                            FactoryName = reader["FactoryName"]
+                                        });
+                                    }
+                                    results[$"Sample from {firstDb}"] = samples;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                results[$"Error reading from {firstDb}"] = ex.Message;
+                            }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
                         }
                     }
                 }
@@ -724,6 +1241,7 @@ namespace shadowfactory.Controllers
         /// </summary>
         private static WasteListingDto MapToDto(WasteListing w) => new WasteListingDto
         {
+<<<<<<< HEAD
             Id = w.Id,
             Type = w.Type,
             TypeEn = w.TypeEn,
@@ -761,6 +1279,24 @@ namespace shadowfactory.Controllers
             Longitude = w.Longitude,
             LocationLink = w.LocationLink
         };
+=======
+            return category?.ToLower() switch
+            {
+                "plastic" => "بلاستيك",
+                "oil" => "زيت",
+                "paper" => "ورق",
+                "metal" => "معادن",
+                "glass" => "زجاج",
+                "textile" => "منسوجات",
+                "organic" => "مخلفات عضوية",
+                "electronic" => "مخلفات الكترونية",
+                "chemical" => "نفايات كيميائية",
+                "wood" => "خشب",
+                "rubber" => "مطاط",
+                _ => category ?? "أخرى"
+            };
+        }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
         private string GetCategoryName(string category) => category?.ToLower() switch
         {
@@ -796,6 +1332,7 @@ namespace shadowfactory.Controllers
 
         private string GetCategoryColor(string category) => category?.ToLower() switch
         {
+<<<<<<< HEAD
             "plastic" => "blue",
             "oil" => "amber",
             "paper" => "emerald",
@@ -820,6 +1357,19 @@ namespace shadowfactory.Controllers
             new CategoryDto { Id = "textile",  Name = "المنسوجات",  Count = 0, Icon = "Scissors",     Color = "pink"    },
             new CategoryDto { Id = "chemical", Name = "الكيماويات", Count = 0, Icon = "Flask",        Color = "red"     }
         };
+=======
+            return new List<CategoryDto>
+            {
+                new CategoryDto { Id = "plastic", Name = "بلاستيك", Count = 0, Icon = "Recycle", Color = "blue" },
+                new CategoryDto { Id = "metal", Name = "معادن", Count = 0, Icon = "Shield", Color = "slate" },
+                new CategoryDto { Id = "paper", Name = "ورق", Count = 0, Icon = "FileText", Color = "emerald" },
+                new CategoryDto { Id = "glass", Name = "زجاج", Count = 0, Icon = "FlaskConical", Color = "cyan" },
+                new CategoryDto { Id = "wood", Name = "خشب", Count = 0, Icon = "Trees", Color = "orange" },
+                new CategoryDto { Id = "textile", Name = "منسوجات", Count = 0, Icon = "Scissors", Color = "pink" },
+                new CategoryDto { Id = "chemical", Name = "كيميائيات", Count = 0, Icon = "Flask", Color = "red" }
+            };
+        }
+>>>>>>> 0ead258c9c72285cda73cb1643acd837db6f749f
 
         #endregion
     }
