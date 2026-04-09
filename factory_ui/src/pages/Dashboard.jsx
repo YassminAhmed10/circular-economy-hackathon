@@ -5,7 +5,7 @@ import {
     Plus, Eye, Users, TrendingUp, Clock3, Award,
     ArrowRight, X, MessageSquare,
     Building2, Star, ShoppingCart, Bell,
-    Zap, Settings, ChevronLeft, ChevronRight, Factory
+    Zap, Settings, ChevronLeft, ChevronRight, Factory, Globe
 } from 'lucide-react'
 import './Dashboard.css'
 
@@ -106,11 +106,12 @@ const MONTHLY_REV = [
     { m: 'نوفمبر', v: 74000, deals: 15 }, { m: 'ديسمبر', v: 87240, deals: 18 },
 ]
 const WASTE_BREAKDOWN = [
-    { ar: 'بلاستيك', en: 'Plastic', tons: 5.2, pct: 38, rev: 15600, color: '#3b82f6' },
-    { ar: 'معادن', en: 'Metals', tons: 3.1, pct: 23, rev: 20150, color: '#ca8a04' },
-    { ar: 'ورق', en: 'Paper', tons: 2.8, pct: 21, rev: 4200, color: '#db2777' },
-    { ar: 'خشب', en: 'Wood', tons: 1.4, pct: 10, rev: 2520, color: '#16a34a' },
-    { ar: 'أخرى', en: 'Other', tons: 1.1, pct: 8, rev: 2200, color: '#6b7280' },
+    { ar: 'بلاستيك', en: 'Plastic', tons: 5.2, pct: 33, rev: 15600, color: '#3b82f6' },
+    { ar: 'معادن', en: 'Metals', tons: 3.1, pct: 20, rev: 20150, color: '#ca8a04' },
+    { ar: 'ورق', en: 'Paper', tons: 2.8, pct: 18, rev: 4200, color: '#db2777' },
+    { ar: 'تغليف مستدام', en: 'Sustainable Packaging', tons: 3, pct: 19, rev: 13500, color: '#15803d' },
+    { ar: 'خشب', en: 'Wood', tons: 1.4, pct: 9, rev: 2520, color: '#16a34a' },
+    { ar: 'أخرى', en: 'Other', tons: 0.5, pct: 1, rev: 1000, color: '#6b7280' },
 ]
 const WEEKLY_VIEWS = [45, 78, 52, 91, 63, 88, 112]
 const ACTIVITIES = [
@@ -126,6 +127,7 @@ const LISTINGS = [
     { id: 3, ar: 'حديد خردة', catAr: 'معادن', en: 'Scrap Iron', catEn: 'Metals', qtyAr: '3 طن', qtyEn: '3 ton', price: 6500, views: 89, offers: 1, status: 'pending', ageAr: 'منذ 5 أيام', ageEn: '5d ago' },
     { id: 4, ar: 'خشب MDF', catAr: 'خشب', en: 'MDF Wood', catEn: 'Wood', qtyAr: '6 طن', qtyEn: '6 ton', price: 1800, views: 123, offers: 2, status: 'active', ageAr: 'منذ 3 أيام', ageEn: '3d ago' },
     { id: 5, ar: 'زجاج شفاف', catAr: 'زجاج', en: 'Clear Glass', catEn: 'Glass', qtyAr: '4 طن', qtyEn: '4 ton', price: 2200, views: 67, offers: 0, status: 'pending', ageAr: 'منذ 5 أيام', ageEn: '5d ago' },
+    { id: 6, ar: 'علب تغليف مستدامة', catAr: 'تغليف مستدام', en: 'Sustainable Packaging Boxes', catEn: 'Sustainable Packaging', qtyAr: '3 طن', qtyEn: '3 ton', price: 4500, views: 156, offers: 4, status: 'active', ageAr: 'منذ يوم', ageEn: '1d ago' },
 ]
 
 const PURCHASE_REQS_INIT = [
@@ -390,6 +392,14 @@ export default function Dashboard({ user, lang = 'ar', dark = false, showNotif, 
     const factoryName = user?.factoryName || (ar ? 'مصنع غير معروف' : 'Unknown Factory')
     const logoPreview = user?.logoPreview
 
+    // دالة للحصول على عنوان URL كامل للصورة
+    const getLogoUrl = (logoPath) => {
+        if (!logoPath) return null;
+        if (logoPath.startsWith('data:')) return logoPath;
+        if (logoPath.startsWith('/')) return `http://localhost:54465${logoPath}`;
+        return logoPath;
+    };
+
     const maxRev = Math.max(...MONTHLY_REV.map(d => d.v))
     const pendingCount = ACTIVITIES.filter(a => a.status === 'pending').length
     const todayStr = new Date().toLocaleDateString(ar ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -420,7 +430,7 @@ export default function Dashboard({ user, lang = 'ar', dark = false, showNotif, 
                 <div className="db-hdr" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
                     {logoPreview ? (
                         <img
-                            src={logoPreview}
+                            src={getLogoUrl(logoPreview)}
                             alt={factoryName}
                             style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--db-green)' }}
                         />
@@ -457,7 +467,7 @@ export default function Dashboard({ user, lang = 'ar', dark = false, showNotif, 
                     })}
                 </div>
 
-                {/* THREE‑COLUMN LAYOUT (يبقى كما هو) */}
+                {/* THREE‑COLUMN LAYOUT */}
                 <div className="db-three-col">
                     {lang === 'ar' ? (
                         /* RTL order */

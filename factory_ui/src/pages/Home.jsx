@@ -4,7 +4,7 @@ import {
   Play, ChevronLeft, ChevronRight,
   Recycle, Handshake, Factory, Package,
   MessageCircle, TrendingUp, Leaf, Boxes,
-  Users, Trophy, CheckCircle2, X   // <-- أضفنا X هنا
+  Users, Trophy, CheckCircle2, X, ShoppingCart, Globe
 } from 'lucide-react';
 
 // ── استيراد الصور المحلية ──
@@ -346,6 +346,127 @@ export default function Home({ user, lang, dark }) {
                 <div className="hp-sdes">{ar ? dAr : dEn}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ══ SUSTAINABLE PACKAGING WASTE — FEATURED SECTION ══ */}
+      <div style={{ background: dark ? 'linear-gradient(135deg, rgba(5,150,105,.15) 0%, rgba(59,130,246,.1) 100%)' : 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)', borderBottom:`1px solid ${bdr}`, transition:'background .3s' }}>
+        <div className="hp-sec">
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:40, alignItems:'center' }}>
+            {/* Left: Content */}
+            <div>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 14px', background:dark?'rgba(5,150,105,.2)':'#dcfce7', color:dark?'#6ee7b7':'#166534', borderRadius:99, fontSize:12, fontWeight:700, marginBottom:14 }}>
+                <Package size={12}/> {ar?'جديد على المنصة':'New on Platform'}
+              </div>
+              <h2 style={{ fontSize:32, fontWeight:900, color:txt, marginBottom:12, transition:'color .3s', lineHeight:1.2 }}>
+                {ar?'تغليف مستدام و مواد معاد تدويرها':'Sustainable Packaging & Recycled Materials'}
+              </h2>
+              <p style={{ fontSize:15, color:mu, marginBottom:24, lineHeight:1.6, transition:'color .3s' }}>
+                {ar
+                  ? 'اكتشف سوق متخصص لتبديل وشراء التغليف المستدام ومواد إعادة التدوير عالية الجودة. نساعدك في إيجاد شركاء موثوقين لتلبية احتياجات مصنعك.'
+                  : 'Discover a specialized marketplace for exchanging and purchasing sustainable packaging and high-quality recycled materials. We help you find reliable partners to meet your factory\'s needs.'}
+              </p>
+              <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+                <button
+                  onClick={() => navigate('/packaging-waste')}
+                  style={{
+                    padding:'12px 28px',
+                    background:'#3b82f6',
+                    color:'white',
+                    border:'none',
+                    borderRadius:8,
+                    fontSize:14,
+                    fontWeight:700,
+                    cursor:'pointer',
+                    display:'flex',
+                    alignItems:'center',
+                    gap:8,
+                    transition:'all .3s',
+                    fontFamily:'Cairo,sans-serif'
+                  }}
+                  onMouseEnter={e => { e.target.style.background = '#2563eb'; e.target.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.target.style.background = '#3b82f6'; e.target.style.transform = 'translateY(0)'; }}
+                >
+                  <ShoppingCart size={16}/> {ar?'أضف تغليفك':'Add Your Packaging'}
+                </button>
+                <button
+                  onClick={() => navigate('/marketplace')}
+                  style={{
+                    padding:'12px 28px',
+                    background:dark?'rgba(139,92,246,.2)':'#f3e8ff',
+                    color:dark?'#d8b4fe':'#7e22ce',
+                    border:`1px solid ${dark?'rgba(139,92,246,.4)':'#e9d5ff'}`,
+                    borderRadius:8,
+                    fontSize:14,
+                    fontWeight:700,
+                    cursor:'pointer',
+                    display:'flex',
+                    alignItems:'center',
+                    gap:8,
+                    transition:'all .3s',
+                    fontFamily:'Cairo,sans-serif'
+                  }}
+                  onMouseEnter={e => {
+                    e.target.style.background = dark?'rgba(139,92,246,.3)':'#e9d5ff';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.target.style.background = dark?'rgba(139,92,246,.2)':'#f3e8ff';
+                    e.target.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Globe size={16}/> {ar?'تصفح السوق':'Browse Marketplace'}
+                </button>
+              </div>
+              {/* Stats */}
+              <div style={{ display:'flex', gap:32, marginTop:28 }}>
+                <div>
+                  <div style={{ fontSize:20, fontWeight:900, color:txt, transition:'color .3s' }}>500+</div>
+                  <div style={{ fontSize:12, color:mu, transition:'color .3s', marginTop:4 }}>{ar?'منتجات مدرجة':'Products Listed'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:20, fontWeight:900, color:txt, transition:'color .3s' }}>98%</div>
+                  <div style={{ fontSize:12, color:mu, transition:'color .3s', marginTop:4 }}>{ar?'رضا المستخدمين':'User Satisfaction'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Image */}
+            <div style={{ position:'relative' }}>
+              <img
+                src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&q=80"
+                alt={ar?'تغليف مستدام':'Sustainable Packaging'}
+                style={{
+                  width:'100%',
+                  borderRadius:16,
+                  boxShadow:dark?'0 20px 60px rgba(0,0,0,.4)':'0 20px 60px rgba(0,0,0,.1)',
+                  transition:'transform .3s',
+                  cursor:'pointer'
+                }}
+                onMouseEnter={e => { e.target.style.transform = 'scale(1.02)'; }}
+                onMouseLeave={e => { e.target.style.transform = 'scale(1)'; }}
+              />
+              {/* Badge */}
+              <div style={{
+                position:'absolute',
+                top:20,
+                [ar?'right':'left']:20,
+                background:dark?'rgba(0,0,0,.8)':'rgba(255,255,255,.95)',
+                backdropFilter:'blur(10px)',
+                padding:'12px 16px',
+                borderRadius:12,
+                boxShadow:'0 8px 32px rgba(0,0,0,.15)',
+                border:`1px solid ${dark?'rgba(255,255,255,.1)':'rgba(0,0,0,.1)'}`
+              }}>
+                <div style={{ fontSize:11, fontWeight:700, color:dark?'#a7f3d0':'#059669', marginBottom:2, textTransform:'uppercase', letterSpacing:0.5 }}>
+                  {ar?'الفئة المميزة':'Featured'}
+                </div>
+                <div style={{ fontSize:13, fontWeight:800, color:txt, transition:'color .3s' }}>
+                  {ar?'جديد اليوم':'New Today'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

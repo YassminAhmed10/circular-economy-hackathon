@@ -97,6 +97,7 @@ export const registrationAPI = {
 export const profileAPI = {
     getProfile: () => api.get('/profile/me'),
     updateProfile: (data) => api.put('/profile/me', data),
+    uploadLogo: (base64Image) => api.post('/profile/upload-logo', { logoBase64: base64Image }),
     changePassword: (current, newPass) => api.put('/profile/password', { currentPassword: current, newPassword: newPass }),
     getStats: () => api.get('/profile/stats'),
     requestVerification: () => api.post('/profile/request-verification'),

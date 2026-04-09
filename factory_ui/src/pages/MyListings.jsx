@@ -63,6 +63,21 @@ function MyListings() {
             date: '2024-01-05',
             views: 28,
             offers: 2
+        },
+        {
+            id: 5,
+            title: 'علب تغليف مستدامة ECO',
+            type: 'تغليف مستدام',
+            amount: '3',
+            unit: 'طن',
+            frequency: 'شهري',
+            price: '4500',
+            currency: 'جنيه',
+            location: 'القاهرة',
+            status: 'نشط',
+            date: '2024-04-05',
+            views: 156,
+            offers: 4
         }
     ]);
 

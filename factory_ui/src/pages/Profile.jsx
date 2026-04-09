@@ -184,14 +184,47 @@ function Profile({ user: initialUser, onUpdateUser, lang = 'ar', dark = false })
         try {
             setLoading(true);
             const response = await profileAPI.getProfile();
-            const data = response.data;
+            console.log('Profile API Response:', response);
+            
+            // البيانات قد تكون في response.data أو response.data.data (ApiResponse wrapper)
+            const profileData = response.data?.data || response.data;
+            
+            console.log('Profile Data:', profileData);
+            
+            if (!profileData) {
+                setError('No profile data received');
+                return;
+            }
+            
             setFormData(prev => ({
                 ...prev,
-                ...data,
-                logoPreview: data.logoUrl, // تطابق اسم الحقل
-                registrationPurpose: data.registrationPurpose || [],
-                wastesForSale: data.wastesForSale || [],
-                purchaseRequests: data.purchaseRequests || [],
+                id: profileData.factoryId,
+                factoryId: profileData.factoryId,
+                factoryName: profileData.factoryName || '',
+                industryType: profileData.industryType || '',
+                location: profileData.location || '',
+                address: profileData.address || '',
+                phone: profileData.phone || '',
+                email: profileData.email || '',
+                ownerName: profileData.ownerName || '',
+                ownerPhone: profileData.ownerPhone || '',
+                taxNumber: profileData.taxNumber || '',
+                registrationNumber: profileData.registrationNumber || '',
+                establishmentYear: profileData.establishmentYear || new Date().getFullYear(),
+                productionCapacity: profileData.productionCapacity || 0,
+                productionUnit: profileData.productionUnit || 'ton',
+                mainProducts: profileData.mainProducts || '',
+                status: profileData.status || 'Pending',
+                joinedDate: profileData.joinedDate || new Date(),
+                rating: profileData.rating || 0,
+                totalReviews: profileData.totalReviews || 0,
+                activeListings: profileData.activeListings || 0,
+                completedOrders: profileData.completedOrders || 0,
+                logoPreview: profileData.logoUrl || null,
+                isVerified: profileData.isVerified || false,
+                registrationPurpose: profileData.registrationPurpose || [],
+                wastesForSale: profileData.wastesForSale || [],
+                purchaseRequests: profileData.purchaseRequests || [],
             }));
         } catch (err) {
             console.error('Error fetching profile:', err);
@@ -206,27 +239,72 @@ function Profile({ user: initialUser, onUpdateUser, lang = 'ar', dark = false })
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const [logoError, setLogoError] = useState(false);
+
     const handleLogoUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setFormData(prev => ({ ...prev, logoPreview: reader.result }));
+                setLogoError(false);
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleLogoError = () => {
+        setLogoError(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             setLoading(true);
-            // إعداد البيانات للإرسال (حذف logoPreview إذا كان Base64? قد تحتاج لرفع منفصل)
+            
+            let logoUrl = formData.logoPreview;
+            
+            // إذا كانت الصورة قد تم تحديثها (Base64)، قم برفعها بدون إرسالها مع البيانات الأخرى
+            if (formData.logoPreview && formData.logoPreview.startsWith('data:')) {
+                try {
+                    const logoResponse = await profileAPI.uploadLogo(formData.logoPreview);
+                    if (logoResponse.data?.success) {
+                        logoUrl = logoResponse.data.data.fileUrl;
+                    }
+                } catch (logoErr) {
+                    console.error('Error uploading logo:', logoErr);
+                    // تابع حتى لو فشل رفع الصورة
+                }
+            }
+            
+            // إعداد البيانات للإرسال - بدون logoPreview (Base64)
+            // فقط logoUrl (string path)
             const updateData = {
-                ...formData,
-                logoUrl: formData.logoPreview // إذا كان Base64 قد يحتاج معالجة
+                factoryId: formData.factoryId || formData.id,
+                factoryName: formData.factoryName || '',
+                industryType: formData.industryType || '',
+                location: formData.location || '',
+                address: formData.address || '',
+                phone: formData.phone || '',
+                email: formData.email || '',
+                ownerName: formData.ownerName || '',
+                ownerPhone: formData.ownerPhone || '',
+                taxNumber: formData.taxNumber || '',
+                registrationNumber: formData.registrationNumber || '',
+                establishmentYear: formData.establishmentYear || new Date().getFullYear(),
+                productionCapacity: formData.productionCapacity || 0,
+                productionUnit: formData.productionUnit || 'ton',
+                mainProducts: formData.mainProducts || '',
+                logoUrl: logoUrl, // فقط URL string، ليس Base64
+                registrationPurpose: formData.registrationPurpose || [],
+                wastesForSale: formData.wastesForSale || [],
+                purchaseRequests: formData.purchaseRequests || [],
             };
-            await profileAPI.updateProfile(updateData);
+            
+            console.log('Updating profile with data:', updateData);
+            const response = await profileAPI.updateProfile(updateData);
+            console.log('Update response:', response);
+            
             onUpdateUser?.(updateData);
             setIsEditing(false);
         } catch (err) {
@@ -247,6 +325,46 @@ function Profile({ user: initialUser, onUpdateUser, lang = 'ar', dark = false })
     const getFrequencyLabel = (freq) => {
         const map = { daily: t[locale].daily, weekly: t[locale].weekly, monthly: t[locale].monthly, quarterly: t[locale].quarterly };
         return map[freq] || freq;
+    };
+
+    // الحصول على عنوان URL كامل للصورة - يدعم جميع الصيغ القديمة والجديدة
+    const getLogoUrl = (logoPath) => {
+        if (!logoPath || logoPath.trim() === '') return null;
+        
+        // الحالة 1: Base64 (data:image/...)
+        if (logoPath.startsWith('data:')) return logoPath;
+        
+        // الحالة 2: مسار نسبي يبدأ بـ /
+        if (logoPath.startsWith('/')) {
+            return `http://localhost:54465${logoPath}`;
+        }
+        
+        // الحالة 3: Base64 طويلة محفوظة مباشرة (بدون data: prefix)
+        if (!logoPath.includes('/') && !logoPath.startsWith('http')) {
+            // جرب إضافة data: prefix
+            if (logoPath.length > 100) {
+                try {
+                    // Check if it looks like valid base64
+                    const base64Pattern = /^[A-Za-z0-9+/=]+$/;
+                    if (base64Pattern.test(logoPath)) {
+                        return `data:image/png;base64,${logoPath}`;
+                    }
+                } catch (e) {
+                    console.warn('Invalid base64 logo:', e);
+                }
+            }
+        }
+        
+        // الحالة 4: URL كاملة (http://, https://)
+        if (logoPath.startsWith('http')) return logoPath;
+        
+        // الحالة 5: مسار بدون / في البداية (أضف /)
+        if (logoPath && !logoPath.startsWith('http')) {
+            return `http://localhost:54465/${logoPath}`;
+        }
+        
+        // الحالة الافتراضية: أرجع كما هي
+        return logoPath;
     };
 
     if (loading) return <div className="flex justify-center items-center h-screen">{t[locale].loading}</div>;
@@ -316,15 +434,17 @@ function Profile({ user: initialUser, onUpdateUser, lang = 'ar', dark = false })
                         <div className="rounded-xl shadow-sm border p-6" style={{ background: dark ? '#1e293b' : '#ffffff', borderColor: dark ? '#334155' : '#e2e8f0' }}>
                             <div className="flex flex-col items-center text-center">
                                 <div className="relative mb-4">
-                                    {formData.logoPreview ? (
+                                    {formData.logoPreview && !logoError ? (
                                         <img
-                                            src={formData.logoPreview}
+                                            src={getLogoUrl(formData.logoPreview)}
                                             alt="logo"
                                             className="w-32 h-32 rounded-full object-cover border-4"
                                             style={{ borderColor: '#10b981' }}
+                                            onError={handleLogoError}
+                                            onLoad={() => setLogoError(false)}
                                         />
                                     ) : (
-                                        <div className="w-32 h-32 rounded-full flex items-center justify-center" style={{ background: dark ? '#2d3a4f' : '#f1f5f9' }}>
+                                        <div className="w-32 h-32 rounded-full flex items-center justify-center border-4" style={{ background: dark ? '#2d3a4f' : '#f1f5f9', borderColor: '#10b981' }}>
                                             <Factory size={48} style={{ color: '#10b981' }} />
                                         </div>
                                     )}

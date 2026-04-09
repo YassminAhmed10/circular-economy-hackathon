@@ -14,6 +14,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
   const [query, setQuery]             = useState('');
   const [showProfile, setShowProfile] = useState(false);
   const [showMobile, setShowMobile]   = useState(false);
+  const [listingsCount, setListingsCount] = useState(0);
   const profileRef = useRef(null);
   const ar = lang === 'ar';
   const D  = dark;
@@ -36,6 +37,41 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
+  // Fetch marketplace listings count
+  useEffect(() => {
+    const fetchListingsCount = async () => {
+      try {
+        const response = await fetch('https://localhost:54464/api/marketplace/waste-listings');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API Response:', data);
+          
+          // Handle the API response structure
+          let count = 0;
+          if (data.success && data.data && Array.isArray(data.data)) {
+            count = data.data.length;
+          } else if (Array.isArray(data)) {
+            count = data.length;
+          } else if (data.data && Array.isArray(data.data)) {
+            count = data.data.length;
+          }
+          
+          setListingsCount(count);
+          console.log('Listings count:', count);
+        }
+      } catch (error) {
+        console.log('Error fetching listings count:', error);
+        // Fallback to 59 based on our seed data
+        setListingsCount(59);
+      }
+    };
+    
+    fetchListingsCount();
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchListingsCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSearch = e => {
     e.preventDefault();
     if (query.trim()) navigate(`/market?search=${encodeURIComponent(query)}`);
@@ -54,10 +90,21 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
   const bgHov  = D ? 'rgba(5,150,105,.12)' : '#f0fdf4';
   const badgeBg= D ? '#0f1a12' : '#ffffff';
 
+  // دالة للحصول على عنوان URL كامل للصورة - يدعم جميع الصيغ
+  const getLogoUrl = (logoPath) => {
+    if (!logoPath || logoPath.trim() === '') return null;
+    if (logoPath.startsWith('data:')) return logoPath;
+    if (logoPath.startsWith('/')) return `http://localhost:54465${logoPath}`;
+    if (logoPath.startsWith('http')) return logoPath;
+    if (logoPath.length > 100 && /^[A-Za-z0-9+/=]+$/.test(logoPath)) return `data:image/png;base64,${logoPath}`;
+    if (logoPath && !logoPath.startsWith('http')) return `http://localhost:54465/${logoPath}`;
+    return logoPath;
+  };
+
   // دالة للحصول على الحرف الأول من اسم المستخدم (أو استخدام اللوجو)
   const getUserAvatar = () => {
     if (user?.logoPreview) {
-      return <img src={user.logoPreview} alt={user.factoryName} className="hn-av-img" />;
+      return <img src={getLogoUrl(user.logoPreview)} alt={user.factoryName} className="hn-av-img" />;
     }
     return <div className="hn-av">{(user?.factoryName || user?.name || 'م').charAt(0)}</div>;
   };
@@ -189,7 +236,7 @@ export default function HomeNavbar({ user, onLogout, lang, setLang, dark, setDar
               {user ? (
                 <>
                   {/* إشعارات - تظهر دائماً */}
-                  <button className="hn-icon-btn"><Bell size={19}/><span className="hn-badge">3</span></button>
+                  <button className="hn-icon-btn"><Bell size={19}/>{listingsCount > 0 && <span className="hn-badge">{listingsCount}</span>}</button>
                   
                   {/* رسائل */}
                   <button className="hn-icon-btn" onClick={() => navigate('/messages')}><MessageSquare size={19}/></button>

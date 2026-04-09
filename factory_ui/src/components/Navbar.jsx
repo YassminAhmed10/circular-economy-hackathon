@@ -44,6 +44,16 @@ function Navbar({
 
     const isVerified = user?.status === 'Active';
 
+    const getLogoUrl = (logoPath) => {
+        if (!logoPath || logoPath.trim() === '') return null;
+        if (logoPath.startsWith('data:')) return logoPath;
+        if (logoPath.startsWith('/')) return `http://localhost:54465${logoPath}`;
+        if (logoPath.startsWith('http')) return logoPath;
+        if (logoPath.length > 100 && /^[A-Za-z0-9+/=]+$/.test(logoPath)) return `data:image/png;base64,${logoPath}`;
+        if (logoPath && !logoPath.startsWith('http')) return `http://localhost:54465/${logoPath}`;
+        return logoPath;
+    };
+
     const mainLinks = [
         { id: 'home', label: 'الرئيسية', path: '/', icon: <Home className="w-4 h-4" /> },
         {
@@ -69,9 +79,23 @@ function Navbar({
 
     const userLinks = [
         { id: 'my-listings', label: 'إعلاناتي', path: '/my-listings', icon: <Eye className="w-4 h-4" /> },
-        { id: 'list-waste', label: 'إضافة نفايات', path: '/list-waste', icon: <Package className="w-4 h-4" /> },
+        { id: 'list-waste', label: 'إضافة نفايات عامة', path: '/list-waste', icon: <Package className="w-4 h-4" /> },
+        { id: 'add-packaging', label: 'إضافة تغليف مستدام', path: '/packaging-waste', icon: <Package className="w-4 h-4" /> },
         { id: 'profile', label: 'الملف الشخصي', path: '/profile', icon: <User className="w-4 h-4" /> },
         { id: 'settings', label: 'الإعدادات', path: '/settings', icon: <Settings className="w-4 h-4" /> },
+    ];
+
+    const categoryLinks = [
+        { id: 'all-waste', label: 'جميع المخلفات', path: '/marketplace?category=all' },
+        { id: 'plastic', label: 'بلاستيك', path: '/marketplace?category=plastic' },
+        { id: 'metal', label: 'معادن', path: '/marketplace?category=metal' },
+        { id: 'paper', label: 'ورق', path: '/marketplace?category=paper' },
+        { id: 'glass', label: 'زجاج', path: '/marketplace?category=glass' },
+        { id: 'wood', label: 'خشب', path: '/marketplace?category=wood' },
+        { id: 'textile', label: 'نسيج', path: '/marketplace?category=textile' },
+        { id: 'chemicals', label: 'كيماويات', path: '/marketplace?category=chemicals' },
+        { id: 'electronics', label: 'إلكترونيات', path: '/marketplace?category=electronics' },
+        { id: 'packaging', label: 'تغليف مستدام', path: '/marketplace?category=packaging' },
     ];
 
     const handleSearch = (e) => {
@@ -160,7 +184,7 @@ function Navbar({
                                         <div className="profile-avatar">
                                             {user?.logoPreview ? (
                                                 <img
-                                                    src={user.logoPreview}
+                                                    src={getLogoUrl(user.logoPreview)}
                                                     alt={user?.factoryName || 'User'}
                                                     className="w-full h-full object-cover rounded-full"
                                                 />
@@ -232,9 +256,13 @@ function Navbar({
                             <div className="navbar-quick-links">
                                 {user ? (
                                     <div className="flex gap-4">
-                                        <Link to="/list-waste" className="btn-primary">
+                                        <Link to="/list-waste" className="btn-secondary">
                                             <Plus className="w-4 h-4" />
                                             إضافة نفايات
+                                        </Link>
+                                        <Link to="/packaging-waste" className="btn-primary">
+                                            <Package className="w-4 h-4" />
+                                            تغليف مستدام
                                         </Link>
                                     </div>
                                 ) : (
@@ -249,6 +277,31 @@ function Navbar({
                                 )}
                             </div>
                         </div>
+
+                        {location.pathname.includes('/marketplace') && (
+                            <div className="navbar-categories" dir="rtl" style={{borderTop: '1px solid #e5e7eb', paddingTop: '8px', marginTop: '8px'}}>
+                                <nav style={{display: 'flex', gap: '16px', flexWrap: 'wrap'}}>
+                                    {categoryLinks.map((cat) => (
+                                        <Link
+                                            key={cat.id}
+                                            to={cat.path}
+                                            className={`category-link ${location.search.includes(cat.id) ? 'category-link-active' : ''}`}
+                                            style={{
+                                                fontSize: '13px',
+                                                padding: '4px 12px',
+                                                borderRadius: '20px',
+                                                backgroundColor: location.search.includes(cat.id) ? '#059669' : '#f5f5f5',
+                                                color: location.search.includes(cat.id) ? '#fff' : '#374151',
+                                                textDecoration: 'none',
+                                                transition: 'all .2s'
+                                            }}
+                                        >
+                                            {cat.label}
+                                        </Link>
+                                    ))}
+                                </nav>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>

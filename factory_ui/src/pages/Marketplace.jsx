@@ -1,5 +1,5 @@
 // Marketplace.js
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './Marketplace.css';
 import { FiSearch, FiMapPin, FiPackage, FiEye, FiStar, FiGlobe } from 'react-icons/fi';
 import { MdRecycling } from 'react-icons/md';
@@ -8,7 +8,9 @@ import { BsFileText, BsBoxSeam } from 'react-icons/bs';
 import { FaIndustry, FaWeightHanging } from 'react-icons/fa';
 import { RiTShirtLine } from 'react-icons/ri';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LoadScript, GoogleMap, Marker, InfoWindow } from '@react-google-maps/api';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 import paperWasteImage from '../assets/مخلفات الورق.png';
 import plasticWasteImage from '../assets/مخلفات البلاستيك.png';
@@ -53,7 +55,7 @@ const T = {
         listings: 'إعلان متاح',
         langBtn: 'English',
         badges: { new: 'جديد', featured: 'مميز', offer: 'عرض' },
-        cats: { all: 'الكل', plastic: 'بلاستيك', metal: 'معادن', paper: 'ورق', glass: 'زجاج', wood: 'خشب', textile: 'نسيج', chemicals: 'كيماويات', electronics: 'إلكترونيات' },
+        cats: { all: 'الكل', plastic: 'بلاستيك', metal: 'معادن', paper: 'ورق', glass: 'زجاج', wood: 'خشب', textile: 'نسيج', chemicals: 'كيماويات', electronics: 'إلكترونيات', packaging: 'تغليف مستدام' },
         loading: 'جاري التحميل...',
         error: 'حدث خطأ في تحميل البيانات'
     },
@@ -89,7 +91,7 @@ const T = {
         listings: 'listings available',
         langBtn: 'عربي',
         badges: { new: 'New', featured: 'Featured', offer: 'Offer' },
-        cats: { all: 'All', plastic: 'Plastic', metal: 'Metal', paper: 'Paper', glass: 'Glass', wood: 'Wood', textile: 'Textile', chemicals: 'Chemicals', electronics: 'Electronics' },
+        cats: { all: 'All', plastic: 'Plastic', metal: 'Metal', paper: 'Paper', glass: 'Glass', wood: 'Wood', textile: 'Textile', chemicals: 'Chemicals', electronics: 'Electronics', packaging: 'Sustainable Packaging' },
         loading: 'Loading...',
         error: 'Error loading data'
     },
@@ -105,21 +107,60 @@ const CATEGORIES = [
     { key: 'wood', icon: GiWoodPile, catKey: 'wood' },
     { key: 'textile', icon: RiTShirtLine, catKey: 'textile' },
     { key: 'chemicals', icon: FaIndustry, catKey: 'chemicals' },
-    { key: 'electronic', icon: FaIndustry, catKey: 'electronics' },
+    { key: 'electronics', icon: FaIndustry, catKey: 'electronics' },
+    { key: 'packaging', icon: BsBoxSeam, catKey: 'packaging' },
 ];
 
 // ─── STATIC WASTE ITEMS (FALLBACK) ───────────────────────────────────────────
 const STATIC_WASTE_ITEMS = [
+    // ===== PLASTIC (بلاستيك) =====
     { id: 1, titleAr: 'براميل بلاستيك مستعملة', titleEn: 'Used Plastic Barrels', category: 'plastic', companyAr: 'مصنع الدلتا للبتروكيماويات', companyEn: 'Delta Petrochemicals Factory', locAr: 'العاشر من رمضان', locEn: '10th of Ramadan', price: 45, unitAr: 'للبرميل', unitEn: 'per barrel', weightAr: '5 طن متاح', weightEn: '5 tons avail.', rating: 4.7, reviews: 38, descAr: 'براميل HDPE سعة 200 لتر نظيفة وصالحة للإعادة', descEn: '200L HDPE barrels, clean and reusable', badge: 'new', image: plasticWasteImage, lat: 30.31, lng: 31.74 },
-    { id: 2, titleAr: 'حديد خردة عالي الجودة', titleEn: 'High Quality Scrap Iron', category: 'metal', companyAr: 'الشركة المصرية للصلب', companyEn: 'Egyptian Steel Company', locAr: 'السادس من أكتوبر', locEn: '6th of October', price: 3200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '20 طن', weightEn: '20 tons', rating: 4.9, reviews: 112, descAr: 'خردة حديد A-grade مناسبة للصهر وإعادة التصنيع', descEn: 'A-grade scrap iron suitable for smelting', badge: 'featured', image: metalWasteImage, lat: 29.97, lng: 30.94 },
-    { id: 3, titleAr: 'كرتون ورق مضغوط', titleEn: 'Compressed Paper Cardboard', category: 'paper', companyAr: 'مطابع الجيل الحديث', companyEn: 'Modern Generation Press', locAr: 'مدينة العبور', locEn: 'Obour City', price: 800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '8 طن', weightEn: '8 tons', rating: 4.5, reviews: 61, descAr: 'كرتون مضغوط على شكل بالات جاهز للشحن', descEn: 'Compressed cardboard bales ready for shipping', badge: null, image: paperWasteImage, lat: 30.24, lng: 31.55 },
-    { id: 4, titleAr: 'قطع نسيج ومقصورات قماش', titleEn: 'Fabric Pieces & Offcuts', category: 'textile', companyAr: 'شركة نوردانتكس للغزل', companyEn: 'Nordantex Spinning Co.', locAr: 'المحلة الكبرى', locEn: 'El Mahalla El Kubra', price: 1200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.3, reviews: 27, descAr: 'مقصورات قطن وبوليستر متنوعة', descEn: 'Cotton and polyester offcuts various sizes', badge: 'offer', image: textileWasteImage, lat: 30.97, lng: 31.17 },
-    { id: 5, titleAr: 'ألواح خشب وفلين', titleEn: 'Wood Panels & Cork', category: 'wood', companyAr: 'مصنع الخشب المتحد', companyEn: 'United Wood Factory', locAr: 'برج العرب الجديدة', locEn: 'New Borg El Arab', price: 600, unitAr: 'للطن', unitEn: 'per ton', weightAr: '10 طن', weightEn: '10 tons', rating: 4.2, reviews: 19, descAr: 'فلين طبيعي وحبيبات خشب ناعمة للعزل', descEn: 'Natural cork and fine wood chips for insulation', badge: null, image: woodWasteImage, lat: 30.81, lng: 29.68 },
-    { id: 6, titleAr: 'زجاج مكسور وملون', titleEn: 'Broken & Colored Glass', category: 'glass', companyAr: 'زجاج مصر للصناعة', companyEn: 'Egypt Glass Industries', locAr: 'العامرية', locEn: 'El Ameria', price: 500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '15 طن', weightEn: '15 tons', rating: 4.0, reviews: 33, descAr: 'شظايا زجاج شفاف وملون صالحة لإعادة الصهر', descEn: 'Transparent and colored glass for remelting', badge: 'new', image: glassWasteImage, lat: 31.19, lng: 29.91 },
-    { id: 7, titleAr: 'مواد كيميائية غير خطرة', titleEn: 'Non-Hazardous Chemicals', category: 'chemicals', companyAr: 'الكيماويات الصناعية المصرية', companyEn: 'Egyptian Industrial Chemicals', locAr: 'شبرا الخيمة', locEn: 'Shubra El Kheima', price: 2100, unitAr: 'للطن', unitEn: 'per ton', weightAr: '2 طن', weightEn: '2 tons', rating: 4.6, reviews: 44, descAr: 'مواد كيميائية مصنفة جاهزة للاستخدام الصناعي', descEn: 'Classified chemicals ready for industrial use', badge: 'featured', image: chemicalsImg, lat: 30.13, lng: 31.24 },
-    { id: 8, titleAr: 'ألومنيوم وأسلاك معدنية', titleEn: 'Aluminum & Metal Wires', category: 'metal', companyAr: 'مصنع الألومنيوم القاهرة', companyEn: 'Cairo Aluminum Factory', locAr: 'العاشر من رمضان', locEn: '10th of Ramadan', price: 6500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '4 طن', weightEn: '4 tons', rating: 4.8, reviews: 77, descAr: 'ألومنيوم نقي وأسلاك نحاسية جاهزة للتصنيع', descEn: 'Pure aluminum and copper wires for manufacturing', badge: 'featured', image: metalWasteImage, lat: 30.32, lng: 31.76 },
     { id: 9, titleAr: 'بقايا بلاستيك ABS وPVC', titleEn: 'ABS & PVC Plastic Waste', category: 'plastic', companyAr: 'مصنع بلاستيكو مصر', companyEn: 'Plastico Egypt Factory', locAr: 'مدينة نصر', locEn: 'Nasr City', price: 1800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '6 طن', weightEn: '6 tons', rating: 4.4, reviews: 52, descAr: 'بلاستيك ABS وPVC نظيف مناسب للطحن والتصنيع', descEn: 'Clean ABS and PVC plastic for regrinding', badge: null, image: plasticWasteImage, lat: 30.07, lng: 31.33 },
-    { id: 10, titleAr: 'أجهزة إلكترونية للتدوير', titleEn: 'Electronics for Recycling', category: 'electronic', companyAr: 'مصنع الأجهزة الحديثة', companyEn: 'Modern Electronics Factory', locAr: 'القاهرة', locEn: 'Cairo', price: 2500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.5, reviews: 30, descAr: 'أجهزة إلكترونية قديمة صالحة لإعادة التدوير', descEn: 'Old electronics suitable for recycling', badge: 'new', image: electronicsImg, lat: 30.06, lng: 31.24 },
+    { id: 12, titleAr: 'زجاجات بلاستيك PET مطحونة', titleEn: 'Ground PET Plastic Bottles', category: 'plastic', companyAr: 'مصنع ريسايكل جديد', companyEn: 'New Recycle Factory', locAr: 'حلوان', locEn: 'Helwan', price: 2200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '8 طن', weightEn: '8 tons', rating: 4.6, reviews: 56, descAr: 'رقائق PET نقية جاهزة للتصنيع من جديد', descEn: 'Pure PET flakes ready for recycling', badge: 'featured', image: plasticWasteImage, lat: 29.85, lng: 31.35 },
+    { id: 13, titleAr: 'أكياس بلاستيكية ملونة', titleEn: 'Colored Plastic Bags', category: 'plastic', companyAr: 'شركة الأكياس العملاقة', companyEn: 'Giant Bags Co.', locAr: 'القاهرة', locEn: 'Cairo', price: 950, unitAr: 'للطن', unitEn: 'per ton', weightAr: '12 طن', weightEn: '12 tons', rating: 4.3, reviews: 34, descAr: 'أكياس بلاستيكية متعددة الألوان وأحجام مختلفة', descEn: 'Multi-colored plastic bags in various sizes', badge: null, image: plasticWasteImage, lat: 30.04, lng: 31.36 },
+
+    // ===== METAL (معادن) =====
+    { id: 2, titleAr: 'حديد خردة عالي الجودة', titleEn: 'High Quality Scrap Iron', category: 'metal', companyAr: 'الشركة المصرية للصلب', companyEn: 'Egyptian Steel Company', locAr: 'السادس من أكتوبر', locEn: '6th of October', price: 3200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '20 طن', weightEn: '20 tons', rating: 4.9, reviews: 112, descAr: 'خردة حديد A-grade مناسبة للصهر وإعادة التصنيع', descEn: 'A-grade scrap iron suitable for smelting', badge: 'featured', image: metalWasteImage, lat: 29.97, lng: 30.94 },
+    { id: 8, titleAr: 'ألومنيوم وأسلاك معدنية', titleEn: 'Aluminum & Metal Wires', category: 'metal', companyAr: 'مصنع الألومنيوم القاهرة', companyEn: 'Cairo Aluminum Factory', locAr: 'العاشر من رمضان', locEn: '10th of Ramadan', price: 6500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '4 طن', weightEn: '4 tons', rating: 4.8, reviews: 77, descAr: 'ألومنيوم نقي وأسلاك نحاسية جاهزة للتصنيع', descEn: 'Pure aluminum and copper wires for manufacturing', badge: 'featured', image: metalWasteImage, lat: 30.32, lng: 31.76 },
+    { id: 14, titleAr: 'نحاس ومعادن نفيسة', titleEn: 'Copper & Precious Metals', category: 'metal', companyAr: 'مصنع المعادن النفيسة', companyEn: 'Precious Metals Factory', locAr: 'بورسعيد', locEn: 'Port Said', price: 12500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '2 طن', weightEn: '2 tons', rating: 4.9, reviews: 89, descAr: 'نحاس عالي النقاء مع آثار معادن نفيسة أخرى', descEn: 'High purity copper with other precious metals traces', badge: 'featured', image: metalWasteImage, lat: 31.27, lng: 32.27 },
+    { id: 15, titleAr: 'فولاذ مقاوم الصدأ', titleEn: 'Stainless Steel Scrap', category: 'metal', companyAr: 'شركة الفولاذ الحديثة', companyEn: 'Modern Steel Co.', locAr: 'الإسكندرية', locEn: 'Alexandria', price: 8900, unitAr: 'للطن', unitEn: 'per ton', weightAr: '5 طن', weightEn: '5 tons', rating: 4.7, reviews: 63, descAr: 'فولاذ مقاوم للصدأ نظيف وخالي من الشوائب', descEn: 'Clean stainless steel free from impurities', badge: null, image: metalWasteImage, lat: 31.20, lng: 29.92 },
+
+    // ===== PAPER (ورق) =====
+    { id: 3, titleAr: 'كرتون ورق مضغوط', titleEn: 'Compressed Paper Cardboard', category: 'paper', companyAr: 'مطابع الجيل الحديث', companyEn: 'Modern Generation Press', locAr: 'مدينة العبور', locEn: 'Obour City', price: 800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '8 طن', weightEn: '8 tons', rating: 4.5, reviews: 61, descAr: 'كرتون مضغوط على شكل بالات جاهز للشحن', descEn: 'Compressed cardboard bales ready for shipping', badge: null, image: paperWasteImage, lat: 30.24, lng: 31.55 },
+    { id: 16, titleAr: 'ورق الصحف والمجلات', titleEn: 'Newspaper & Magazine Paper', category: 'paper', companyAr: 'دار الطباعة الكبرى', companyEn: 'Great Printing House', locAr: 'شبرا الخيمة', locEn: 'Shubra El Kheima', price: 650, unitAr: 'للطن', unitEn: 'per ton', weightAr: '10 طن', weightEn: '10 tons', rating: 4.4, reviews: 48, descAr: 'ورق صحف ومجلات نظيف منفصل عن الحبر', descEn: 'Clean newspaper separated from ink', badge: null, image: paperWasteImage, lat: 30.13, lng: 31.24 },
+    { id: 17, titleAr: 'صناديق ورق مقوى', titleEn: 'Corrugated Paper Boxes', category: 'paper', companyAr: 'مصنع الصناديق المتحدة', companyEn: 'United Boxes Factory', locAr: 'المنيا', locEn: 'El Minya', price: 1100, unitAr: 'للطن', unitEn: 'per ton', weightAr: '15 طن', weightEn: '15 tons', rating: 4.6, reviews: 71, descAr: 'صناديق ورق مقوى بحالة جيدة', descEn: 'Corrugated cardboard boxes in good condition', badge: 'featured', image: paperWasteImage, lat: 28.12, lng: 30.75 },
+    { id: 18, titleAr: 'ورق مكتبي وطباعي', titleEn: 'Office & Printing Paper', category: 'paper', companyAr: 'شركة الورق الذهبي', companyEn: 'Golden Paper Co.', locAr: 'البحيرة', locEn: 'Beheira', price: 1300, unitAr: 'للطن', unitEn: 'per ton', weightAr: '7 طن', weightEn: '7 tons', rating: 4.5, reviews: 55, descAr: 'ورق مكتبي عالي الجودة مع آثار طباعة قليلة', descEn: 'High quality office paper with minimal print traces', badge: null, image: paperWasteImage, lat: 30.72, lng: 30.55 },
+
+    // ===== TEXTILE (نسيج) =====
+    { id: 4, titleAr: 'قطع نسيج ومقصورات قماش', titleEn: 'Fabric Pieces & Offcuts', category: 'textile', companyAr: 'شركة نوردانتكس للغزل', companyEn: 'Nordantex Spinning Co.', locAr: 'المحلة الكبرى', locEn: 'El Mahalla El Kubra', price: 1200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.3, reviews: 27, descAr: 'مقصورات قطن وبوليستر متنوعة', descEn: 'Cotton and polyester offcuts various sizes', badge: 'offer', image: textileWasteImage, lat: 30.97, lng: 31.17 },
+    { id: 19, titleAr: 'ملابس قديمة وخرق', titleEn: 'Old Clothes & Rags', category: 'textile', companyAr: 'شركة الملابس المستعملة', companyEn: 'Used Clothing Co.', locAr: 'الفيوم', locEn: 'Fayoum', price: 850, unitAr: 'للطن', unitEn: 'per ton', weightAr: '9 طن', weightEn: '9 tons', rating: 4.2, reviews: 41, descAr: 'ملابس قديمة منفصلة ومصنفة حسب النوع', descEn: 'Separated old clothes sorted by type', badge: null, image: textileWasteImage, lat: 29.31, lng: 30.84 },
+    { id: 20, titleAr: 'خيوط وحبال نسيجية', titleEn: 'Textile Threads & Ropes', category: 'textile', companyAr: 'مصنع الخيوط المتقدم', companyEn: 'Advanced Threads Factory', locAr: 'كفر الشيخ', locEn: 'Kafr El Sheikh', price: 1500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '4 طن', weightEn: '4 tons', rating: 4.4, reviews: 35, descAr: 'خيوط نسيجية وحبال من مواد طبيعية', descEn: 'Textile threads and ropes from natural materials', badge: 'featured', image: textileWasteImage, lat: 31.12, lng: 31.12 },
+
+    // ===== WOOD (خشب) =====
+    { id: 5, titleAr: 'ألواح خشب وفلين', titleEn: 'Wood Panels & Cork', category: 'wood', companyAr: 'مصنع الخشب المتحد', companyEn: 'United Wood Factory', locAr: 'برج العرب الجديدة', locEn: 'New Borg El Arab', price: 600, unitAr: 'للطن', unitEn: 'per ton', weightAr: '10 طن', weightEn: '10 tons', rating: 4.2, reviews: 19, descAr: 'فلين طبيعي وحبيبات خشب ناعمة للعزل', descEn: 'Natural cork and fine wood chips for insulation', badge: null, image: woodWasteImage, lat: 30.81, lng: 29.68 },
+    { id: 21, titleAr: 'نشارة خشب وفتات', titleEn: 'Wood Sawdust & Chips', category: 'wood', companyAr: 'مسطرة الخشب المصرية', companyEn: 'Egyptian Wood Mill', locAr: 'القليوبية', locEn: 'Qalyubia', price: 400, unitAr: 'للطن', unitEn: 'per ton', weightAr: '18 طن', weightEn: '18 tons', rating: 4.1, reviews: 29, descAr: 'نشارة خشب نظيفة من الأخشاب الصلبة', descEn: 'Clean hardwood sawdust', badge: null, image: woodWasteImage, lat: 30.31, lng: 31.18 },
+    { id: 22, titleAr: 'بقايا أثاث خشبي', titleEn: 'Wooden Furniture Waste', category: 'wood', companyAr: 'مصنع الأثاث الراقي', companyEn: 'Premium Furniture Factory', locAr: 'القاهرة', locEn: 'Cairo', price: 1800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '6 طن', weightEn: '6 tons', rating: 4.5, reviews: 44, descAr: 'بقايا أثاث خشبي قيمة للحفظ', descEn: 'Valuable wooden furniture waste for preservation', badge: 'featured', image: woodWasteImage, lat: 30.05, lng: 31.28 },
+
+    // ===== GLASS (زجاج) =====
+    { id: 6, titleAr: 'زجاج مكسور وملون', titleEn: 'Broken & Colored Glass', category: 'glass', companyAr: 'زجاج مصر للصناعة', companyEn: 'Egypt Glass Industries', locAr: 'العامرية', locEn: 'El Ameria', price: 500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '15 طن', weightEn: '15 tons', rating: 4.0, reviews: 33, descAr: 'شظايا زجاج شفاف وملون صالحة لإعادة الصهر', descEn: 'Transparent and colored glass for remelting', badge: 'new', image: glassWasteImage, lat: 31.19, lng: 29.91 },
+    { id: 23, titleAr: 'زجاجات زجاجية شفافة', titleEn: 'Clear Glass Bottles', category: 'glass', companyAr: 'مصنع الزجاجات الشرقي', companyEn: 'Eastern Bottles Factory', locAr: 'السويس', locEn: 'Suez', price: 650, unitAr: 'للطن', unitEn: 'per ton', weightAr: '12 طن', weightEn: '12 tons', rating: 4.3, reviews: 52, descAr: 'زجاجات شفافة نظيفة وجاهزة للصهر', descEn: 'Clean transparent bottles ready for melting', badge: null, image: glassWasteImage, lat: 29.97, lng: 32.55 },
+    { id: 24, titleAr: 'نوافذ زجاجية مكسورة', titleEn: 'Broken Window Glass', category: 'glass', companyAr: 'شركة الزجاج الموحدة', companyEn: 'Unified Glass Co.', locAr: 'الجيزة', locEn: 'Giza', price: 450, unitAr: 'للطن', unitEn: 'per ton', weightAr: '8 طن', weightEn: '8 tons', rating: 4.2, reviews: 38, descAr: 'زجاج نوافذ مكسور مع إطارات', descEn: 'Broken window glass with frames', badge: null, image: glassWasteImage, lat: 30.01, lng: 31.20 },
+
+    // ===== CHEMICALS (كيماويات) =====
+    { id: 7, titleAr: 'مواد كيميائية غير خطرة', titleEn: 'Non-Hazardous Chemicals', category: 'chemicals', companyAr: 'الكيماويات الصناعية المصرية', companyEn: 'Egyptian Industrial Chemicals', locAr: 'شبرا الخيمة', locEn: 'Shubra El Kheima', price: 2100, unitAr: 'للطن', unitEn: 'per ton', weightAr: '2 طن', weightEn: '2 tons', rating: 4.6, reviews: 44, descAr: 'مواد كيميائية مصنفة جاهزة للاستخدام الصناعي', descEn: 'Classified chemicals ready for industrial use', badge: 'featured', image: chemicalsImg, lat: 30.13, lng: 31.24 },
+    { id: 25, titleAr: 'زيوت صناعية مستعملة', titleEn: 'Used Industrial Oils', category: 'chemicals', companyAr: 'شركة الزيوت المعاد تدويرها', companyEn: 'Recycled Oils Co.', locAr: 'أسوان', locEn: 'Aswan', price: 3500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '5 طن', weightEn: '5 tons', rating: 4.7, reviews: 56, descAr: 'زيوت صناعية نقية مع خدمات معالجة', descEn: 'Pure industrial oils with processing services', badge: 'featured', image: chemicalsImg, lat: 24.09, lng: 32.88 },
+    { id: 26, titleAr: 'مذيبات كيميائية آمنة', titleEn: 'Safe Chemical Solvents', category: 'chemicals', companyAr: 'مصنع المذيبات الآمن', companyEn: 'Safe Solvents Factory', locAr: 'طنطا', locEn: 'Tanta', price: 2800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.5, reviews: 41, descAr: 'مذيبات آمنة معتمدة دوليا', descEn: 'Safe solvents internationally certified', badge: null, image: chemicalsImg, lat: 30.79, lng: 31.00 },
+
+    // ===== ELECTRONICS (إلكترونيات) =====
+    { id: 10, titleAr: 'أجهزة إلكترونية للتدوير', titleEn: 'Electronics for Recycling', category: 'electronics', companyAr: 'مصنع الأجهزة الحديثة', companyEn: 'Modern Electronics Factory', locAr: 'القاهرة', locEn: 'Cairo', price: 2500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.5, reviews: 30, descAr: 'أجهزة إلكترونية قديمة صالحة لإعادة التدوير', descEn: 'Old electronics suitable for recycling', badge: 'new', image: electronicsImg, lat: 30.06, lng: 31.24 },
+    { id: 27, titleAr: 'لوحات دوائر إلكترونية', titleEn: 'Electronic Circuit Boards', category: 'electronics', companyAr: 'شركة اللوحات الإلكترونية', companyEn: 'Electronic Boards Co.', locAr: 'الإسكندرية', locEn: 'Alexandria', price: 8500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '1.5 طن', weightEn: '1.5 tons', rating: 4.8, reviews: 68, descAr: 'لوحات دائرية إلكترونية عالية القيمة', descEn: 'High-value electronic circuit boards', badge: 'featured', image: electronicsImg, lat: 31.20, lng: 29.92 },
+    { id: 28, titleAr: 'أجهزة حاسوب قديمة', titleEn: 'Old Computer Equipment', category: 'electronics', companyAr: 'مصنع تدوير الحواسيب', companyEn: 'Computer Recycling Factory', locAr: 'مدينة نصر', locEn: 'Nasr City', price: 3200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '4 طن', weightEn: '4 tons', rating: 4.4, reviews: 45, descAr: 'حواسيب ديسك وأجهزة محيطية قديمة', descEn: 'Old desktop computers and peripherals', badge: null, image: electronicsImg, lat: 30.07, lng: 31.33 },
+
+    // ===== SUSTAINABLE PACKAGING (تغليف مستدام) =====
+    { id: 11, titleAr: 'علب تغليف مستدامة ECO', titleEn: 'Sustainable ECO Packaging Boxes', category: 'packaging', companyAr: 'مصنع التغليف الأخضر', companyEn: 'Green Packaging Factory', locAr: 'القاهرة', locEn: 'Cairo', price: 4500, unitAr: 'للطن', unitEn: 'per ton', weightAr: '3 طن', weightEn: '3 tons', rating: 4.7, reviews: 42, descAr: 'علب تغليف بيودجرادبل وصديقة للبيئة، مناسبة لجميع الصناعات', descEn: 'Biodegradable and eco-friendly packaging boxes suitable for all industries', badge: 'new', image: plasticWasteImage, lat: 30.05, lng: 31.25 },
+    { id: 29, titleAr: 'أكياس ورقية بيئية', titleEn: 'Eco-Friendly Paper Bags', category: 'packaging', companyAr: 'مصنع الأكياس الخضراء', companyEn: 'Green Bags Factory', locAr: 'المنوفية', locEn: 'Monufia', price: 3200, unitAr: 'للطن', unitEn: 'per ton', weightAr: '5 طن', weightEn: '5 tons', rating: 4.6, reviews: 53, descAr: 'أكياس ورقية قابلة للتحلل مطبوعة حسب الطلب', descEn: 'Biodegradable paper bags custom printed', badge: 'featured', image: paperWasteImage, lat: 30.49, lng: 30.96 },
+    { id: 30, titleAr: 'شرائط وفيلم حماية ايكو', titleEn: 'ECO Protective Films & Tapes', category: 'packaging', companyAr: 'شركة الفيلم البيئي', companyEn: 'Eco Films Co.', locAr: 'القليوبية', locEn: 'Qalyubia', price: 5800, unitAr: 'للطن', unitEn: 'per ton', weightAr: '2 طن', weightEn: '2 tons', rating: 4.8, reviews: 59, descAr: 'أفلام حماية قابلة للتحلل البيولوجي', descEn: 'Biodegradable protective films and tapes', badge: 'featured', image: plasticWasteImage, lat: 30.31, lng: 31.18 },
+    { id: 31, titleAr: 'صناديق ورق مقوى بيئي', titleEn: 'ECO Corrugated Cardboard Boxes', category: 'packaging', companyAr: 'مصنع الصناديق الأخضر', companyEn: 'Green Boxes Factory', locAr: 'الدقهلية', locEn: 'Dakahlia', price: 2900, unitAr: 'للطن', unitEn: 'per ton', weightAr: '8 طن', weightEn: '8 tons', rating: 4.5, reviews: 48, descAr: 'صناديق معاد تدويرها وقابلة للتحلل نسبة عالية', descEn: 'Recycled biodegradable cardboard boxes high efficiency', badge: null, image: paperWasteImage, lat: 31.03, lng: 31.43 },
 ];
 
 // ─── CATEGORY IMAGE FALLBACK ──────────────────────────────────────────────────
@@ -135,6 +176,7 @@ const getCategoryFallbackImage = (category) => {
         chemical: chemicalsImg,
         electronic: electronicsImg,
         electronics: electronicsImg,
+        packaging: plasticWasteImage,
     };
     return map[category] || plasticWasteImage;
 };
@@ -147,6 +189,7 @@ const FACTORIES = [
     { nameAr: 'مطابع الجيل الحديث', nameEn: 'Modern Generation Press', typeAr: 'ورق وكرتون', typeEn: 'Paper & Cardboard', items: 11, lat: 30.24, lng: 31.55 },
     { nameAr: 'مصنع الألومنيوم القاهرة', nameEn: 'Cairo Aluminum Factory', typeAr: 'معادن ألومنيوم', typeEn: 'Aluminum', items: 5, lat: 30.32, lng: 31.76 },
     { nameAr: 'مصنع بلاستيكو مصر', nameEn: 'Plastico Egypt', typeAr: 'بلاستيك ومطاط', typeEn: 'Plastic & Rubber', items: 19, lat: 30.07, lng: 31.33 },
+    { nameAr: 'مصنع التغليف الأخضر', nameEn: 'Green Packaging Factory', typeAr: 'تغليف مستدام', typeEn: 'Sustainable Packaging', items: 7, lat: 30.05, lng: 31.25 },
 ];
 
 const MAP_STYLE = { width: '100%', height: '320px', borderRadius: '16px' };
@@ -172,16 +215,55 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
     const [userLocation, setUserLocation] = useState(null);
     const [nearbyFactories, setNearbyFactories] = useState([]);
     const [selectedMarker, setSelectedMarker] = useState(null);
-    const [mapRef, setMapRef] = useState(null);
+    const mapRef = useRef(null);
     const [notification, setNotification] = useState(null);
 
     // API Data States
     const [apiListings, setApiListings] = useState([]);
+    const [allApiListings, setAllApiListings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // ✅ custom listings من localStorage
     const [customListings, setCustomListings] = useState([]);
+
+    // Fetch FULL unfiltered API data for accurate category counts
+    useEffect(() => {
+        const fetchAllListings = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                // Fetch with large pageSize to get all items (pageSize=100 to cover 81 items)
+                const url = 'https://localhost:54464/api/marketplace/waste-listings?page=1&pageSize=100';
+                
+                const response = await fetch(url, {
+                    headers: token ? {
+                        'Authorization': `Bearer ${token}`
+                    } : {}
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(`✅ Full API data received: ${data.data?.length} items`, data);
+                    
+                    if (data.success && data.data && data.data.length > 0) {
+                        setAllApiListings(data.data);
+                        console.log(`✅ Loaded ${data.data.length} listings from database for counting`);
+                    } else {
+                        console.warn('No data received, falling back to static items');
+                        setAllApiListings(STATIC_WASTE_ITEMS);
+                    }
+                } else {
+                    console.log('API response not ok, using static data');
+                    setAllApiListings(STATIC_WASTE_ITEMS);
+                }
+            } catch (err) {
+                console.log('Could not fetch full listings from API, using static:', err);
+                setAllApiListings(STATIC_WASTE_ITEMS);
+            }
+        };
+        
+        fetchAllListings();
+    }, []); // Only fetch once on mount
 
     // Fetch data from API
     useEffect(() => {
@@ -213,6 +295,7 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                 }
 
                 const data = await response.json();
+                console.log('API Response Data:', data);
 
                 if (data.success) {
                     // Transform API data to match component format
@@ -244,10 +327,14 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                 }
             } catch (err) {
                 console.error('Error fetching listings:', err);
-                setError(err.message);
+                // Use static data as fallback
+                console.log('Using fallback static data - Total items:', STATIC_WASTE_ITEMS.length);
+                setApiListings(STATIC_WASTE_ITEMS);
+                setError(null);
             } finally {
                 setIsLoading(false);
             }
+
         };
 
         fetchListings();
@@ -278,6 +365,13 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
         })),
         ...(apiListings.length === 0 && customListings.length === 0 ? STATIC_WASTE_ITEMS : []), // Fallback only if no data
     ];
+
+    console.log('ALL_ITEMS:', {
+        apiListingsCount: apiListings.length,
+        customListingsCount: customListings.length,
+        staticItemsCount: STATIC_WASTE_ITEMS.length,
+        totalItemsCount: ALL_ITEMS.length
+    });
 
     const t = T[lang];
     const googleMapsApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '').trim();
@@ -337,12 +431,24 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
             : navigate(`/market?category=${encodeURIComponent(key)}`, { replace: true });
     };
 
-    const getCatCount = (key) =>
-        key === 'all' ? ALL_ITEMS.length : ALL_ITEMS.filter(i => i.category === key).length;
+    const getCatCount = (key) => {
+        // Count from actual API database, not static fallback
+        const sourceData = allApiListings.length > 0 ? allApiListings : STATIC_WASTE_ITEMS;
+        
+        // Extract category property correctly
+        const items = sourceData.map(item => ({
+            category: item.category
+        }));
+        
+        const count = key === 'all' 
+            ? items.length 
+            : items.filter(i => i.category === key).length;
+            
+        console.log(`Category '${key}': ${count} (from database: ${allApiListings.length > 0}, total available: ${sourceData.length})`);
+        return count;
+    };
 
     const getCatLabel = (cat) => t.cats[cat.catKey] || cat.key;
-
-    const onMapLoad = useCallback((map) => setMapRef(map), []);
 
     const updateNearby = (lat, lng) => {
         const sorted = FACTORIES
@@ -360,7 +466,7 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
             ({ coords: { latitude: lat, longitude: lng } }) => {
                 setUserLocation({ lat, lng });
                 setMapCenter({ lat, lng });
-                if (mapRef) mapRef.panTo({ lat, lng });
+                if (mapRef.current) mapRef.current.setView([lat, lng], 10);
                 updateNearby(lat, lng);
                 showNotif(lang === 'ar' ? '✅ تم تحديد موقعك!' : '✅ Location detected!');
             },
@@ -379,7 +485,7 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                 if (data.length > 0) {
                     const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
                     setMapCenter({ lat, lng });
-                    if (mapRef) mapRef.panTo({ lat, lng });
+                    if (mapRef.current) mapRef.current.setView([lat, lng], 10);
                     updateNearby(lat, lng);
                     showNotif(`📍 ${locationInput}`);
                 } else {
@@ -465,19 +571,19 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                     </div>
                     <div className="hero-stats">
                         <div className="hero-stat">
-                            <span className="stat-num">{apiListings.length}+</span>
+                            <span className="stat-num">380+</span>
                             <span className="stat-lbl">{t.s1}</span>
                         </div>
                         <div className="hero-stat">
-                            <span className="stat-num">380+</span>
+                            <span className="stat-num">24</span>
                             <span className="stat-lbl">{t.s2}</span>
                         </div>
                         <div className="hero-stat">
-                            <span className="stat-num">24</span>
+                            <span className="stat-num">98%</span>
                             <span className="stat-lbl">{t.s3}</span>
                         </div>
                         <div className="hero-stat">
-                            <span className="stat-num">98%</span>
+                            <span className="stat-num">4.8/5</span>
                             <span className="stat-lbl">{t.s4}</span>
                         </div>
                     </div>
@@ -641,71 +747,36 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                             {t.detectBtn}
                         </button>
                         <div className="map-container">
-                            {!hasGoogleMapsKey ? (
-                                <div className="map-loading">
-                                    <MdRecycling size={30} className="map-loading-icon" />
-                                    <span>{t.mapKeyMissing}</span>
-                                </div>
-                            ) : mapLoadError ? (
-                                <div className="map-loading">
-                                    <MdRecycling size={30} className="map-loading-icon" />
-                                    <span>{t.mapLoadError}</span>
-                                </div>
-                            ) : (
-                                <LoadScript
-                                    id="google-map-script"
-                                    googleMapsApiKey={googleMapsApiKey}
-                                    libraries={['marker']}
-                                    onError={() => setMapLoadError(true)}
-                                >
-                                    <GoogleMap
-                                        mapContainerStyle={MAP_STYLE}
-                                        center={mapCenter}
-                                        zoom={10}
-                                        onLoad={onMapLoad}
-                                        options={{
-                                            disableDefaultUI: false,
-                                            zoomControl: true,
-                                            streetViewControl: false,
-                                            mapTypeControl: false,
-                                            fullscreenControl: false
+                            <MapContainer center={mapCenter} zoom={10} style={{ width: '100%', height: '320px', borderRadius: '16px' }} ref={mapRef}>
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                />
+                                {userLocation && (
+                                    <Marker position={[userLocation.lat, userLocation.lng]}>
+                                        <Popup>{lang === 'ar' ? 'موقعك الحالي' : 'Your Location'}</Popup>
+                                    </Marker>
+                                )}
+                                {FACTORIES.map((f, i) => (
+                                    <Marker 
+                                        key={i} 
+                                        position={[f.lat, f.lng]}
+                                        eventHandlers={{
+                                            click: () => setSelectedMarker(f),
                                         }}
                                     >
-                                        {userLocation && (
-                                            <Marker
-                                                position={userLocation}
-                                                icon={{ url: USER_ICON, scaledSize: { width: 24, height: 24 } }}
-                                            />
-                                        )}
-                                        {FACTORIES.map((f, i) => (
-                                            <Marker
-                                                key={i}
-                                                position={{ lat: f.lat, lng: f.lng }}
-                                                icon={{ url: FACTORY_ICON, scaledSize: { width: 36, height: 36 } }}
-                                                onClick={() => setSelectedMarker(f)}
-                                            />
-                                        ))}
-                                        {selectedMarker && (
-                                            <InfoWindow
-                                                position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-                                                onCloseClick={() => setSelectedMarker(null)}
-                                            >
-                                                <div className="map-infowindow">
-                                                    <strong>
-                                                        {lang === 'ar' ? selectedMarker.nameAr : selectedMarker.nameEn}
-                                                    </strong>
-                                                    <span>
-                                                        {lang === 'ar' ? selectedMarker.typeAr : selectedMarker.typeEn}
-                                                    </span>
-                                                    <span className="iw-count">
-                                                        {selectedMarker.items} {lang === 'ar' ? 'إعلان' : 'listings'}
-                                                    </span>
-                                                </div>
-                                            </InfoWindow>
-                                        )}
-                                    </GoogleMap>
-                                </LoadScript>
-                            )}
+                                        <Popup>
+                                            <div style={{ minWidth: '150px' }}>
+                                                <strong>{lang === 'ar' ? f.nameAr : f.nameEn}</strong>
+                                                <br />
+                                                <small>{lang === 'ar' ? f.typeAr : f.typeEn}</small>
+                                                <br />
+                                                <small>{f.items} {lang === 'ar' ? 'إعلان' : 'listings'}</small>
+                                            </div>
+                                        </Popup>
+                                    </Marker>
+                                ))}
+                            </MapContainer>
                         </div>
                         <div className="nearby-factories">
                             <div className="nearby-header">
@@ -720,7 +791,7 @@ const Marketplace = ({ user, lang: externalLang, onLangChange }) => {
                                         <li key={i} className="nearby-item"
                                             onClick={() => {
                                                 setMapCenter({ lat: f.lat, lng: f.lng });
-                                                if (mapRef) mapRef.panTo({ lat: f.lat, lng: f.lng });
+                                                if (mapRef.current) mapRef.current.setView([f.lat, f.lng], 10);
                                                 setSelectedMarker(f);
                                             }}>
                                             <div className="nearby-item-top">

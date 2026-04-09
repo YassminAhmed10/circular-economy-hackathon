@@ -582,3 +582,49 @@
     display: none; /* إخفاء النص في الشاشات الصغيرة */
   }
 }
+
+/* Category Links Styles */
+.navbar-categories {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.navbar-categories::-webkit-scrollbar {
+  height: 4px;
+}
+
+.navbar-categories::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navbar-categories::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.category-link {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  color: #374151;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Cairo', sans-serif;
+  border: 1px solid transparent;
+}
+
+.category-link:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.category-link-active {
+  background-color: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}

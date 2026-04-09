@@ -15,6 +15,7 @@ const Login = lazy(() => import('./pages/Login'))
 const Marketplace = lazy(() => import('./pages/Marketplace'))
 const WasteDetails = lazy(() => import('./pages/WasteDetails'))
 const ListWaste = lazy(() => import('./pages/ListWaste'))
+const SustainablePackagingWaste = lazy(() => import('./pages/SustainablePackagingWaste'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Partners = lazy(() => import('./pages/Partners'))
 const MyListings = lazy(() => import('./pages/MyListings'))
@@ -305,6 +306,7 @@ function AppContent() {
 
                     {[
                         { path: '/list-waste', Component: ListWaste },
+                        { path: '/packaging-waste', Component: SustainablePackagingWaste },
                         { path: '/profile', Component: Profile, extraProps: { onUpdateUser: setUser } },
                         { path: '/partners', Component: Partners },
                         { path: '/my-listings', Component: MyListings },
