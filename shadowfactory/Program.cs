@@ -1,31 +1,30 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+                                            using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using AspNetCoreRateLimit;
 using shadowfactory.Data;
-using shadowfactory.Models;
+using shadowfactory.Middleware;
 using shadowfactory.Services;
 using shadowfactory.Services.Interfaces;
-using System.Security.Cryptography;
+using shadowfactory.Hubs;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+// Add controllers and FluentValidation
+builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-// Configure Swagger
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ShadowFactory API",
-        Version = "v1",
-        Description = "Factory Registration and Management System"
-    });
-
-    // Add security definition for JWT
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ECoV API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme.",
@@ -34,39 +33,29 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.Http,
         Scheme = "bearer"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
             Array.Empty<string>()
         }
     });
 });
 
-// Add DbContext
+// DbContext
 builder.Services.AddDbContext<ECoVDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure JWT Authentication
+// Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "YourSuperSecretKeyForTesting1234567890!@#$%";
 var key = Encoding.ASCII.GetBytes(jwtKey);
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
+}).AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // Set to true in production
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -77,305 +66,74 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+});
 
-    options.Events = new JwtBearerEvents
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", p =>
     {
-        OnAuthenticationFailed = context =>
+        p.SetIsOriginAllowed(_ => true).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+    });
+});
+
+// Rate limiting (AspNetCoreRateLimit)
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.GeneralRules = new List<RateLimitRule>
+    {
+        new RateLimitRule
         {
-            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-            return Task.CompletedTask;
-        },
-        OnChallenge = context =>
-        {
-            Console.WriteLine($"Authentication challenge: {context.Error}");
-            return Task.CompletedTask;
-        },
-        OnMessageReceived = context =>
-        {
-            // Log all authorization headers for debugging
-            var authHeader = context.Request.Headers["Authorization"].ToString();
-            Console.WriteLine($"Auth Header: {authHeader}");
-            return Task.CompletedTask;
+            Endpoint = "*",
+            Period = "1m",
+            Limit = 100
         }
     };
 });
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-// Add authorization
-builder.Services.AddAuthorization();
+// SignalR
+builder.Services.AddSignalR();
 
-// IMPORTANT: Configure CORS specifically for your frontend
-builder.Services.AddCors(options =>
-{
-    // Allow all origins for development - VERY IMPORTANT for Vite
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.SetIsOriginAllowed(origin => true) // Allow any origin
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials(); // Allow credentials (cookies, authorization headers)
-        });
+// Application services
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IImpactCalculationService, ImpactCalculationService>();
 
-    // Specific policy for production
-    options.AddPolicy("AllowFrontend",
-        builder =>
-        {
-            builder.WithOrigins(
-                "https://localhost:5173",  // Vite default
-                "http://localhost:5173",
-                "https://localhost:3000",   // React default
-                "http://localhost:3000",
-                "https://127.0.0.1:5173",
-                "http://127.0.0.1:5173"
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-        });
-});
-
-// Add other services
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+// Stripe config used inside PaymentService
+// builder.Configuration["Stripe:SecretKey"] should be set
 
 var app = builder.Build();
 
-// Ensure admin account exists and is usable for verification approvals.
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ECoVDbContext>();
-    await EnsureAdminAccountAsync(dbContext);
-}
-
-// Configure the HTTP request pipeline
+// Ensure database migrations will be created by developer; not applied here automatically
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShadowFactory API v1");
-        c.RoutePrefix = "swagger";
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECoV API v1"); c.RoutePrefix = "swagger"; });
 }
 
-// IMPORTANT: Order of middleware matters!
-// 1. CORS must come before other middleware
-app.UseCors("AllowAll"); // Use AllowAll for development
-
-// 2. Serve static files (uploads, logos, etc.)
+// Use middleware (order matters)
+app.UseCors("AllowAll");
 app.UseStaticFiles();
-
-// 3. Optional HTTPS redirection (comment out if causing issues)
-// app.UseHttpsRedirection();
-
-// 4. Routing
 app.UseRouting();
 
-// 4. Authentication & Authorization
+// Global error handling middleware (custom)
+app.UseGlobalErrorHandling();
+
+// Rate limiting middleware
+app.UseIpRateLimiting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 5. Map controllers
+// Map controllers and hubs
 app.MapControllers();
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
-// Test endpoints (all anonymous for easy testing)
-app.MapGet("/", () => "ShadowFactory API is running!").AllowAnonymous();
+// Health endpoints
+app.MapGet("/", () => "ECoV API is running!").AllowAnonymous();
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", ts = DateTime.UtcNow })).AllowAnonymous();
 
-app.MapGet("/health", () => new
-{
-    status = "Healthy",
-    timestamp = DateTime.UtcNow,
-    service = "ShadowFactory API",
-    environment = app.Environment.EnvironmentName,
-    version = "1.0.0"
-}).AllowAnonymous();
-
-app.MapGet("/test", () => new
-{
-    message = "Test endpoint working!",
-    time = DateTime.UtcNow,
-    authentication = "JWT configured"
-}).AllowAnonymous();
-
-// Test POST endpoint
-app.MapPost("/test-post", async (HttpRequest request) =>
-{
-    using var reader = new StreamReader(request.Body);
-    var body = await reader.ReadToEndAsync();
-    Console.WriteLine($"📨 Received POST: {body}");
-    return new
-    {
-        success = true,
-        message = "POST received!",
-        receivedData = body,
-        timestamp = DateTime.UtcNow
-    };
-}).AllowAnonymous();
-
-// CORS test endpoint
-app.MapPost("/api/test-cors", async (HttpRequest request) =>
-{
-    var body = await new StreamReader(request.Body).ReadToEndAsync();
-    Console.WriteLine($"🌐 CORS Test: {body}");
-
-    // Log all headers for debugging
-    foreach (var header in request.Headers)
-    {
-        Console.WriteLine($"Header: {header.Key} = {header.Value}");
-    }
-
-    return Results.Json(new
-    {
-        success = true,
-        message = "CORS test successful!",
-        data = body,
-        headers = request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()),
-        authHeader = request.Headers["Authorization"].ToString()
-    });
-}).AllowAnonymous();
-
-// Database connection test
-app.MapGet("/api/db-test", async (ECoVDbContext dbContext) =>
-{
-    try
-    {
-        var canConnect = await dbContext.Database.CanConnectAsync();
-        var factoryCount = await dbContext.Factories.CountAsync();
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Database connection successful!",
-            canConnect = canConnect,
-            factoryCount = factoryCount,
-            tablesExist = factoryCount >= 0
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Json(new
-        {
-            success = false,
-            message = $"Database connection failed: {ex.Message}",
-            error = ex.InnerException?.Message
-        }, statusCode: 500);
-    }
-}).AllowAnonymous();
-
-// Echo endpoint for debugging
-app.MapPost("/api/echo", async (HttpRequest request) =>
-{
-    try
-    {
-        var body = await new StreamReader(request.Body).ReadToEndAsync();
-        var headers = request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
-
-        Console.WriteLine($"📤 Echo Request from {request.HttpContext.Connection.RemoteIpAddress}");
-        Console.WriteLine($"Headers: {string.Join(", ", headers.Keys)}");
-
-        return Results.Ok(new
-        {
-            success = true,
-            message = "Request received successfully",
-            body = body,
-            headers = headers,
-            method = request.Method,
-            path = request.Path,
-            timestamp = DateTime.UtcNow
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem($"Error processing request: {ex.Message}");
-    }
-}).AllowAnonymous();
-
-// Global exception handler
-app.UseExceptionHandler("/error");
-
-app.Map("/error", (HttpContext context) =>
-{
-    var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
-    return Results.Problem(
-        title: "An error occurred",
-        detail: exception?.Message,
-        statusCode: StatusCodes.Status500InternalServerError
-    );
-}).AllowAnonymous();
-
-// Log all requests for debugging (optional)
-app.Use(async (context, next) =>
-{
-    Console.WriteLine($"➡️ Request: {context.Request.Method} {context.Request.Path}");
-    Console.WriteLine($"   Origin: {context.Request.Headers["Origin"]}");
-    Console.WriteLine($"   Referer: {context.Request.Headers["Referer"]}");
-
-    await next();
-
-    Console.WriteLine($"⬅️ Response: {context.Response.StatusCode}");
-});
-
-Console.WriteLine("🚀 ShadowFactory API starting...");
-Console.WriteLine($"📊 Environment: {app.Environment.EnvironmentName}");
-Console.WriteLine($"🔐 Authentication: JWT configured");
-Console.WriteLine($"🌐 CORS: AllowAll policy enabled");
-Console.WriteLine($"📍 Listening on: {string.Join(", ", app.Urls)}");
-
+// Start
 app.Run();
-
-static async Task EnsureAdminAccountAsync(ECoVDbContext dbContext)
-{
-    const string adminEmail = "yadmin@ecov.com";
-    const string adminPassword = "2392005";
-
-    var now = DateTime.UtcNow;
-    var existing = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
-    var (salt, hash) = CreatePasswordHash(adminPassword);
-
-    if (existing == null)
-    {
-        await dbContext.Users.AddAsync(new User
-        {
-            Email = adminEmail,
-            FullName = "ECOv Admin",
-            Salt = salt,
-            PasswordHash = hash,
-            Role = "Admin",
-            IsActive = true,
-            CreatedAt = now,
-            UpdatedAt = now,
-            RegistrationDate = now,
-            EmailNotifications = true,
-            AppNotifications = true,
-            PublicProfile = false
-        });
-
-        await dbContext.SaveChangesAsync();
-        Console.WriteLine($"✅ Admin account created: {adminEmail}");
-        return;
-    }
-
-    existing.Role = "Admin";
-    existing.IsActive = true;
-    existing.PasswordHash = hash;
-    existing.Salt = salt;
-    existing.UpdatedAt = now;
-
-    await dbContext.SaveChangesAsync();
-    Console.WriteLine($"✅ Admin account updated: {adminEmail}");
-}
-
-static (string salt, string hash) CreatePasswordHash(string password)
-{
-    byte[] saltBytes = new byte[16];
-    using (var rng = RandomNumberGenerator.Create())
-    {
-        rng.GetBytes(saltBytes);
-    }
-
-    string salt = Convert.ToBase64String(saltBytes);
-    using var deriveBytes = new Rfc2898DeriveBytes(password, saltBytes, 69, HashAlgorithmName.SHA256);
-    byte[] hashBytes = deriveBytes.GetBytes(24);
-    return (salt, Convert.ToBase64String(hashBytes));
-}
