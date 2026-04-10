@@ -24,6 +24,10 @@ namespace shadowfactory.Data
         public DbSet<WasteListing> WasteListings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
+        // Factory waste/purchase sets (required by profile controller)
+        public DbSet<FactoryWaste> FactoryWastes { get; set; }
+        public DbSet<FactoryPurchase> FactoryPurchases { get; set; }
+
         // New phase entities
         public DbSet<WasteAsset> WasteAssets { get; set; }
         public DbSet<WasteJourneyEntry> WasteJourneyEntries { get; set; }
@@ -66,6 +70,7 @@ namespace shadowfactory.Data
                 entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.WasteType).HasMaxLength(100);
             });
 
             modelBuilder.Entity<EnvironmentalImpactRecord>(entity =>
@@ -79,7 +84,7 @@ namespace shadowfactory.Data
                 entity.Property(e => e.CalculationDate).HasDefaultValueSql("GETUTCDATE()");
             });
 
-            // Merge additional existing mappings (Factory, User, Orders, Transactions) if you need them.
+            // Merge/add any additional mappings required for FactoryWaste, FactoryPurchase etc.
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -19,6 +19,9 @@ namespace shadowfactory.Models.Entities
 
         public long? SellerFactoryId { get; set; }
 
+        // New: keep a WasteType string (existing code parses this to WasteTypeEnum)
+        public string? WasteType { get; set; }
+
         public decimal Amount { get; set; }
 
         public string Unit { get; set; } = "kg";
