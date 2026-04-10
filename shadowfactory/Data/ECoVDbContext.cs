@@ -16,7 +16,7 @@ namespace shadowfactory.Data
 
         // Core entities
         public DbSet<Factory> Factories { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<VerificationToken> VerificationTokens { get; set; }
         public DbSet<User> Users { get; set; }

@@ -37,8 +37,8 @@ namespace shadowfactory.Models.Entities
         [StringLength(50)]
         public string CurrentStatus { get; set; } = "Available";
 
+        // IHasTimestamps implementation
         public DateTime CreatedAt { get; set; }
-
-        public DateTime LastUpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
