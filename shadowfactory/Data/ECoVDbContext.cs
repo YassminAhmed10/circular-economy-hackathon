@@ -33,6 +33,9 @@ namespace shadowfactory.Data
         public DbSet<WasteJourneyEntry> WasteJourneyEntries { get; set; }
         public DbSet<WasteRecyclingOrder> WasteRecyclingOrders { get; set; }
         public DbSet<EnvironmentalImpactRecord> EnvironmentalImpactRecords { get; set; }
+        public DbSet<Offer> Offers { get; set; } // Added DbSet for Offers
+        public DbSet<Escrow> Escrows { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -82,6 +85,19 @@ namespace shadowfactory.Data
                 entity.Property(e => e.WaterSavedLiters).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.CalculationMethod).HasMaxLength(200);
                 entity.Property(e => e.CalculationDate).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            modelBuilder.Entity<Offer>(entity =>
+            {
+                entity.ToTable("Offers", "dbo");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Unit).HasMaxLength(20).HasDefaultValue("kg");
+                entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Pending");
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.ExpiresAt).HasColumnType("datetimeoffset");
             });
 
             // Merge/add any additional mappings required for FactoryWaste, FactoryPurchase etc.

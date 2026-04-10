@@ -100,6 +100,7 @@ builder.Services.AddSignalR();
 // Application services
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IImpactCalculationService, ImpactCalculationService>();
+builder.Services.AddScoped<IEscrowService, EscrowService>();
 
 // Stripe config used inside PaymentService
 // builder.Configuration["Stripe:SecretKey"] should be set
