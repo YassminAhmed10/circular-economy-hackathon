@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
-                                            using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +12,7 @@ using shadowfactory.Services;
 using shadowfactory.Services.Interfaces;
 using shadowfactory.Hubs;
 using System.Text;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = null);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -101,9 +103,12 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IImpactCalculationService, ImpactCalculationService>();
 builder.Services.AddScoped<IEscrowService, EscrowService>();
+// register waste type mapper
+builder.Services.AddSingleton<IWasteTypeMapper, WasteTypeMapper>();
 
 // Stripe config used inside PaymentService
 // builder.Configuration["Stripe:SecretKey"] should be set
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 var app = builder.Build();
 
