@@ -1,0 +1,328 @@
+/* src/styles/ImpactDashboard.css */
+
+.impact-dashboard {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px;
+}
+
+.dashboard-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 50px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard-header p {
+    font-size: 1.2rem;
+    opacity: 0.95;
+}
+
+.tab-navigation {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    display: flex;
+    gap: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: 2px solid #e0e0e0;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.tab-btn:hover {
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.impact-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.impact-header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 25px;
+}
+
+.impact-header h2 {
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.impact-header .subtitle {
+    color: #666;
+    font-size: 1.05rem;
+}
+
+.metrics-section {
+    margin-bottom: 40px;
+}
+
+.metrics-section h3 {
+    color: #333;
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    padding-left: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    padding: 25px;
+    border-radius: 12px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    transition: all 0.3s;
+    border-left: 5px solid #999;
+}
+
+.metric-card.blue {
+    border-left-color: #667eea;
+    background: linear-gradient(135deg, #e7f1ff 0%, #e0e7ff 100%);
+}
+
+.metric-card.cyan {
+    border-left-color: #00bcd4;
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+}
+
+.metric-card.green {
+    border-left-color: #4caf50;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.metric-card.yellow {
+    border-left-color: #ffc107;
+    background: linear-gradient(135deg, #fff9e6 0%, #ffe082 100%);
+}
+
+.metric-card.orange {
+    border-left-color: #ff9800;
+    background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+}
+
+.metric-card.teal {
+    border-left-color: #009688;
+    background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+}
+
+.metric-card.purple {
+    border-left-color: #9c27b0;
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+
+.metric-card.gray {
+    border-left-color: #999;
+    background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+}
+
+.metric-icon {
+    font-size: 2.5rem;
+    min-width: 70px;
+    text-align: center;
+}
+
+.metric-content {
+    flex: 1;
+}
+
+.metric-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    color: #333;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 5px 0 0 0;
+}
+
+.metric-unit {
+    color: #999;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.esg-score {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px;
+    border-radius: 15px;
+    color: white;
+    margin-top: 40px;
+}
+
+.esg-score h3 {
+    color: white;
+    margin-top: 0;
+    margin-bottom: 30px;
+    font-size: 1.5rem;
+}
+
+.score-display {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.score-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.score-value {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+.score-details p {
+    margin: 0 0 10px 0;
+    font-size: 1.05rem;
+}
+
+.score-details .improvements {
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+
+.platform-goal {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 12px;
+    margin-top: 40px;
+}
+
+.platform-goal h3 {
+    color: #333;
+    margin-top: 0;
+    padding-left: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.goal-progress {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-top: 25px;
+}
+
+.goal-item h4 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s ease;
+}
+
+.goal-item p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.loading {
+    text-align: center;
+    color: #666;
+    padding: 60px 20px;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .tab-navigation {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+
+    .impact-content {
+        padding: 20px;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .score-display {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .score-circle {
+        margin: 0 auto;
+    }
+
+    .goal-progress {
+        grid-template-columns: 1fr;
+    }
+}

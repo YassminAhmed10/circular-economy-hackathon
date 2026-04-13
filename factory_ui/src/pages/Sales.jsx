@@ -1,58 +1,52 @@
-﻿// Sales.jsx — ECOv · صفحة المبيعات (Premium Redesign)
-import React, { useState, useMemo } from 'react';
+﻿// Sales.jsx — ECOv · Sales Page (Real Data)
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     CheckCircle2, DollarSign, Package, Calendar,
     Search, TrendingUp, Truck, ChevronLeft, ChevronRight,
-    ArrowUpRight, Sparkles, Filter, X
+    Filter, X, Recycle, ScrollText, Zap, AlertCircle, Loader
 } from 'lucide-react';
+import { getFactoryOrders } from '../services/circularEconomyApi';
 import './Sales.css';
 
-const SALES = [
-    // ✅ يوم 15 يناير — بلاستيك + معادن من مشترين مختلفين
-    { id: 'ORD-001', wasteType: 'بلاستيك', amount: '2.5 طن', price: 1500, buyer: 'مصنع إعادة التدوير المتقدم', date: '2024-01-15', status: 'مكتمل', deliveryDate: '2024-01-20' },
-    { id: 'ORD-011', wasteType: 'معادن', amount: '1.8 طن', price: 1260, buyer: 'شركة الحديد والصلب', date: '2024-01-15', status: 'مكتمل', deliveryDate: '2024-01-19' },
-
-    // ✅ يوم 10 يناير — ورق + زجاج من مشترين مختلفين
-    { id: 'ORD-002', wasteType: 'ورق', amount: '800 كجم', price: 800, buyer: 'شركة الأوراق الخضراء', date: '2024-01-10', status: 'قيد التوصيل', deliveryDate: '2024-01-25' },
-    { id: 'ORD-012', wasteType: 'زجاج', amount: '1.5 طن', price: 1200, buyer: 'مصنع الزجاج العربي', date: '2024-01-10', status: 'مكتمل', deliveryDate: '2024-01-14' },
-
-    // ✅ يوم 18 يناير — خشب + بلاستيك + ورق (3 أنواع!)
-    { id: 'ORD-005', wasteType: 'خشب', amount: '3 طن', price: 2100, buyer: 'شركة الأخشاب المتحدة', date: '2024-01-18', status: 'مكتمل', deliveryDate: '2024-01-22' },
-    { id: 'ORD-013', wasteType: 'بلاستيك', amount: '2 طن', price: 1200, buyer: 'مصنع البلاستيك النيل', date: '2024-01-18', status: 'مكتمل', deliveryDate: '2024-01-21' },
-    { id: 'ORD-014', wasteType: 'ورق', amount: '600 كجم', price: 480, buyer: 'مطبعة القاهرة', date: '2024-01-18', status: 'قيد التوصيل', deliveryDate: '2024-01-23' },
-
-    // باقي الطلبات
-    { id: 'ORD-006', wasteType: 'معادن', amount: '4 طن', price: 2800, buyer: 'شركة الصلب المصرية', date: '2024-01-08', status: 'مكتمل', deliveryDate: '2024-01-12' },
-    { id: 'ORD-007', wasteType: 'بلاستيك', amount: '1.5 طن', price: 900, buyer: 'مصنع البلاستيك الوطني', date: '2024-01-03', status: 'مكتمل', deliveryDate: '2024-01-07' },
-    { id: 'ORD-008', wasteType: 'زجاج', amount: '2 طن', price: 1600, buyer: 'مصنع الزجاج الحديث', date: '2024-01-22', status: 'قيد التوصيل', deliveryDate: '2024-01-28' },
-    { id: 'ORD-009', wasteType: 'ورق', amount: '1.2 طن', price: 600, buyer: 'مصنع الورق المتحد', date: '2023-12-28', status: 'مكتمل', deliveryDate: '2024-01-02' },
-    { id: 'ORD-010', wasteType: 'خشب', amount: '5 طن', price: 3500, buyer: 'شركة النجارة المتحدة', date: '2024-01-25', status: 'مكتمل', deliveryDate: '2024-01-30' },
-];
-
 const TYPE_CFG = {
-    'بلاستيك': { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', glow: 'rgba(59,130,246,0.35)', emoji: '♻️' },
-    'ورق': { color: '#ec4899', bg: 'rgba(236,72,153,0.12)', glow: 'rgba(236,72,153,0.35)', emoji: '📄' },
-    'معادن': { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', glow: 'rgba(245,158,11,0.35)', emoji: '⚙️' },
-    'زجاج': { color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)', glow: 'rgba(139,92,246,0.35)', emoji: '🔮' },
-    'خشب': { color: '#10b981', bg: 'rgba(16,185,129,0.12)', glow: 'rgba(16,185,129,0.35)', emoji: '🌿' },
+    'Plastic': { color: '#059669', Icon: Recycle },
+    'Paper': { color: '#059669', Icon: ScrollText },
+    'Metal': { color: '#059669', Icon: Zap },
+    'Glass': { color: '#059669', Icon: Package },
+    'Wood': { color: '#059669', Icon: Package },
+    'بلاستيك': { color: '#059669', Icon: Recycle },
+    'ورق': { color: '#059669', Icon: ScrollText },
+    'معادن': { color: '#059669', Icon: Zap },
+    'زجاج': { color: '#059669', Icon: Package },
+    'خشب': { color: '#059669', Icon: Package },
 };
 
 const STATUS_CFG = {
+    'Completed': { cls: 'completed', Icon: CheckCircle2 },
+    'In Progress': { cls: 'delivered', Icon: Truck },
+    'Pending': { cls: 'pending', Icon: AlertCircle },
     'مكتمل': { cls: 'completed', Icon: CheckCircle2 },
     'قيد التوصيل': { cls: 'delivered', Icon: Truck },
+    'معلّق': { cls: 'pending', Icon: AlertCircle },
 };
 
-const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-const ARABIC_DAYS_SHORT = ['أح', 'إث', 'ثل', 'أر', 'خم', 'جم', 'سب'];
+const ENGLISH_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ENGLISH_DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function SalesCalendar({ sales, selectedDate, onSelect }) {
-    const [viewDate, setViewDate] = useState(new Date(2024, 0, 1));
+    const [viewDate, setViewDate] = useState(new Date());
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
 
     const salesByDate = useMemo(() => {
         const map = {};
-        sales.forEach(s => { if (!map[s.date]) map[s.date] = []; map[s.date].push(s); });
+        sales.forEach(s => {
+            if (s.createdDate) {
+                const dateStr = s.createdDate.split('T')[0];
+                if (!map[dateStr]) map[dateStr] = [];
+                map[dateStr].push(s);
+            }
+        });
         return map;
     }, [sales]);
 
@@ -66,18 +60,18 @@ function SalesCalendar({ sales, selectedDate, onSelect }) {
         <div className="sc-cal">
             <div className="sc-cal-nav">
                 <button className="sc-nav-btn" onClick={() => setViewDate(new Date(year, month - 1, 1))}><ChevronRight size={14} /></button>
-                <span className="sc-cal-month">{ARABIC_MONTHS[month]} {year}</span>
+                <span className="sc-cal-month">{ENGLISH_MONTHS[month]} {year}</span>
                 <button className="sc-nav-btn" onClick={() => setViewDate(new Date(year, month + 1, 1))}><ChevronLeft size={14} /></button>
             </div>
             <div className="sc-cal-grid">
-                {ARABIC_DAYS_SHORT.map(d => <div key={d} className="sc-cal-day-lbl">{d}</div>)}
+                {ENGLISH_DAYS_SHORT.map(d => <div key={d} className="sc-cal-day-lbl">{d}</div>)}
                 {cells.map((day, i) => {
                     if (!day) return <div key={`e-${i}`} className="sc-cal-empty" />;
                     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const hasSale = salesByDate[dateStr];
                     const isSelected = selectedDate === dateStr;
-                    const isToday = dateStr === '2024-01-15';
-                    // نقطة واحدة لكل نوع مختلف في اليوم ده
+                    const today = new Date().toISOString().split('T')[0];
+                    const isToday = dateStr === today;
                     const uniqueTypes = hasSale
                         ? [...new Map(hasSale.map(s => [s.wasteType, s])).values()]
                         : [];
@@ -88,16 +82,14 @@ function SalesCalendar({ sales, selectedDate, onSelect }) {
                             {uniqueTypes.length > 0 && (
                                 <div className="sc-cal-dots">
                                     {uniqueTypes.map((s, idx) => {
-                                        const cfg = TYPE_CFG[s.wasteType] || TYPE_CFG['خشب'];
+                                        const wasteType = s.wasteTypeAr || s.wasteType || '';
+                                        const cfg = TYPE_CFG[wasteType] || TYPE_CFG['خشب'];
                                         return (
                                             <div
                                                 key={idx}
                                                 className="sc-cal-dot"
-                                                title={s.wasteType}
-                                                style={{
-                                                    background: cfg.color,
-                                                    boxShadow: isSelected ? 'none' : `0 0 5px ${cfg.glow}`
-                                                }}
+                                                title={wasteType}
+                                                style={{ background: cfg.color }}
                                             />
                                         );
                                     })}
@@ -108,9 +100,9 @@ function SalesCalendar({ sales, selectedDate, onSelect }) {
                 })}
             </div>
             <div className="sc-cal-legend">
-                {Object.entries(TYPE_CFG).map(([name, cfg]) => (
+                {Object.entries(TYPE_CFG).slice(0, 5).map(([name, cfg]) => (
                     <div key={name} className="sc-legend-item">
-                        <div className="legend-dot" style={{ background: cfg.color, boxShadow: `0 0 6px ${cfg.glow}` }} />
+                        <cfg.Icon size={14} color={cfg.color} />
                         <span>{name}</span>
                     </div>
                 ))}
@@ -119,60 +111,153 @@ function SalesCalendar({ sales, selectedDate, onSelect }) {
     );
 }
 
-export default function Sales() {
+export default function Sales({ user }) {
+    const [sales, setSales] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [search, setSearch] = useState('');
     const [selectedDate, setSelectedDate] = useState(null);
 
-    const filtered = useMemo(() => SALES.filter(s => {
-        const q = search.trim();
-        const matchSearch = !q || s.buyer.includes(q) || s.wasteType.includes(q) || s.id.includes(q);
-        const matchDate = !selectedDate || s.date === selectedDate;
-        return matchSearch && matchDate;
-    }), [search, selectedDate]);
+    // Load sales data from API
+    useEffect(() => {
+        const loadSales = async () => {
+            try {
+                setLoading(true);
+                setError(null);
 
-    const totalRevenue = filtered.reduce((sum, s) => s.status !== 'ملغى' ? sum + s.price : sum, 0);
+                if (!user?.id) {
+                    setError('User not identified');
+                    setSales([]);
+                    return;
+                }
+
+                // ✅ Fetch orders from backend - filter for seller role
+                try {
+                    const api = (await import('../services/api')).default;
+                    const response = await api.get('/orders?page=1&pageSize=50', {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+                    });
+
+                    if (response.data?.success && response.data?.data?.Items) {
+                        // Filter only orders where current user's factory is the seller
+                        const userFactoryId = user.factoryId;
+                        const salesOrders = response.data.data.Items.filter(
+                            order => order.sellerFactoryId === userFactoryId || order.SellerFactoryId === userFactoryId
+                        );
+                        // Map to expected sales format
+                        const mappedSales = salesOrders.map(o => ({
+                            id: o.id || o.Id,
+                            wasteType: o.wasteType || o.WasteType,
+                            wasteTypeAr: o.wasteType || o.WasteType,
+                            buyerName: o.buyerName || o.BuyerName,
+                            price: o.price || o.Price,
+                            totalPrice: o.price || o.Price,
+                            orderStatus: o.status || o.Status,
+                            createdDate: o.orderDate || o.OrderDate,
+                            orderNumber: o.orderNumber || o.OrderNumber,
+                            quantity: o.amount || o.Amount,
+                            unit: o.unit || o.Unit
+                        }));
+                        setSales(mappedSales);
+                    } else {
+                        setSales([]);
+                    }
+                } catch (apiErr) {
+                    console.error('❌ API Error:', apiErr);
+                    // Fallback: Use sample data
+                    const sampleSales = [
+                        { id: 'S001', wasteType: 'Plastic', wasteTypeAr: 'بلاستيك', buyerName: 'مصنع النيل', price: 1500, totalPrice: 1500, orderStatus: 'Completed', createdDate: '2026-04-10T10:30:00.000Z' },
+                    ];
+                    setSales(sampleSales);
+                }
+            } catch (err) {
+                console.error('❌ Failed to load sales:', err);
+                setError('فشل تحميل المبيعات');
+                setSales([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadSales();
+        // Auto-refresh every 10 seconds
+        const interval = setInterval(loadSales, 10000);
+        return () => clearInterval(interval);
+    }, [user?.id, user?.factoryId]);
+
+    const filtered = useMemo(() => {
+        return sales.filter(s => {
+            const q = search.trim().toLowerCase();
+            const matchSearch = !q || 
+                s.id?.toLowerCase().includes(q) || 
+                s.wasteTypeAr?.toLowerCase().includes(q) ||
+                s.wasteType?.toLowerCase().includes(q) ||
+                s.buyerName?.toLowerCase().includes(q);
+            
+            if (!selectedDate) return matchSearch;
+            
+            // Convert sale date to YYYY-MM-DD format
+            const saleDate = s.createdDate ? s.createdDate.split('T')[0] : '';
+            return matchSearch && saleDate === selectedDate;
+        });
+    }, [sales, search, selectedDate]);
+
+    const totalRevenue = filtered.reduce((sum, s) => {
+        const price = s.price || s.totalPrice || 0;
+        return sum + price;
+    }, 0);
 
     const stats = [
-        { label: 'إجمالي المبيعات', value: filtered.length, suffix: '', color: '#10b981', Icon: Package, pct: 80 },
-        { label: 'إجمالي الإيرادات', value: totalRevenue.toLocaleString(), suffix: ' ج', color: '#3b82f6', Icon: DollarSign, pct: 92 },
-        { label: 'مكتملة', value: filtered.filter(s => s.status === 'مكتمل').length, suffix: '', color: '#10b981', Icon: CheckCircle2, pct: 75 },
-        { label: 'قيد التوصيل', value: filtered.filter(s => s.status === 'قيد التوصيل').length, suffix: '', color: '#f59e0b', Icon: Truck, pct: 25 },
+        { label: 'إجمالي المبيعات', value: filtered.length, suffix: '', Icon: Package },
+        { label: 'إجمالي الإيرادات', value: Math.round(totalRevenue).toLocaleString(), suffix: ' ج', Icon: DollarSign },
+        { label: 'مكتملة', value: filtered.filter(s => s.orderStatus === 'Completed').length, suffix: '', Icon: CheckCircle2 },
+        { label: 'قيد المعالجة', value: filtered.filter(s => s.orderStatus === 'In Progress').length, suffix: '', Icon: Truck },
     ];
+
+    if (loading) {
+        return (
+            <div className="sales-page" dir="rtl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <Loader size={40} className="animate-spin" style={{ margin: '0 auto', color: '#059669' }} />
+                    <p style={{ marginTop: '10px', color: '#6b7280' }}>جاري تحميل البيانات...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="sales-page" dir="rtl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <div style={{ textAlign: 'center', padding: '20px', background: '#fef2f2', borderRadius: '12px', maxWidth: '400px' }}>
+                    <AlertCircle size={40} style={{ color: '#dc2626', margin: '0 auto' }} />
+                    <p style={{ marginTop: '10px', color: '#dc2626' }}>{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="sales-page" dir="rtl">
-            {/* ambient background */}
-            <div className="blob b1" /><div className="blob b2" /><div className="blob b3" />
-
             {/* ── Header ── */}
             <header className="sp-header">
                 <div className="sp-header-text">
-                    <div className="sp-eyebrow">
-                        <Sparkles size={11} />
-                        <span>لوحة التحكم</span>
-                    </div>
-                    <h1>المبيعات <span>&</span> الإيرادات</h1>
-                    <p>تتبع وإدارة جميع صفقات البيع المكتملة بدقة واحترافية</p>
+                    <h1>المبيعات و الإيرادات</h1>
+                    <p>تتبع وإدارة جميع صفقات البيع المكتملة</p>
                 </div>
-                <div className="sp-header-orb">
-                    <div className="orb-glow" />
-                    <div className="orb-core"><TrendingUp size={26} color="white" /></div>
-                    <div className="orb-ring r1" /><div className="orb-ring r2" />
+                <div className="sp-header-icon">
+                    <TrendingUp size={24} color="#059669" />
                 </div>
             </header>
 
             {/* ── Stats ── */}
             <div className="sp-stats">
                 {stats.map((st, i) => (
-                    <div className="sp-stat" key={i} style={{ '--i': i, '--c': st.color }}>
-                        <div className="stat-shine" />
+                    <div className="sp-stat" key={i}>
                         <div className="stat-top">
-                            <div className="stat-icon"><st.Icon size={18} color={st.color} /></div>
-                            <div className="stat-arrow"><ArrowUpRight size={13} /></div>
+                            <div className="stat-icon"><st.Icon size={18} color="#059669" /></div>
                         </div>
                         <div className="stat-val">{st.value}<span className="stat-suffix">{st.suffix}</span></div>
                         <div className="stat-label">{st.label}</div>
-                        <div className="stat-track"><div className="stat-fill" style={{ width: `${st.pct}%` }} /></div>
                     </div>
                 ))}
             </div>
@@ -216,35 +301,39 @@ export default function Sales() {
                                 </thead>
                                 <tbody>
                                     {filtered.map((s, i) => {
-                                        const tc = TYPE_CFG[s.wasteType] || TYPE_CFG['خشب'];
-                                        const sc = STATUS_CFG[s.status] || STATUS_CFG['مكتمل'];
+                                        const wasteType = s.wasteTypeAr || s.wasteType || 'غير محدد';
+                                        const tc = TYPE_CFG[wasteType] || TYPE_CFG['خشب'];
+                                        const status = s.orderStatus || 'Unknown';
+                                        const sc = STATUS_CFG[status] || { cls: 'completed', Icon: CheckCircle2 };
                                         const SI = sc.Icon;
+                                        const saleDate = s.createdDate ? s.createdDate.split('T')[0] : '-';
+                                        const price = s.price || s.totalPrice || 0;
+                                        
                                         return (
                                             <tr key={s.id} style={{ '--ri': i }}>
                                                 <td><span className="oid">{s.id}</span></td>
                                                 <td>
                                                     <div className="type-cell">
-                                                        <div className="type-ico" style={{ background: tc.bg }}>
-                                                            <span>{tc.emoji}</span>
+                                                        <div className="type-ico">
+                                                            <tc.Icon size={16} color={tc.color} />
                                                         </div>
-                                                        <span className="type-name" style={{ color: tc.color }}>{s.wasteType}</span>
+                                                        <span className="type-name" style={{ color: tc.color }}>{wasteType}</span>
                                                     </div>
                                                 </td>
-                                                <td><span className="amt">{s.amount}</span></td>
+                                                <td><span className="amt">{s.quantity || '-'}</span></td>
                                                 <td>
                                                     <div className="price-cell" style={{ color: tc.color }}>
-                                                        <span className="pcur">ج</span>{s.price.toLocaleString()}
+                                                        <span className="pcur">ج</span>{price.toLocaleString()}
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div className="buyer-name">{s.buyer}</div>
-                                                    <div className="buyer-sub"><Truck size={9} /> توصيل: {s.deliveryDate}</div>
+                                                    <div className="buyer-name">{s.buyerName || s.buyerCompanyName || '-'}</div>
                                                 </td>
                                                 <td>
-                                                    <div className="date-cell"><Calendar size={11} />{s.date}</div>
+                                                    <div className="date-cell"><Calendar size={11} />{saleDate}</div>
                                                 </td>
                                                 <td>
-                                                    <span className={`status-badge ${sc.cls}`}><SI size={11} />{s.status}</span>
+                                                    <span className={`status-badge ${sc.cls}`}><SI size={11} />{status}</span>
                                                 </td>
                                             </tr>
                                         );
@@ -265,26 +354,7 @@ export default function Sales() {
 
                 {/* Calendar col */}
                 <div className="sp-cal-col">
-                    <SalesCalendar sales={SALES} selectedDate={selectedDate} onSelect={setSelectedDate} />
-                    <div className="sp-mini-stats">
-                        <div className="mst-title">توزيع الأنواع</div>
-                        {Object.entries(TYPE_CFG).map(([name, cfg]) => {
-                            const count = SALES.filter(s => s.wasteType === name).length;
-                            const pct = Math.round((count / SALES.length) * 100);
-                            return (
-                                <div className="mst-row" key={name}>
-                                    <div className="mst-left">
-                                        <div className="mst-dot" style={{ background: cfg.color, boxShadow: `0 0 7px ${cfg.glow}` }} />
-                                        <span className="mst-name">{name}</span>
-                                    </div>
-                                    <div className="mst-bar-wrap">
-                                        <div className="mst-bar-fill" style={{ width: `${pct * 2.2}px`, background: cfg.color, boxShadow: `0 0 8px ${cfg.glow}` }} />
-                                    </div>
-                                    <span className="mst-count">{count}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <SalesCalendar sales={sales} selectedDate={selectedDate} onSelect={setSelectedDate} />
                 </div>
             </div>
         </div>

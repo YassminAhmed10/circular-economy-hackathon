@@ -12,7 +12,6 @@ namespace shadowfactory.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class MarketplaceController : ControllerBase
     {
         private readonly ECoVDbContext _context;
@@ -65,6 +64,8 @@ namespace shadowfactory.Controllers
                                            w.TitleEn.Contains(search));
                 }
 
+                var totalCount = await query.CountAsync();
+
                 var listings = await query
                     .OrderByDescending(w => w.CreatedAt)
                     .Skip((page - 1) * pageSize)
@@ -110,24 +111,32 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = w.SellerWhatsapp,
                     Latitude = w.Latitude,
                     Longitude = w.Longitude,
-                    LocationLink = w.LocationLink
+                    LocationLink = w.LocationLink,
+                    SellerEmail = w.SellerEmail // 🌐 For Profile API enrichment
                 }).ToList();
 
-                return Ok(new ApiResponse<List<WasteListingDto>>
+                return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "تم جلب قائمة المخلفات بنجاح",
-                    Data = result,
+                    Message = "Waste listings retrieved successfully",
+                    Data = new
+                    {
+                        Items = result,
+                        TotalCount = totalCount,
+                        Page = page,
+                        PageSize = pageSize,
+                        TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                    },
                     Timestamp = DateTime.UtcNow
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting waste listings");
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<List<WasteListingDto>>
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "حدث خطأ أثناء جلب قائمة المخلفات",
+                    Message = "Error retrieving waste listings",
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -203,13 +212,14 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = listing.SellerWhatsapp,
                     Latitude = listing.Latitude,
                     Longitude = listing.Longitude,
-                    LocationLink = listing.LocationLink
+                    LocationLink = listing.LocationLink,
+                    SellerEmail = listing.SellerEmail // 🌐 For Profile API enrichment
                 };
 
                 return Ok(new ApiResponse<WasteListingDto>
                 {
                     Success = true,
-                    Message = "تم جلب بيانات المنتج بنجاح",
+                    Message = "Product details retrieved successfully",
                     Data = result,
                     Timestamp = DateTime.UtcNow
                 });
@@ -220,7 +230,7 @@ namespace shadowfactory.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<WasteListingDto>
                 {
                     Success = false,
-                    Message = "حدث خطأ أثناء جلب بيانات المنتج",
+                    Message = "Error retrieving product details",
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -371,7 +381,8 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = request.SellerWhatsapp ?? user.Factory.Phone,
                     Latitude = request.Latitude ?? user.Factory.Latitude,
                     Longitude = request.Longitude ?? user.Factory.Longitude,
-                    LocationLink = request.LocationLink
+                    LocationLink = request.LocationLink,
+                    SellerEmail = user.Email // 🌐 For Profile API enrichment
                 };
 
                 _logger.LogInformation("Adding listing to database");
@@ -382,7 +393,7 @@ namespace shadowfactory.Controllers
 
                 if (saveResult <= 0)
                 {
-                    throw new Exception("فشل في حفظ البيانات في قاعدة البيانات");
+                    throw new Exception("Failed to save data to database");
                 }
 
                 await transaction.CommitAsync();
@@ -427,13 +438,14 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = listing.SellerWhatsapp,
                     Latitude = listing.Latitude,
                     Longitude = listing.Longitude,
-                    LocationLink = listing.LocationLink
+                    LocationLink = listing.LocationLink,
+                    SellerEmail = listing.SellerEmail // 🌐 For Profile API enrichment
                 };
 
                 return Ok(new ApiResponse<WasteListingDto>
                 {
                     Success = true,
-                    Message = "تم نشر الإعلان بنجاح",
+                    Message = "Listing published successfully",
                     Data = result,
                     Timestamp = DateTime.UtcNow
                 });
@@ -452,7 +464,135 @@ namespace shadowfactory.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
                 {
                     Success = false,
-                    Message = "حدث خطأ داخلي في الخادم",
+                    Message = "Internal server error",
+                    Errors = new List<string> { ex.Message, ex.InnerException?.Message },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Migrate listings from localStorage to database
+        /// </summary>
+        [HttpPost("migrate-from-localstorage")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> MigrateFromLocalStorage([FromBody] List<MigrateListingRequest> localListings)
+        {
+            try
+            {
+                if (localListings == null || !localListings.Any())
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "No listings provided to migrate",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                _logger.LogInformation($"Received {localListings.Count} listings to migrate");
+
+                var migrated = new List<object>();
+                var errors = new List<string>();
+
+                foreach (var local in localListings)
+                {
+                    try
+                    {
+                        _logger.LogInformation($"Processing migration for listing: ID={local.Id}, Title={local.TitleAr}");
+
+                        // Check if listing already exists in database
+                        var existing = await _context.WasteListings
+                            .FirstOrDefaultAsync(w => w.Id == local.Id || 
+                                (w.TitleAr == local.TitleAr && w.FactoryId == local.FactoryId));
+
+                        if (existing != null)
+                        {
+                            _logger.LogInformation($"Listing already exists: ID={existing.Id}");
+                            errors.Add($"Listing '{local.TitleAr}' already exists (ID: {existing.Id})");
+                            continue;
+                        }
+
+                        // Get the factory for this listing
+                        var factory = await _context.Factories
+                            .FirstOrDefaultAsync(f => f.Id == local.FactoryId);
+
+                        if (factory == null)
+                        {
+                            _logger.LogWarning($"Factory not found for ID: {local.FactoryId}");
+                            errors.Add($"Factory not found for ID: {local.FactoryId}");
+                            continue;
+                        }
+
+                        // Create new database listing
+                        var newListing = new WasteListing
+                        {
+                            Id = local.Id, // Keep the same ID
+                            Type = local.Category ?? "Waste",
+                            TypeEn = local.Category ?? "Waste",
+                            TitleAr = local.TitleAr ?? local.TitleEn,
+                            TitleEn = local.TitleEn ?? local.TitleAr,
+                            Category = local.Category ?? "general",
+                            Amount = local.Amount ?? 10,
+                            Unit = local.Unit ?? "ton",
+                            Price = local.Price ?? 0,
+                            FactoryName = factory.FactoryName,
+                            FactoryId = local.FactoryId,
+                            Location = factory.Location ?? "Egypt",
+                            Description = local.Description ?? "",
+                            DescriptionAr = local.DescriptionAr ?? local.Description,
+                            DescriptionEn = local.DescriptionEn ?? local.Description,
+                            CompanyNameAr = factory.FactoryName,
+                            CompanyNameEn = factory.FactoryNameEn ?? factory.FactoryName,
+                            LocationAr = factory.Location,
+                            LocationEn = factory.Location,
+                            Status = "Active",
+                            Views = 0,
+                            Offers = 0,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow,
+                            ExpiresAt = DateTime.UtcNow.AddDays(30),
+                            SellerEmail = factory.Email
+                        };
+
+                        await _context.WasteListings.AddAsync(newListing);
+                        migrated.Add(new { newListing.Id, newListing.TitleAr });
+                        _logger.LogInformation($"Added listing: {newListing.Id} - {newListing.TitleAr}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error migrating listing: {local.TitleAr}");
+                        errors.Add($"Error migrating '{local.TitleAr}': {ex.Message}");
+                    }
+                }
+
+                if (migrated.Any())
+                {
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Successfully migrated {migrated.Count} listings");
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Migrated {migrated.Count} listings, {errors.Count} errors",
+                    Data = new
+                    {
+                        Migrated = migrated,
+                        Errors = errors,
+                        TotalReceived = localListings.Count
+                    },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in migration endpoint");
+                return StatusCode(500, new ApiResponse
+                {
+                    Success = false,
+                    Message = "Migration failed",
                     Errors = new List<string> { ex.Message, ex.InnerException?.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -491,7 +631,7 @@ namespace shadowfactory.Controllers
                 return Ok(new ApiResponse<List<CategoryDto>>
                 {
                     Success = true,
-                    Message = "تم جلب الفئات بنجاح",
+                    Message = "Categories retrieved successfully",
                     Data = categoryGroups,
                     Timestamp = DateTime.UtcNow
                 });
@@ -590,13 +730,14 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = w.SellerWhatsapp,
                     Latitude = w.Latitude,
                     Longitude = w.Longitude,
-                    LocationLink = w.LocationLink
+                    LocationLink = w.LocationLink,
+                    SellerEmail = w.SellerEmail // 🌐 For Profile API enrichment
                 }).ToList();
 
                 return Ok(new ApiResponse<List<WasteListingDto>>
                 {
                     Success = true,
-                    Message = "تم جلب إعلاناتك بنجاح",
+                    Message = "Your listings retrieved successfully",
                     Data = result,
                     Timestamp = DateTime.UtcNow
                 });
@@ -607,7 +748,7 @@ namespace shadowfactory.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<List<WasteListingDto>>
                 {
                     Success = false,
-                    Message = "حدث خطأ أثناء جلب إعلاناتك",
+                    Message = "Error retrieving your listings",
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -797,13 +938,14 @@ namespace shadowfactory.Controllers
                     SellerWhatsapp = listing.SellerWhatsapp,
                     Latitude = listing.Latitude,
                     Longitude = listing.Longitude,
-                    LocationLink = listing.LocationLink
+                    LocationLink = listing.LocationLink,
+                    SellerEmail = listing.SellerEmail // 🌐 For Profile API enrichment
                 };
 
                 return Ok(new ApiResponse<WasteListingDto>
                 {
                     Success = true,
-                    Message = "تم تحديث الإعلان بنجاح",
+                    Message = "Listing updated successfully",
                     Data = result,
                     Timestamp = DateTime.UtcNow
                 });
@@ -814,7 +956,7 @@ namespace shadowfactory.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<WasteListingDto>
                 {
                     Success = false,
-                    Message = "حدث خطأ أثناء تحديث الإعلان",
+                    Message = "Error updating listing",
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -822,7 +964,7 @@ namespace shadowfactory.Controllers
         }
 
         /// <summary>
-        /// Delete waste listing
+        /// Delete waste listing (owners can delete their own, admins can delete any)
         /// </summary>
         [HttpDelete("waste-listings/{id}")]
         [Authorize]
@@ -846,20 +988,27 @@ namespace shadowfactory.Controllers
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Id == userId);
 
-                if (user?.FactoryId == null)
+                var isAdmin = user?.Role == "Admin";
+
+                // If not admin, must have a factory
+                if (!isAdmin)
                 {
-                    return BadRequest(new ApiResponse
+                    if (user?.FactoryId == null)
                     {
-                        Success = false,
-                        Message = "ليس لديك مصنع مسجل",
-                        Timestamp = DateTime.UtcNow
-                    });
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Message = "ليس لديك مصنع مسجل",
+                            Timestamp = DateTime.UtcNow
+                        });
+                    }
                 }
 
                 var listing = await _context.WasteListings
-                    .FirstOrDefaultAsync(w => w.Id == id && w.FactoryId == user.FactoryId);
+                    .FirstOrDefaultAsync(w => w.Id == id);
 
-                if (listing == null)
+                // Check authorization: admins can delete any listing, owners can only delete their own
+                if (listing == null || (!isAdmin && listing.FactoryId != user?.FactoryId))
                 {
                     return NotFound(new ApiResponse
                     {
@@ -878,7 +1027,7 @@ namespace shadowfactory.Controllers
                 return Ok(new ApiResponse
                 {
                     Success = true,
-                    Message = "تم حذف الإعلان بنجاح",
+                    Message = "Listing deleted successfully",
                     Timestamp = DateTime.UtcNow
                 });
             }
@@ -888,7 +1037,93 @@ namespace shadowfactory.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
                 {
                     Success = false,
-                    Message = "حدث خطأ أثناء حذف الإعلان",
+                    Message = "Error deleting listing",
+                    Errors = new List<string> { ex.Message },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Upload image for waste listing
+        /// </summary>
+        [HttpPost("upload-image")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<UploadImageResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
+        {
+            try
+            {
+                // Validate file
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "يجب تحديد صورة",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Check file size (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Check file type
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp", "image/gif" };
+                if (!allowedTypes.Contains(file.ContentType))
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = "نوع الصورة غير مدعوم. يجب أن تكون بصيغة JPG أو PNG أو WebP",
+                        Timestamp = DateTime.UtcNow
+                    });
+                }
+
+                // Create uploads directory if it doesn't exist
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                // Generate unique filename
+                var fileName = $"{Guid.NewGuid()}_{file.FileName}".Replace(" ", "_");
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return image URL
+                var imageUrl = $"/uploads/{fileName}";
+
+                return Ok(new ApiResponse<UploadImageResponse>
+                {
+                    Success = true,
+                    Message = "Image uploaded successfully",
+                    Data = new UploadImageResponse { ImageUrl = imageUrl },
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse
+                {
+                    Success = false,
+                    Message = "Image upload failed",
                     Errors = new List<string> { ex.Message },
                     Timestamp = DateTime.UtcNow
                 });
@@ -1152,4 +1387,28 @@ namespace shadowfactory.Controllers
 
         #endregion
     }
+
+    #region Request/Response Models
+
+    public class MigrateListingRequest
+    {
+        public long Id { get; set; }
+        public string? TitleAr { get; set; }
+        public string? TitleEn { get; set; }
+        public string? Category { get; set; }
+        public decimal? Amount { get; set; }
+        public string? Unit { get; set; }
+        public decimal? Price { get; set; }
+        public long FactoryId { get; set; }
+        public string? Description { get; set; }
+        public string? DescriptionAr { get; set; }
+        public string? DescriptionEn { get; set; }
+    }
+
+    public class UploadImageResponse
+    {
+        public string ImageUrl { get; set; } = string.Empty;
+    }
+
+    #endregion
 }

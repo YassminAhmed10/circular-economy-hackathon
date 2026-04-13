@@ -305,6 +305,45 @@ function Profile({ user: initialUser, onUpdateUser, lang = 'ar', dark = false })
             const response = await profileAPI.updateProfile(updateData);
             console.log('Update response:', response);
             
+            // 💾 حفظ البيانات في localStorage لتظهر في جدول الطلبات
+            const factoriesCache = JSON.parse(localStorage.getItem('ecov_factories') || '[]');
+            const factoryIndex = factoriesCache.findIndex(f => 
+              (f?.id === formData.factoryId) || 
+              (f?.factoryName?.toLowerCase() === formData.factoryName?.toLowerCase())
+            );
+            
+            const factoryDataToCache = {
+              id: formData.factoryId || 1, // ✅ معرف فريد للمصنع
+              factoryId: formData.factoryId || 1,
+              factoryName: updateData.factoryName,
+              industryType: updateData.industryType,
+              location: updateData.location,
+              address: updateData.address,
+              email: updateData.email,
+              phone: updateData.phone,
+              ownerName: updateData.ownerName,
+              ownerPhone: updateData.ownerPhone,
+              taxNumber: updateData.taxNumber,
+              registrationNumber: updateData.registrationNumber,
+              establishmentYear: updateData.establishmentYear,
+              productionCapacity: updateData.productionCapacity,
+              mainProducts: updateData.mainProducts,
+              logoPreview: logoUrl,
+              isVerified: formData.isVerified || false,
+              rating: formData.rating || 0,
+              completedOrders: formData.completedOrders || 0,
+              certifications: formData.certifications || [],
+            };
+            
+            if (factoryIndex >= 0) {
+              factoriesCache[factoryIndex] = { ...factoriesCache[factoryIndex], ...factoryDataToCache };
+            } else {
+              factoriesCache.push(factoryDataToCache);
+            }
+            
+            localStorage.setItem('ecov_factories', JSON.stringify(factoriesCache));
+            console.log('✅ Factory data saved to cache:', factoryDataToCache);
+            
             onUpdateUser?.(updateData);
             setIsEditing(false);
         } catch (err) {

@@ -32,12 +32,16 @@ function Login({ onLoginSuccess }) {
                     localStorage.setItem('factory', JSON.stringify(factory));
                 }
 
+                // ✅ Add factoryId from user data so MyListings can filter correctly
                 const userWithFactory = {
                     ...user,
+                    factoryId: user?.factoryId || factory?.id,
                     factoryName: factory?.factoryName,
                     logoPreview: factory?.logoUrl,
                     status: factory?.status,
                 };
+
+                console.log('✅ User logged in with factoryId:', userWithFactory.factoryId);
 
                 if (onLoginSuccess) {
                     onLoginSuccess(userWithFactory);

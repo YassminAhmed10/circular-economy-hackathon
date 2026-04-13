@@ -51,6 +51,9 @@ namespace shadowfactory.models.Entities
         [StringLength(500)]
         public string? ImageUrl { get; set; }
 
+        [StringLength(20)]
+        public string? ListingId { get; set; } // ✅ معرف الإعلان البسيط (6 أرقام)
+
         [Required]
         [StringLength(20)]
         public string Status { get; set; } = "Active"; // Active, Pending, Sold, Expired

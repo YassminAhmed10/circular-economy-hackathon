@@ -4,11 +4,11 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // تفعيل Dark Mode باستخدام الكلاس
+  darkMode: 'class', // Enable Dark Mode using class
   theme: {
     extend: {
       colors: {
-        // ألوان مخصصة للمشروع
+        // Custom colors for project
         primary: {
           50: '#f0fdf4',
           100: '#dcfce7',
@@ -35,7 +35,7 @@ export default {
           900: '#0f172a',
           950: '#020617',
         },
-        // ألوان ثانوية إضافية
+        // Additional secondary colors
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',

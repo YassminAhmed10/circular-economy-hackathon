@@ -1,0 +1,72 @@
+{
+  "en": {
+    "dir": "ltr",
+    "heroBadge": "Circular Economy • Sustainable",
+    "heroTitle": "Industrial Waste Marketplace",
+    "heroSub": "Turn waste into business opportunities and benefit from the circular economy",
+    "searchPH": "Search for waste type or company name...",
+    "searchBtn": "Search",
+    "s1": "Active Listing",
+    "s2": "Registered Factory",
+    "s3": "Governorate",
+    "s4": "Customer Satisfaction",
+    "productsTitle": "Available Products",
+    "productUnit": "Product",
+    "allCats": "All Categories",
+    "sortLabel": "Sort by:",
+    "sorts": {
+      "newest": "Newest",
+      "priceLow": "Lowest Price",
+      "priceHigh": "Highest Price",
+      "nearest": "Nearest",
+      "rating": "Highest Rated"
+    },
+    "noResults": "No results found",
+    "noResultsHint": "Try changing your search criteria",
+    "showAll": "Show all products",
+    "mapTitle": "Search by Location",
+    "locPH": "Enter area or city name...",
+    "locBtn": "Search",
+    "detectBtn": "📍 Use current location",
+    "nearbyTitle": "Factories near you",
+    "nearbyEmpty": "Set your location to see nearby factories",
+    "mapLoading": "Loading map...",
+    "mapKeyMissing": "Google Maps key not set.",
+    "filters": {
+      "title": "Filters",
+      "clear": "Clear All",
+      "category": "Category",
+      "subCategory": "Sub Category",
+      "contamination": "Contamination Level",
+      "recyclability": "Recycle Type",
+      "priceRange": "Price Range (EGP/Ton)",
+      "min": "Min",
+      "max": "Max",
+      "quantity": "Available Quantity (Ton)"
+    },
+    "badges": {
+      "new": "New",
+      "featured": "Featured",
+      "offer": "Offer"
+    },
+    "cats": {
+      "all": "All",
+      "plastic": "Plastic",
+      "metal": "Metal",
+      "paper": "Paper",
+      "glass": "Glass",
+      "wood": "Wood",
+      "textile": "Textile",
+      "electronics": "Electronics"
+    },
+    "card": {
+      "buy": "Buy Now",
+      "details": "Details",
+      "location": "Location",
+      "price": "Price",
+      "unit": "EGP/Ton",
+      "stock": "In Stock",
+      "verified": "Verified"
+    }
+  }
+}

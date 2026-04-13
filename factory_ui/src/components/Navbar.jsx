@@ -22,6 +22,8 @@ import {
     Sun,
     Moon,
     CheckCircle,
+    CreditCard,
+    MapPin,
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
 import './Navbar.css';
@@ -68,19 +70,24 @@ function Navbar({
             path: '/marketplace',
             icon: <ShoppingCart className="w-4 h-4" />,
         },
-        { id: 'partners', label: 'الشركاء', path: '/partners', icon: <Factory className="w-4 h-4" /> },
         {
-            id: 'analytics',
-            label: 'التحليل',
-            path: '/analytics',
-            icon: <TrendingUp className="w-4 h-4" />,
+            id: 'impact-dashboard',
+            label: 'التأثير البيئي',
+            path: '/impact-dashboard',
+            icon: <Globe className="w-4 h-4" />,
         },
+        { id: 'partners', label: 'الشركاء', path: '/partners', icon: <Factory className="w-4 h-4" /> },
     ];
 
     const userLinks = [
         { id: 'my-listings', label: 'إعلاناتي', path: '/my-listings', icon: <Eye className="w-4 h-4" /> },
+        { id: 'sell-waste', label: '🌱 بيع المخلفات', path: '/sell-waste', icon: <Package className="w-4 h-4" /> },
         { id: 'list-waste', label: 'إضافة نفايات عامة', path: '/list-waste', icon: <Package className="w-4 h-4" /> },
         { id: 'add-packaging', label: 'إضافة تغليف مستدام', path: '/packaging-waste', icon: <Package className="w-4 h-4" /> },
+        { id: 'waste-assets', label: '♻️ إدارة الأصول', path: '/waste-assets', icon: <Factory className="w-4 h-4" /> },
+        { id: 'circular-marketplace', label: '🌍 السوق الدائرية', path: '/circular-marketplace', icon: <ShoppingCart className="w-4 h-4" /> },
+        { id: 'impact-dashboard', label: '🌱 تأثيري البيئي', path: '/impact-dashboard', icon: <TrendingUp className="w-4 h-4" /> },
+        { id: 'recycling-orders', label: '👁️ طلبات إعادة التدوير', path: '/recycling-orders', icon: <Package className="w-4 h-4" /> },
         { id: 'profile', label: 'الملف الشخصي', path: '/profile', icon: <User className="w-4 h-4" /> },
         { id: 'settings', label: 'الإعدادات', path: '/settings', icon: <Settings className="w-4 h-4" /> },
     ];
@@ -223,6 +230,7 @@ function Navbar({
                                                 className="dropdown-item text-red-600"
                                                 onClick={() => {
                                                     onLogout();
+                                                    navigate('/login');
                                                     setShowProfileMenu(false);
                                                 }}
                                             >
@@ -256,6 +264,14 @@ function Navbar({
                             <div className="navbar-quick-links">
                                 {user ? (
                                     <div className="flex gap-4">
+                                        <Link to="/payment" className="btn-primary" title="الدفع والشراء">
+                                            <CreditCard className="w-4 h-4" />
+                                            Payment
+                                        </Link>
+                                        <Link to="/waste-tracking" className="btn-primary" title="تتبع رحلة النفايات">
+                                            <MapPin className="w-4 h-4" />
+                                            Track Waste
+                                        </Link>
                                         <Link to="/list-waste" className="btn-secondary">
                                             <Plus className="w-4 h-4" />
                                             إضافة نفايات
@@ -347,6 +363,28 @@ function Navbar({
                                         </p>
                                         <p className="user-email">{user?.email || 'factory@email.com'}</p>
                                     </div>
+                                    <Link
+                                        to="/payment"
+                                        className="mobile-link"
+                                        onClick={() => setShowMobileMenu(false)}
+                                        title="الدفع والشراء"
+                                    >
+                                        <div className="mobile-link-content">
+                                            <CreditCard className="w-4 h-4" />
+                                            <span>Payment</span>
+                                        </div>
+                                    </Link>
+                                    <Link
+                                        to="/waste-tracking"
+                                        className="mobile-link"
+                                        onClick={() => setShowMobileMenu(false)}
+                                        title="تتبع رحلة النفايات"
+                                    >
+                                        <div className="mobile-link-content">
+                                            <MapPin className="w-4 h-4" />
+                                            <span>Track Waste</span>
+                                        </div>
+                                    </Link>
                                     {userLinks.map((link) => (
                                         <Link
                                             key={link.id}
@@ -364,6 +402,7 @@ function Navbar({
                                         className="mobile-logout"
                                         onClick={() => {
                                             onLogout();
+                                            navigate('/login');
                                             setShowMobileMenu(false);
                                         }}
                                     >

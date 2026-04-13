@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using shadowfactory.Models.DTOs;
+using ECoV.API.Services.Interfaces;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,13 +15,16 @@ namespace shadowfactory.Controllers
         private readonly IConfiguration _configuration;
         private readonly ILogger<RegisterController> _logger;
         private readonly string _connectionString;
+        private readonly IFileService _fileService;
 
         public RegisterController(
             IConfiguration configuration,
-            ILogger<RegisterController> logger)
+            ILogger<RegisterController> logger,
+            IFileService fileService)
         {
             _configuration = configuration;
             _logger = logger;
+            _fileService = fileService;
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? "";
         }
 
@@ -89,6 +93,26 @@ namespace shadowfactory.Controllers
                                 ? Math.Min(request.EstablishmentYear.Value, currentYear)
                                 : (int?)null;
 
+                            // ✅ حفظ اللوجو باستخدام FileService
+                            string? logoUrl = null;
+                            if (!string.IsNullOrWhiteSpace(request.LogoBase64))
+                            {
+                                var uploadResult = await _fileService.UploadBase64ImageAsync(
+                                    request.LogoBase64,
+                                    "logos",
+                                    $"temp_{Guid.NewGuid()}.png"
+                                );
+                                if (uploadResult.Success)
+                                {
+                                    logoUrl = uploadResult.FileUrl;
+                                    _logger.LogInformation("Logo saved successfully: {LogoUrl}", logoUrl);
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("Logo upload failed: {Message}", uploadResult.Message);
+                                }
+                            }
+
                             // ── Insert Factory ──
                             var insertFactorySql = @"
                                 INSERT INTO Factories (
@@ -135,11 +159,11 @@ namespace shadowfactory.Controllers
                             cmd.Parameters.AddWithValue("@FactorySize", request.FactorySize > 0 ? request.FactorySize : 1000);
                             cmd.Parameters.AddWithValue("@ProductionCapacity", request.ProductionCapacity);
 
-                            // ✅ LogoUrl: حفظ الـ Base64 مباشرة في الـ DB
+                            // ✅ LogoUrl: حفظ مسار الملف بدلاً من Base64
                             cmd.Parameters.AddWithValue("@LogoUrl",
-                                string.IsNullOrWhiteSpace(request.LogoBase64)
+                                string.IsNullOrWhiteSpace(logoUrl)
                                     ? DBNull.Value
-                                    : (object)request.LogoBase64);
+                                    : (object)logoUrl);
 
                             // ✅ DescriptionAr / DescriptionEn
                             cmd.Parameters.AddWithValue("@DescriptionAr",

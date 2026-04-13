@@ -102,6 +102,11 @@ export const profileAPI = {
     getStats: () => api.get('/profile/stats'),
     requestVerification: () => api.post('/profile/request-verification'),
     verifyFactory: (factoryId) => api.put(`/profile/verify-factory/${factoryId}`),
+    // 🆕 جلب بيانات البروفايل لمصنع معين بناءً على العنوان الإلكتروني (للاستخدام في WasteDetails)
+    // Returns: { data: { factoryId, factoryName, email, phone, address, taxNumber, registrationNumber, logoUrl, ... } }
+    getFactoryByEmail: (email) => api.get(`/profile/factory/${email}`),
+    // 🆕 جلب بيانات البروفايل لمصنع معين بناءً على ID (if backend adds this endpoint)
+    getFactoryById: (factoryId) => api.get(`/profile/factory-by-id/${factoryId}`),
 };
 
 export const adminVerificationAPI = {

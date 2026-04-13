@@ -20,23 +20,23 @@ const FALLBACK_WOOD     = 'https://images.unsplash.com/photo-1504307651254-35680
 const FALLBACK_FABRIC   = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80';
 
 const SLIDES = [
-  { id:1, src:'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1400&q=80', arTitle:'حوّل نفاياتك إلى قيمة حقيقية', enTitle:'Turn Your Waste Into Real Value', arSub:'انضم لأكثر من 150 مصنع يستفيد من المنصة', enSub:'Join 150+ factories already benefiting' },
-  { id:2, src:'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=1400&q=80', arTitle:'بع نفاياتك الصناعية بسهولة',      enTitle:'Sell Industrial Waste Easily',        arSub:'سوق متخصص يربطك بشركات إعادة التدوير', enSub:'A specialized market connecting you to recyclers' },
-  { id:3, src:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1400&q=80', arTitle:'اقتصاد دائري مستدام',               enTitle:'A Sustainable Circular Economy',      arSub:'نحمي البيئة ونحقق أرباحاً في نفس الوقت', enSub:'Protecting the environment while generating profit' },
+  { id:1, src:'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1400&q=80', arTitle:'Turn Your Waste Into Real Value', enTitle:'Turn Your Waste Into Real Value', arSub:'Join 150+ factories already benefiting', enSub:'Join 150+ factories already benefiting' },
+  { id:2, src:'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=1400&q=80', arTitle:'Sell Industrial Waste Easily',      enTitle:'Sell Industrial Waste Easily',        arSub:'A specialized market connecting you to recyclers', enSub:'A specialized market connecting you to recyclers' },
+  { id:3, src:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1400&q=80', arTitle:'A Sustainable Circular Economy',               enTitle:'A Sustainable Circular Economy',      arSub:'Protecting the environment while generating profit', enSub:'Protecting the environment while generating profit' },
 ];
 
 const FEATURES = [
-  { Icon:Factory,  ar:'ربط المصانع',   en:'Connect Factories', dAr:'ربط مباشر بين المصانع وشركات إعادة التدوير',      dEn:'Direct link between factories and recycling companies' },
-  { Icon:Recycle,  ar:'اقتصاد دائري',  en:'Circular Economy',  dAr:'تحويل النفايات إلى موارد قابلة للاستخدام مجدداً', dEn:'Transform waste into reusable resources'               },
-  { Icon:Boxes,    ar:'إدارة النفايات', en:'Waste Management',  dAr:'نظام متكامل لإدارة وتتبع النفايات الصناعية',       dEn:'Integrated system for managing industrial waste'       },
-  { Icon:Users,    ar:'شبكة شركاء',    en:'Partner Network',   dAr:'مجتمع متكامل من الشركات والجهات المعنية',          dEn:'Full community of companies and stakeholders'          },
+  { Icon:Factory,  ar:'Connect Factories',   en:'Connect Factories', dAr:'Direct link between factories and recycling companies',      dEn:'Direct link between factories and recycling companies' },
+  { Icon:Recycle,  ar:'Circular Economy',  en:'Circular Economy',  dAr:'Transform waste into reusable resources', dEn:'Transform waste into reusable resources'               },
+  { Icon:Boxes,    ar:'Waste Management', en:'Waste Management',  dAr:'Integrated system for managing industrial waste',       dEn:'Integrated system for managing industrial waste'       },
+  { Icon:Users,    ar:'Partner Network',    en:'Partner Network',   dAr:'Full community of companies and stakeholders',          dEn:'Full community of companies and stakeholders'          },
 ];
 
 const STEPS = [
-  { n:'01', Icon:Factory,       ar:'تسجيل المصنع',  en:'Register Factory', dAr:'سجّل بيانات مصنعك وأنواع النفايات المنتجة',    dEn:'Register your factory data and waste types'           },
-  { n:'02', Icon:Package,       ar:'عرض النفايات',   en:'List Waste',        dAr:'أضف النفايات المتاحة للبيع في سوق المنصة',      dEn:'Add available waste for sale on the platform market'  },
-  { n:'03', Icon:MessageCircle, ar:'استقبال العروض', en:'Receive Offers',    dAr:'تلقّ عروض شراء من شركات إعادة التدوير',         dEn:'Receive purchase offers from recycling companies'     },
-  { n:'04', Icon:Handshake,     ar:'إتمام الصفقة',   en:'Close the Deal',    dAr:'اختر العرض المناسب وأتمم عملية البيع بسهولة',  dEn:'Choose the best offer and complete the sale easily'   },
+  { n:'01', Icon:Factory,       ar:'Register Factory',  en:'Register Factory', dAr:'Register your factory data and waste types',    dEn:'Register your factory data and waste types'           },
+  { n:'02', Icon:Package,       ar:'List Waste',   en:'List Waste',        dAr:'Add available waste for sale on the platform market',      dEn:'Add available waste for sale on the platform market'  },
+  { n:'03', Icon:MessageCircle, ar:'Receive Offers', en:'Receive Offers',    dAr:'Receive purchase offers from recycling companies',         dEn:'Receive purchase offers from recycling companies'     },
+  { n:'04', Icon:Handshake,     ar:'Close the Deal',   en:'Close the Deal',    dAr:'Choose the best offer and complete the sale easily',  dEn:'Choose the best offer and complete the sale easily'   },
 ];
 
 // ── الفئات مع الصور المحلية ──

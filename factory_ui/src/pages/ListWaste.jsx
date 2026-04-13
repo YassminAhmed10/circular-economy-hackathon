@@ -5,7 +5,6 @@ import {
   Package, DollarSign, Upload, X, CheckCircle, ChevronRight,
   AlertCircle, Link as LinkIcon, Settings, Shield, Loader
 } from 'lucide-react';
-import { T } from './translations';
 import { profileAPI } from '../services/api';
 import addNewWasteImg from '../assets/addnewWasteLight.png';
 import addNewWasteDarkImg from '../assets/addNewWastedark.png';
@@ -170,6 +169,30 @@ const UI = {
   },
 };
 
+// ─── Translation Data for Waste Types, Locations, Tips ──────────────────────
+const T = {
+  ar: {
+    wasteTypes: ['بلاستيك', 'معادن', 'ورق', 'زجاج', 'خشب', 'منسوجات', 'نفايات عضوية', 'مخلفات إلكترونية', 'نفايات كيميائية', 'مطاط', 'تغليف', 'أخرى'],
+    locations: ['القاهرة', 'الجيزة', 'الإسكندرية', 'القليوبية', 'البحيرة', 'كفر الشيخ', 'دمياط', 'المنصورة', 'الشرقية', 'الإسماعيلية', 'السويس', '10th of Ramadan', 'بورسعيد', 'الفيوم', 'المنيا', 'بني سويف', 'أسيوط', 'سوهاج', 'أسوان', 'قنا', 'الأقصر'],
+    listWaste: {
+      tip1: 'أضف صوراً واضحة للمادة من زوايا مختلفة',
+      tip2: 'وصف دقيق يزيد من احتمالية الشراء',
+      tip3: 'سعر تنافسي يجذب المشترين بسرعة',
+      tip4: 'معلومات الموقع والتواصل سهلة الوصول'
+    }
+  },
+  en: {
+    wasteTypes: ['Plastic', 'Metal', 'Paper', 'Glass', 'Wood', 'Textile', 'Organic', 'Electronic', 'Chemical', 'Rubber', 'Packaging', 'Other'],
+    locations: ['Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Beheira', 'Kafr El-Sheikh', 'Damietta', 'Mansoura', 'Sharkia', 'Ismailia', 'Suez', '10th of Ramadan', 'Port Said', 'Fayoum', 'Minya', 'Bani Suef', 'Assiut', 'Sohag', 'Aswan', 'Qena', 'Luxor'],
+    listWaste: {
+      tip1: 'Add clear photos of the material from different angles',
+      tip2: 'Accurate description increases purchase likelihood',
+      tip3: 'Competitive price attracts buyers quickly',
+      tip4: 'Easy-to-reach location and contact info'
+    }
+  }
+};
+
 // ─── OptionSelector Component ────────────────────────────────────────────────
 const OptionSelector = ({ label, options, value, onChange, error, isRTL, accent, border, text }) => (
   <div style={{ marginBottom: '1.25rem' }} key={label}>
@@ -205,6 +228,7 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+    adId: '', // ✅ معرف الإعلان المُنشأ بشكل تلقائي
     title: '', wasteType: '', amount: '', unit: 'ton', frequency: 'monthly',
     price: '', currency: 'egp', location: '', locationLink: '', description: '',
     images: [], // Will store image URLs after upload
@@ -220,6 +244,18 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
   const [checkingVerification, setCheckingVerification] = useState(true);
 
   // Check factory verification status on component mount
+  // ✅ دالة لإنشاء معرف فريد للإعلان (6 أرقام عشوائية)
+  const generateAdId = () => {
+    return String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+  };
+
+  // ✅ يتم تشغيل عند تحميل الصفحة لإنشاء معرف الإعلان
+  useEffect(() => {
+    if (!form.adId) {
+      setForm(prev => ({ ...prev, adId: generateAdId() }));
+    }
+  }, []);
+
   useEffect(() => {
     const checkVerification = async () => {
       const token = localStorage.getItem('token');
@@ -288,21 +324,70 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
           body: formData
         });
 
-        const uploadData = await uploadResponse.json();
+        // Handle response (check if it's JSON)
+        let uploadData;
+        try {
+          uploadData = await uploadResponse.json();
+        } catch (e) {
+          // If response is not JSON, create a fallback with base64
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const base64 = e.target.result;
+            setForm(p => ({ 
+              ...p, 
+              images: [...p.images, base64],
+              imageFiles: [...p.imageFiles, file]
+            }));
+          };
+          reader.readAsDataURL(compressedBlob);
+          return;
+        }
 
         if (uploadResponse.ok && uploadData.success) {
-          // Add the image URL to form
+          // Add the image URL to form - extract URL from response
+          let imageUrlString = typeof uploadData.data === 'string' ? uploadData.data : uploadData.data?.imageUrl;
+          
+          // Convert relative URL to absolute URL (e.g., /uploads/abc.png → https://localhost:54464/uploads/abc.png)
+          if (imageUrlString && imageUrlString.startsWith('/')) {
+            // Extract base URL from API_BASE_URL (removes /api)
+            const apiBase = API_BASE_URL.replace('/api', '');
+            imageUrlString = `${apiBase}${imageUrlString}`;
+            console.log('✅ Converted to absolute URL:', imageUrlString.substring(0, 50) + '...');
+          }
+          
           setForm(p => ({ 
             ...p, 
-            images: [...p.images, uploadData.data],
+            images: [...p.images, imageUrlString],
             imageFiles: [...p.imageFiles, file]
           }));
+        } else if (uploadResponse.status === 404) {
+          // Fallback: save as base64 if backend endpoint doesn't exist
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const base64 = e.target.result;
+            setForm(p => ({ 
+              ...p, 
+              images: [...p.images, base64],
+              imageFiles: [...p.imageFiles, file]
+            }));
+          };
+          reader.readAsDataURL(compressedBlob);
         } else {
           throw new Error(uploadData.message || u.imageUploadError);
         }
       } catch (err) {
         console.error('Upload error:', err);
-        alert(err.message || u.imageUploadError);
+        // Fallback: save as base64 on any error
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target.result;
+          setForm(p => ({ 
+            ...p, 
+            images: [...p.images, base64],
+            imageFiles: [...p.imageFiles, file]
+          }));
+        };
+        reader.readAsDataURL(file);
       }
     }
     
@@ -365,11 +450,22 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
       const now = new Date().toISOString();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       
-      // Use the first image URL if available
-      const imageUrl = form.images.length > 0 ? form.images[0] : null;
+      // Use the first image URL if available - ensure it's a string
+      let imageUrl = null;
+      if (form.images.length > 0) {
+        const firstImage = form.images[0];
+        // If it's an object, extract the URL; if it's already a string, use it
+        imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage?.imageUrl || null);
+      }
+      
+      console.log('📸 Form Images Array:', form.images);
+      console.log('📸 Image URL to save:', imageUrl);
       
       // Prepare data with ALL database fields
       const listingData = {
+        // Listing ID
+        listingId: form.adId,
+        
         // Basic Info
         type: form.wasteType,
         typeEn: form.wasteType,
@@ -379,24 +475,15 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
         
         // Factory Info
         factoryId: user?.factoryId || 0,
-        factoryName: user?.factoryName || 'مصنع غير معروف',
+        factoryName: user?.factoryName || 'Unknown Factory',
         location: form.location,
         
-        // Description and Category
+        // Generic and Multi-language fields (Structural English Refactor)
+        title: form.title,
         description: form.description || '',
-        category: form.wasteType,
-        
-        // Status
-        status: 'Active',
-        views: 0,
-        offers: 0,
-        
-        // Timestamps
-        createdAt: now,
-        updatedAt: now,
-        expiresAt: expiresAt,
-        
-        // Multilingual Fields
+        companyName: user?.factoryName || 'Unknown Factory',
+
+        // Multilingual Fields (Mandatory for backward compatibility)
         titleAr: form.title,
         titleEn: form.title,
         descriptionAr: form.description || '',
@@ -407,6 +494,17 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
         locationEn: form.location,
         weightAr: `${form.amount} ${form.unit}`,
         weightEn: `${form.amount} ${form.unit}`,
+        
+        // Status
+        status: 'Active',
+        category: form.wasteType,
+        views: 0,
+        offers: 0,
+        
+        // Timestamps
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: expiresAt,
         
         // Rating and Reviews
         rating: 5.0,
@@ -478,6 +576,9 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
             category: form.wasteType,
             companyAr: user?.factoryName || 'مصنع غير معروف',
             companyEn: user?.factoryName || 'Unknown Factory',
+            email: user?.email || '',
+            factoryId: user?.factoryId || 0,
+            source: 'list-waste',
             locAr: form.location,
             locEn: form.location,
             price: parseFloat(form.price),
@@ -507,10 +608,36 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
             }
           };
 
+          console.log('💾 LocalListing to save:', {
+            id: localListing.id,
+            title: localListing.titleAr,
+            image: localListing.image?.substring(0, 50) + '...',
+            images: localListing.images?.length,
+            category: localListing.category,
+            userFactoryId: user?.factoryId
+          });
+
+          // ✅ Add factoryId to the listing so MyListings can filter by factory
+          localListing.factoryId = user?.factoryId || 1;
+          console.log('🏭 Listing saved with factoryId:', localListing.factoryId);
+          
           const ex = JSON.parse(localStorage.getItem('ecov_listings') || '[]');
-          localStorage.setItem('ecov_listings', JSON.stringify([localListing, ...ex]));
+          const updated = [localListing, ...ex];
+          localStorage.setItem('ecov_listings', JSON.stringify(updated));
+          
+          console.log('✅ Saved to localStorage:', updated.length, 'items');
+          console.log('📊 Listings by factory:', {
+            factoryId1: updated.filter(l => (l.factoryId || 1) === 1).length,
+            factoryId2: updated.filter(l => (l.factoryId || 1) === 2).length,
+            factoryId3: updated.filter(l => (l.factoryId || 1) === 3).length,
+          });
+          console.log('📦 First item in storage:', {
+            id: updated[0].id,
+            image: updated[0].image?.substring(0, 50),
+            images: updated[0].images?.length
+          });
         } catch (localErr) {
-          console.warn('Could not save to localStorage:', localErr);
+          console.warn('❌ Could not save to localStorage:', localErr);
         }
 
         // Navigate after success
@@ -841,26 +968,37 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
                 {isRTL ? <>{u.step1Title} <Package color={accent} size={19} /></> : <><Package color={accent} size={19} /> {u.step1Title}</>}
               </h2>
 
-              {/* Title */}
-              <div style={{ marginBottom: '1.2rem' }}>
-                <label style={lbl}>{u.adTitle} *</label>
-                <input type="text" value={form.title} onChange={e => upd('title', e.target.value)}
-                  placeholder={u.adTitlePH}
-                  style={inp({ borderColor: errors.title ? '#ef4444' : border })}
-                />
-                {errors.title && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.2rem', textAlign: isRTL ? 'right' : 'left' }}>{errors.title}</p>}
+              {/* Title + Listing ID */}
+              <div style={{ marginBottom: '1.2rem', display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.8rem', alignItems: 'flex-end' }}>
+                <div>
+                  <label style={lbl}>{u.adTitle} *</label>
+                  <input type="text" value={form.title} onChange={e => upd('title', e.target.value)}
+                    placeholder={u.adTitlePH}
+                    style={inp({ borderColor: errors.title ? '#ef4444' : border })}
+                  />
+                  {errors.title && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.2rem', textAlign: isRTL ? 'right' : 'left' }}>{errors.title}</p>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ ...lbl, fontSize: '0.8rem' }}>listing id</label>
+                  <input 
+                    type="text" 
+                    value={form.adId} 
+                    readOnly
+                    style={inp({ background: inputBg, cursor: 'default', opacity: 0.6, fontSize: '0.75rem', padding: '0.5rem 0.6rem' })}
+                  />
+                </div>
               </div>
 
               {/* Waste Type */}
               <div style={{ marginBottom: '1.2rem' }}>
                 <label style={lbl}>{u.wasteType} *</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', justifyContent: rowJustify }}>
-                  {Object.entries(wasteTypes).map(([key, val]) => (
-                    <button key={key} type="button" onClick={() => upd('wasteType', key)} style={{
+                  {wasteTypes.map((val) => (
+                    <button key={val} type="button" onClick={() => upd('wasteType', val)} style={{
                       padding: '0.45rem 1rem', borderRadius: '8px',
-                      border: `1.5px solid ${form.wasteType === key ? accent : border}`,
-                      background: form.wasteType === key ? accent : 'transparent',
-                      color: form.wasteType === key ? '#fff' : text,
+                      border: `1.5px solid ${form.wasteType === val ? accent : border}`,
+                      background: form.wasteType === val ? accent : 'transparent',
+                      color: form.wasteType === val ? '#fff' : text,
                       fontWeight: 600, fontSize: '0.86rem', cursor: 'pointer',
                       transition: 'all 0.16s', fontFamily: fontFam,
                     }}>{val}</button>
@@ -1116,7 +1254,7 @@ const ListWaste = ({ user, lang: propLang, dark }) => {
                 <div style={{ background: subtleBg, borderRadius: '14px', padding: '1rem', border: `1px solid ${border}` }}>
                   <p style={{ fontWeight: 800, color: accent, marginBottom: '0.7rem', fontSize: '0.85rem', textAlign: isRTL ? 'right' : 'left' }}>{u.basicInfo}</p>
                   {fld(u.reviewTitle, form.title)}
-                  {fld(u.reviewType, wasteTypes[form.wasteType])}
+                  {fld(u.reviewType, form.wasteType)}
                   {fld(u.reviewQty, `${form.amount} ${unitLabel(form.unit)}`)}
                   {fld(u.reviewFreq, freqLabel(form.frequency))}
                   {fld(u.reviewPrice, `${form.price} ${currLabel(form.currency)}`)}

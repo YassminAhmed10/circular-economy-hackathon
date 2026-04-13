@@ -6,6 +6,7 @@ import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
 import ErrorBoundary from './components/ErrorBoundary'
 import VerificationBanner from './components/VerificationBanner'
+import { cleanupCorruptedListings } from './services/cleanupCorruptedListings'
 import './App.css'
 
 const Home = lazy(() => import('./pages/Home'))
@@ -20,9 +21,22 @@ const Profile = lazy(() => import('./pages/Profile'))
 const Partners = lazy(() => import('./pages/Partners'))
 const MyListings = lazy(() => import('./pages/MyListings'))
 const Orders = lazy(() => import('./pages/Orders'))
+const Sales = lazy(() => import('./pages/Sales'))
 const Messages = lazy(() => import('./pages/Messages'))
-const Analytics = lazy(() => import('./pages/Analytics'))
-const AdminVerification = lazy(() => import('./pages/AdminVerification'))
+const Notifications = lazy(() => import('./pages/Notifications'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const AdminListingRequests = lazy(() => import('./pages/AdminListingRequests'))
+const AdminDirectOrders = lazy(() => import('./pages/AdminDirectOrders'))
+// Circular Economy Pages
+const WasteAssetManagement = lazy(() => import('./pages/WasteAssetManagement'))
+const CircularMarketplace = lazy(() => import('./pages/CircularMarketplace'))
+const SellWaste = lazy(() => import('./pages/SellWaste'))
+const WasteTracking = lazy(() => import('./pages/WasteTracking'))
+const Payment = lazy(() => import('./pages/Payment'))
+const ImpactDashboard = lazy(() => import('./pages/ImpactDashboard'))
+const RecyclingOrders = lazy(() => import('./pages/RecyclingOrders'))
+const PlaceOrder = lazy(() => import('./pages/PlaceOrder'))
+const RecyclerSelection = lazy(() => import('./pages/RecyclerSelection'))
 
 // ── HomeLayout ───────────────────────────────────────────────────────────────
 function HomeLayout({ children, user, onLogout, lang, setLang, dark, setDark }) {
@@ -72,7 +86,7 @@ function MarketLayout({ children, user, onLogout, lang, setLang, dark, setDark }
     )
 }
 
-// ── DashboardLayout — HomeNavbar الأبيض لكل الصفحات المحمية ──────────────────
+// ── DashboardLayout — White HomeNavbar for all protected pages ──────────────────
 function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDark, bannerHidden, setBannerHidden, showVerifiedSuccess }) {
     return (
         <div
@@ -104,7 +118,7 @@ function DashboardLayout({ children, user, onLogout, lang, setLang, dark, setDar
     )
 }
 
-// ── MainLayout (للصفحات التانية اللي مش dashboard) ───────────────────────────
+// ── MainLayout (for other pages not dashboard) ───────────────────────────
 function MainLayout({ children, user, onLogout, lang, setLang, dark, setDark }) {
     return (
         <div
@@ -136,7 +150,7 @@ function AdminRoute({ children, user }) {
 
 // ── PageLoader ────────────────────────────────────────────────────────────────
 function PageLoader() {
-    return <LoadingScreen message="جاري تحميل الصفحة..." />
+    return <LoadingScreen message="Loading page..." />
 }
 
 // ── AppContent ────────────────────────────────────────────────────────────────
@@ -148,7 +162,7 @@ function AppContent() {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState(null)
 
-    const [lang, setLang] = useState('ar')
+    const [lang, setLang] = useState('en')
     const [dark, setDark] = useState(false)
     const [bannerHidden, setBannerHidden] = useState(false)
     const [showVerifiedSuccessBanner, setShowVerifiedSuccessBanner] = useState(false)
@@ -164,17 +178,19 @@ function AppContent() {
                 setIsLoading(false)
             }
         }
+        // 🗑️ Make cleanup function globally accessible
+        window.cleanupCorruptedListings = cleanupCorruptedListings
         load()
     }, [])
 
     const handleRegistrationSuccess = (userData) => {
         try {
-            const newUser = { ...userData, isLoggedIn: true, joinedDate: new Date().toISOString(), level: 'مبتدئ', rating: 4.5, logoPreview: userData.logoPreview }
+            const newUser = { ...userData, isLoggedIn: true, joinedDate: new Date().toISOString(), level: 'Beginner', rating: 4.5, logoPreview: userData.logoPreview }
             setUser(newUser)
             localStorage.setItem('ecov_user', JSON.stringify(newUser))
             setBannerHidden(false)
         } catch (e) {
-            setError('حدث خطأ أثناء حفظ بيانات المستخدم')
+            setError('Error saving user data')
         }
     }
 
@@ -204,7 +220,7 @@ function AppContent() {
             setShowVerifiedSuccessBanner(shouldShowVerifiedSuccess)
             setBannerHidden(false)
         } catch (e) {
-            setError('حدث خطأ أثناء تسجيل الدخول')
+            setError('Error during login')
         }
     }
 
@@ -215,18 +231,18 @@ function AppContent() {
             setBannerHidden(false);
             setShowVerifiedSuccessBanner(false);
         } catch (e) {
-            setError('حدث خطأ أثناء تسجيل الخروج')
+            setError('Error during logout')
         }
     }
 
-    if (isLoading) return <LoadingScreen message="جاري تحميل التطبيق..." />
+    if (isLoading) return <LoadingScreen message="Loading application..." />
 
     if (error) return (
         <div className="error-page">
-            <h1>خطأ</h1>
+            <h1>Error</h1>
             <p className="text-red-600 mb-4">{error}</p>
             <button onClick={() => setError(null)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg transition-all">
-                إعادة المحاولة
+                Retry
             </button>
         </div>
     )
@@ -294,13 +310,33 @@ function AppContent() {
 
                     <Route path="/admin/verification" element={
                         <AdminRoute user={user}>
-                            <div className="app-container" dir={lang === 'ar' ? 'rtl' : 'ltr'} style={{ minHeight: '100vh', background: dark ? '#0f1a12' : '#f8fafc' }}>
-                                <main className="main-content" style={{ paddingTop: 0 }}>
-                                    <Suspense fallback={<PageLoader />}>
-                                        <AdminVerification user={user} lang={lang} dark={dark} />
-                                    </Suspense>
-                                </main>
-                            </div>
+                            <Suspense fallback={<PageLoader />}>
+                                <AdminDashboard user={user} onLogout={handleLogout} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+                            </Suspense>
+                        </AdminRoute>
+                    } />
+
+                    <Route path="/admin/buying-orders" element={
+                        <AdminRoute user={user}>
+                            <Suspense fallback={<PageLoader />}>
+                                <AdminDashboard user={user} onLogout={handleLogout} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+                            </Suspense>
+                        </AdminRoute>
+                    } />
+
+                    <Route path="/admin/listing-requests" element={
+                        <AdminRoute user={user}>
+                            <Suspense fallback={<PageLoader />}>
+                                <AdminDashboard user={user} onLogout={handleLogout} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+                            </Suspense>
+                        </AdminRoute>
+                    } />
+
+                    <Route path="/admin/direct-orders" element={
+                        <AdminRoute user={user}>
+                            <Suspense fallback={<PageLoader />}>
+                                <AdminDashboard user={user} onLogout={handleLogout} lang={lang} setLang={setLang} dark={dark} setDark={setDark} />
+                            </Suspense>
                         </AdminRoute>
                     } />
 
@@ -308,17 +344,27 @@ function AppContent() {
                         { path: '/list-waste', Component: ListWaste },
                         { path: '/packaging-waste', Component: SustainablePackagingWaste },
                         { path: '/profile', Component: Profile, extraProps: { onUpdateUser: setUser } },
+                        { path: '/sell-waste', Component: SellWaste },
+                        { path: '/waste-tracking', Component: WasteTracking },
+                        { path: '/payment', Component: Payment },
+                        { path: '/place-order/:id', Component: PlaceOrder },
+                        { path: '/recycler-selection/:id', Component: RecyclerSelection },
                         { path: '/partners', Component: Partners },
                         { path: '/my-listings', Component: MyListings },
                         { path: '/orders', Component: Orders },
+                        { path: '/sales', Component: Sales },
                         { path: '/messages', Component: Messages },
-                        { path: '/analytics', Component: Analytics },
-                    ].map(({ path, Component, extraProps = {} }) => (
-                        <Route key={path} path={path} element={
+                        { path: '/notifications', Component: Notifications },
+                        { path: '/waste-assets', Component: WasteAssetManagement },
+                        { path: '/circular-marketplace', Component: CircularMarketplace },
+                        { path: '/impact-dashboard', Component: ImpactDashboard },
+                        { path: '/recycling-orders', Component: RecyclingOrders },
+                    ].map(({ path: routePath, Component: RouteComponent, extraProps = {} }) => (
+                        <Route key={routePath} path={routePath} element={
                             <ProtectedRoute user={user}>
                                 <DashboardLayout {...navProps} bannerHidden={bannerHidden} setBannerHidden={setBannerHidden} showVerifiedSuccess={showVerifiedSuccessBanner}>
                                     <Suspense fallback={<PageLoader />}>
-                                        <Component user={user} lang={lang} dark={dark} {...extraProps} />
+                                        <RouteComponent user={user} lang={lang} dark={dark} {...extraProps} />
                                     </Suspense>
                                 </DashboardLayout>
                             </ProtectedRoute>
@@ -326,12 +372,12 @@ function AppContent() {
                     ))}
 
                     <Route path="/404" element={
-                        <div className="app-container" dir="rtl">
+                        <div className="app-container" dir="ltr">
                             <main className="main-content">
                                 <div className="error-page">
                                     <h1>404</h1>
-                                    <p>الصفحة التي تبحث عنها غير موجودة</p>
-                                    <a href="/" className="btn-primary">العودة للرئيسية</a>
+                                    <p>The page you are looking for does not exist</p>
+                                    <a href="/" className="btn-primary">Back to Home</a>
                                 </div>
                             </main>
                         </div>

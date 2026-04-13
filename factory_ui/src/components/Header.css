@@ -7,11 +7,13 @@
   z-index: 1000;
   background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: visible;
 }
 
 .top-bar {
   padding: 1rem 0;
   border-bottom: 1px solid #e2e8f0;
+  overflow: visible;
 }
 
 .logo-circle {

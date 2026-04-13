@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using shadowfactory.Models.Enums;
 
 namespace shadowfactory.Models.Entities
 {
@@ -12,19 +13,54 @@ namespace shadowfactory.Models.Entities
         [Column("Id")]
         public long Id { get; set; }
 
+        // ════════════════════════════════════════════════════════════
+        // NEW STRUCTURED WASTE CLASSIFICATION SYSTEM
+        // ════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Primary waste type (Plastic, Metal, Paper, etc.)
+        /// </summary>
+        // [Column("WasteTypeId")]
+        // public int? WasteTypeId { get; set; } // FK to WasteType enum, nullable for backward compatibility
+
+        /// <summary>
+        /// Detailed subtype within the waste type
+        /// </summary>
+        // [Column("WasteSubTypeId")]
+        // public int? WasteSubTypeId { get; set; } // FK to WasteSubType enum, nullable for backward compatibility
+
+        /// <summary>
+        /// Contamination level: Low, Medium, High
+        /// </summary>
+        // [Column("ContaminationLevelId")]
+        // public int? ContaminationLevelId { get; set; } // Maps to ContaminationLevel enum
+
+        /// <summary>
+        /// How material can be used: DirectUse, Recyclable, Reusable
+        /// </summary>
+        // [Column("RecyclabilityTypeId")]
+        // public int? RecyclabilityTypeId { get; set; } // Maps to RecyclabilityType enum
+
+        // ════════════════════════════════════════════════════════════
+        // LEGACY FIELDS (backward compatibility)
+        // ════════════════════════════════════════════════════════════
+
         [Required]
         [StringLength(100)]
         [Column("Type")]
-        public string Type { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // Legacy: Keep for compatibility
 
         [Required]
         [StringLength(50)]
         [Column("TypeEn")]
-        public string TypeEn { get; set; } = string.Empty;
+        public string TypeEn { get; set; } = string.Empty; // Legacy: Keep for compatibility
 
         [Required]
         [Column("Amount")]
         public decimal Amount { get; set; }
+
+        [Column("ReservedAmount")]
+        public decimal ReservedAmount { get; set; } = 0; // ✅ Quantity reserved by pending orders
 
         [Required]
         [StringLength(20)]
@@ -34,6 +70,37 @@ namespace shadowfactory.Models.Entities
         [Required]
         [Column("Price")]
         public decimal Price { get; set; }
+
+        // ════════════════════════════════════════════════════════════
+        // PACKAGING-SPECIFIC ATTRIBUTES (DISABLED - Not in DB schema yet)
+        // ════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Is this item safe for food contact?
+        /// Only applicable when WasteType == Packaging
+        /// </summary>
+        // [Column("FoodContactSafe")]
+        // public bool? FoodContactSafe { get; set; }
+
+        /// <summary>
+        /// Can this packaging be washed and reused?
+        /// Only applicable when WasteType == Packaging
+        /// </summary>
+        // [Column("CanBeWashed")]
+        // public bool? CanBeWashed { get; set; }
+
+        /// <summary>
+        /// Maximum number of times this can be reused
+        /// Only applicable when WasteType == Packaging && Recyclability == Reusable
+        /// </summary>
+        // [Column("MaxReuseCount")]
+        // public int? MaxReuseCount { get; set; }
+
+        /// <summary>
+        /// Estimated CO2 savings if this is recycled instead of landfilled (kg CO2)
+        /// </summary>
+        // [Column("Co2SavingsEstimate")]
+        // public decimal? Co2SavingsEstimate { get; set; }
 
         [Required]
         [Column("FactoryId")]
@@ -160,8 +227,47 @@ namespace shadowfactory.Models.Entities
         [Column("LocationLink")]
         public string? LocationLink { get; set; }
 
-        // Navigation property
+        [StringLength(100)]
+        [Column("SellerEmail")]
+        public string? SellerEmail { get; set; } // 🌐 For Profile API enrichment
+
+        // ════════════════════════════════════════════════════════════
+        // DEPRECATED FIELDS (kept for migration compatibility)
+        // Use the new WasteTypeId, WasteSubTypeId, ContaminationLevelId,
+        // RecyclabilityTypeId, and packaging attributes above instead
+        // ════════════════════════════════════════════════════════════
+
+        // Legacy: use WasteTypeId instead
+        [StringLength(50)]
+        [Column("ContaminationLevel")]
+        [Obsolete("Use ContaminationLevelId enum instead")]
+        public string? ContaminationLevel_Legacy { get; set; }
+
+        // Legacy: use FoodContactSafe instead
+        [Column("FoodContactSuitability")]
+        [Obsolete("Use FoodContactSafe property instead")]
+        public bool FoodContactSuitability_Legacy { get; set; } = false;
+
+        // Legacy: use RecyclabilityTypeId instead
+        [StringLength(150)]
+        [Column("RecyclabilityOption")]
+        [Obsolete("Use RecyclabilityTypeId enum instead")]
+        public string? RecyclabilityOption_Legacy { get; set; }
+
+        // Legacy: use WasteSubTypeId instead
+        [StringLength(100)]
+        [Column("PackagingWasteSubtype")]
+        [Obsolete("Use WasteSubTypeId enum instead")]
+        public string? PackagingWasteSubtype_Legacy { get; set; }
+
+        [Column("SourceRecyclerId")]
+        public int? SourceRecyclerId { get; set; }
+
+        // Navigation properties
         [ForeignKey("FactoryId")]
         public virtual Factory? Factory { get; set; }
+
+        // Relationships for packaging waste features
+        public virtual ICollection<RecyclerSuggestion>? RecyclerSuggestions { get; set; } = new List<RecyclerSuggestion>();
     }
 }

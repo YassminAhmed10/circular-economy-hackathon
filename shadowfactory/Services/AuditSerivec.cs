@@ -63,6 +63,40 @@ namespace shadowfactory.Services
             }
         }
 
+        public async Task LogActionAsync(
+            long? userId,
+            string action,
+            string entityType,
+            string? entityId = null,
+            string? details = null)
+        {
+            try
+            {
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                var auditLog = new AuditLog
+                {
+                    UserId = userId,
+                    FactoryId = null,
+                    Action = action,
+                    EntityType = entityType,
+                    EntityId = !string.IsNullOrEmpty(entityId) && long.TryParse(entityId, out var id) ? id : null,
+                    Timestamp = DateTime.UtcNow,
+                    IpAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
+                    UserAgent = httpContext?.Request.Headers["User-Agent"].ToString(),
+                    Url = httpContext?.Request.Path,
+                    NewValues = details
+                };
+
+                await _context.AuditLogs.AddAsync(auditLog);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Audit logging failed: {ex.Message}");
+            }
+        }
+
         private string? SerializeObject(object? value)
         {
             if (value == null) return null;

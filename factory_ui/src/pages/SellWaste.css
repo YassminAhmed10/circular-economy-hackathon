@@ -1,0 +1,377 @@
+/* SellWaste.css - Sell Waste Listing Page */
+
+/* ═══════════════════════════════════════════════════
+   LAYOUT & CONTAINERS
+   ═══════════════════════════════════════════════════ */
+
+.sell-waste-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.sell-waste-header {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(17, 153, 142, 0.2);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+.header-content p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   MAIN CONTENT LAYOUT
+   ═══════════════════════════════════════════════════ */
+
+.sell-waste-content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+}
+
+.form-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORM STYLES
+   ═══════════════════════════════════════════════════ */
+
+.sell-waste-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  padding: 0.875rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s;
+  background: white;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #11998e;
+  box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.1);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORM ROW (For side-by-side fields)
+   ═══════════════════════════════════════════════════ */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   INPUT WITH ICON
+   ═══════════════════════════════════════════════════ */
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon svg {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.input-with-icon .form-control {
+  padding-left: 2.5rem;
+}
+
+[dir="rtl"] .input-with-icon svg {
+  left: auto;
+  right: 12px;
+}
+
+[dir="rtl"] .input-with-icon .form-control {
+  padding-left: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORM ACTIONS
+   ═══════════════════════════════════════════════════ */
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(17, 153, 142, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   ERROR BANNER
+   ═══════════════════════════════════════════════════ */
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #991b1b;
+  margin-bottom: 1.5rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   TIPS SIDEBAR
+   ═══════════════════════════════════════════════════ */
+
+.tips-section {
+  background: #f0fdf4;
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.tips-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #16a34a;
+  margin: 0 0 1rem;
+}
+
+.tips-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tips-list li {
+  font-size: 0.9rem;
+  color: #15803d;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════
+   SUCCESS STATE
+   ═══════════════════════════════════════════════════ */
+
+.success-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background: #f0fdf4;
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+}
+
+.success-container h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem;
+}
+
+.success-container p {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 2rem;
+}
+
+.success-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .sell-waste-content {
+    grid-template-columns: 1fr;
+  }
+
+  .tips-section {
+    position: static;
+  }
+
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-content h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sell-waste-container {
+    padding: 1rem;
+  }
+
+  .sell-waste-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-section {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .sell-waste-container {
+    padding: 0.5rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.25rem;
+  }
+
+  .header-content p {
+    font-size: 0.95rem;
+  }
+}

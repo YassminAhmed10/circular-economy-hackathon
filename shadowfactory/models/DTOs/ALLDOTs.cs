@@ -12,6 +12,39 @@ namespace shadowfactory.Models.DTOs
         public T? Data { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+        public static ApiResponse<T> SuccessResponse(T data, string message = "Success")
+        {
+            return new ApiResponse<T>
+            {
+                Success = true,
+                Message = message,
+                Data = data,
+                Errors = new List<string>()
+            };
+        }
+
+        public static ApiResponse<T> ErrorResponse(string message, List<string>? errors = null)
+        {
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Message = message,
+                Data = default,
+                Errors = errors ?? new List<string>()
+            };
+        }
+
+        public static ApiResponse<T> ErrorResponse(string message, string error)
+        {
+            return new ApiResponse<T>
+            {
+                Success = false,
+                Message = message,
+                Data = default,
+                Errors = new List<string> { error }
+            };
+        }
     }
 
     public class ApiResponse
@@ -21,7 +54,11 @@ namespace shadowfactory.Models.DTOs
         public List<string> Errors { get; set; } = new List<string>();
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
-
+    // ==================== UPLOAD DTOs ====================
+    public class UploadImageResponse
+    {
+        public string ImageUrl { get; set; } = string.Empty;
+    }
     // ==================== FACTORY DTO ====================
     public class FactoryDto
     {
@@ -311,6 +348,11 @@ namespace shadowfactory.Models.DTOs
         public string? ContentType { get; set; }
     }
 
+    public class LogoUploadDto
+    {
+        public string? LogoBase64 { get; set; }
+    }
+
     // ==================== WASTE LISTING DTOs ====================
     public class WasteListingDto
     {
@@ -323,6 +365,7 @@ namespace shadowfactory.Models.DTOs
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
+        public string? ListingId { get; set; } // ✅ معرف الإعلان البسيط
         public string Status { get; set; } = string.Empty;
         public long FactoryId { get; set; }
         public string FactoryName { get; set; } = string.Empty;
@@ -350,10 +393,12 @@ namespace shadowfactory.Models.DTOs
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string? LocationLink { get; set; }
+        public string? SellerEmail { get; set; } // 🌐 For Profile API enrichment
     }
 
     public class WasteListingCreateRequest
     {
+        public string? ListingId { get; set; } // ✅ معرف الإعلان من الـ Frontend
         public string Type { get; set; } = string.Empty;
         public string? TypeEn { get; set; }
         public decimal Amount { get; set; }
@@ -383,6 +428,7 @@ namespace shadowfactory.Models.DTOs
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string? LocationLink { get; set; }
+        public string? SellerEmail { get; set; } // 🌐 For Profile API enrichment
     }
 
     public class WasteListingUpdateRequest

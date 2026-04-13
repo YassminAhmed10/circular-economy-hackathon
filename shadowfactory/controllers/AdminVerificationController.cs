@@ -31,30 +31,41 @@ namespace shadowfactory.Controllers
         {
             var pendingFactories = await _context.Factories
                 .Where(f => !f.IsVerified && (f.Status == "Pending" || f.Status == "VerificationRequested"))
+                .Include(f => f.Users)
                 .OrderByDescending(f => f.UpdatedAt)
-                .Select(f => new PendingFactoryVerificationDto
-                {
-                    FactoryId = f.Id,
-                    FactoryName = f.FactoryName,
-                    IndustryType = f.IndustryType,
-                    Location = f.Location,
-                    Address = f.Address,
-                    Email = f.Email,
-                    Phone = f.Phone,
-                    OwnerName = f.OwnerName,
-                    OwnerPhone = f.OwnerPhone,
-                    TaxNumber = f.TaxNumber,
-                    RegistrationNumber = f.RegistrationNumber,
-                    Status = f.Status,
-                    RequestedAt = f.UpdatedAt
-                })
                 .ToListAsync();
+
+            var dtos = pendingFactories.Select(f => new PendingFactoryVerificationDto
+            {
+                FactoryId = f.Id,
+                FactoryName = f.FactoryName,
+                IndustryType = f.IndustryType,
+                Location = f.Location,
+                Address = f.Address,
+                Email = f.Email,
+                Phone = f.Phone,
+                OwnerName = f.OwnerName,
+                OwnerPhone = f.OwnerPhone,
+                TaxNumber = f.TaxNumber,
+                RegistrationNumber = f.RegistrationNumber,
+                Status = f.Status,
+                RequestedAt = f.UpdatedAt,
+                LogoUrl = f.LogoUrl,
+                EstablishmentYear = f.EstablishmentYear,
+                ProductionCapacity = f.ProductionCapacity,
+                MainProducts = f.DescriptionAr,
+                RegistrationPurpose = new List<string>(), // Registration purpose not stored in Factory table
+                ProductionUnit = "ton",
+                UserEmail = f.Users.FirstOrDefault()?.Email ?? string.Empty,
+                UserPassword = f.Users.FirstOrDefault()?.PasswordHash != null ? "✓ Password Set (Hashed)" : "-", // Show indicator that password exists
+                CreatedAt = f.CreatedAt
+            }).ToList();
 
             return Ok(new ApiResponse<List<PendingFactoryVerificationDto>>
             {
                 Success = true,
                 Message = "Verification requests loaded successfully",
-                Data = pendingFactories
+                Data = dtos
             });
         }
 
@@ -239,6 +250,19 @@ namespace shadowfactory.Controllers
         public string RegistrationNumber { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public DateTime RequestedAt { get; set; }
+        public string? LogoUrl { get; set; }
+        
+        // Registration form fields
+        public int? EstablishmentYear { get; set; }
+        public decimal ProductionCapacity { get; set; }
+        public string? MainProducts { get; set; }
+        public List<string>? RegistrationPurpose { get; set; }
+        public string? ProductionUnit { get; set; }
+        
+        // Account information
+        public string? UserEmail { get; set; }
+        public string? UserPassword { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 
     public class VerificationDecisionRequest

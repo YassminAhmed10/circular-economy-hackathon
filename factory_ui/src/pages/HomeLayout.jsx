@@ -1,7 +1,7 @@
 // ── في AppContent أو HomeLayout – أضف هذا ──────────────────────────────────
 // 1. أضف الـ state في AppContent:
 
-const [lang, setLang] = useState('ar');
+const [lang, setLang] = useState('en');
 const [dark, setDark] = useState(false);
 
 // 2. في HomeLayout – مرّر الـ props:
